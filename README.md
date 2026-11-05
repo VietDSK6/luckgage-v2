@@ -1,8 +1,7 @@
 # luckgage v2
 
 luckgage v2 will combine an Expo mobile app, a self-hosted TypeScript REST API, PostgreSQL, and a
-React admin app. **Phase 1C Checklist vertical slice is complete**; Phase 1D suggestions,
-weather, and reminders have not started.
+React admin app. **Phase 1D local mobile scope is complete**; Phase 2 backend has not started.
 Backend and admin have not been scaffolded.
 
 ## Sources of truth
@@ -54,9 +53,17 @@ The Trips slice includes calendar-date validation, UUID identifiers, a versioned
 a repository seam, timeline grouping, Trips Hub, three-step create/review, edit, detail, delete,
 empty/loading/error states, and local restart persistence.
 
-The Checklist slice adds the schema v2 category/item relations with cascading deletion, progress,
+The Checklist slice adds category/item relations with cascading deletion, progress,
 search, packed/unpacked filters, category and item CRUD, per-category bulk state, inline quick-add,
 item quantity/notes, undo delete, completion feedback, and a one-tap entry from Trip Detail.
 
-Smart List, weather, reminders, Auth, remote sync, API, admin, and shared packages are intentionally
-not implemented in this phase.
+Phase 1D adds deterministic rule-based packing suggestions with editable preview, explicit
+confirmation, and transactional append-only apply. Trip Detail includes an optional direct
+Open-Meteo forecast with local cache/stale fallback and °C/°F preference. Local packing reminders
+use `expo-notifications`, request permission only when enabled, and support one or three days before
+departure. Notification behavior must be verified in a development build or on a physical device;
+denied permission and weather failure never block trip or checklist flows.
+
+The local schema is version 3: trips, checklist relations, weather cache, and reminder metadata.
+
+Auth, remote sync, API, admin, and shared packages are intentionally not implemented in this phase.

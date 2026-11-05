@@ -1,10 +1,17 @@
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useChecklistRepository } from '@/data/repositories/ChecklistRepositoryProvider';
+import {
+  ReminderRepositoryError,
+  type LocalReminder,
+  type ReminderDaysBefore,
+} from '@/data/repositories/ReminderRepository';
+import { useReminderRepository } from '@/data/repositories/ReminderRepositoryProvider';
 import { useTripRepository } from '@/data/repositories/TripRepositoryProvider';
+import { useWeatherRepository } from '@/data/repositories/WeatherRepositoryProvider';
 import { AppButton } from '@/design/components/AppButton';
 import { AppPageHeader } from '@/design/components/AppPageHeader';
 import { useAppTheme } from '@/design/theme/AppThemeProvider';
@@ -12,6 +19,7 @@ import { useI18n } from '@/i18n/I18nProvider';
 import { usePreferences } from '@/platform/preferences/PreferencesProvider';
 
 import { getChecklistProgress, type ChecklistProgress } from '@/features/checklist/domain/checklist';
+import { WeatherStrip, type WeatherUiState } from '@/features/weather/WeatherStrip';
 import { calendarDateFromLocalDate, formatCalendarDate } from './domain/calendarDate';
 import { getTripDurationDays, getTripTimeline, type Trip } from './domain/trip';
 import { tripTypeMessageKeys } from './tripPresentation';
@@ -19,7 +27,9 @@ import { tripTypeMessageKeys } from './tripPresentation';
 export function TripDetailScreen({ tripId }: { tripId: string }) {
   const repository = useTripRepository();
   const checklistRepository = useChecklistRepository();
+  const reminderRepository = useReminderRepository();
   const router = useRouter();
+  const weatherRepository = useWeatherRepository();
   const { theme } = useAppTheme();
   const { t } = useI18n();
   const { language } = usePreferences();
@@ -30,6 +40,10 @@ export function TripDetailScreen({ tripId }: { tripId: string }) {
     percentage: 0,
   });
   const [state, setState] = useState<'loading' | 'content' | 'notFound' | 'error'>('loading');
+  const [weatherState, setWeatherState] = useState<WeatherUiState>({ status: 'loading' });
+  const [reminder, setReminder] = useState<LocalReminder | null>(null);
+  const [reminderError, setReminderError] = useState<'permission' | 'date' | 'storage' | null>(null);
+  const [pendingReminder, setPendingReminder] = useState<ReminderDaysBefore | 0 | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState(false);
   const requestSequence = useRef(0);
@@ -56,12 +70,31 @@ export function TripDetailScreen({ tripId }: { tripId: string }) {
       setTrip(nextTrip);
       setChecklistProgress(getChecklistProgress(checklist));
       setState('content');
+      setWeatherState({ status: 'loading' });
+      weatherRepository
+        .getWeather(nextTrip, language)
+        .then((forecast) => {
+          if (requestId === requestSequence.current) {
+            setWeatherState({ status: 'ready', forecast });
+          }
+        })
+        .catch(() => {
+          if (requestId === requestSequence.current) setWeatherState({ status: 'unavailable' });
+        });
+      reminderRepository
+        .get(nextTrip.id)
+        .then((nextReminder) => {
+          if (requestId === requestSequence.current) setReminder(nextReminder);
+        })
+        .catch(() => {
+          if (requestId === requestSequence.current) setReminderError('storage');
+        });
     } catch {
       if (requestId === requestSequence.current) {
         setState('error');
       }
     }
-  }, [checklistRepository, repository, tripId]);
+  }, [checklistRepository, language, reminderRepository, repository, tripId, weatherRepository]);
 
   useFocusEffect(
     useCallback(() => {
@@ -85,6 +118,7 @@ export function TripDetailScreen({ tripId }: { tripId: string }) {
     setDeleteError(false);
 
     try {
+      await reminderRepository.cancel(tripId).catch(() => undefined);
       await repository.delete(tripId);
       router.replace('/');
     } catch {
@@ -99,6 +133,41 @@ export function TripDetailScreen({ tripId }: { tripId: string }) {
       { text: t('commonKeep'), style: 'cancel' },
       { text: t('commonDelete'), style: 'destructive', onPress: () => void deleteTrip() },
     ]);
+  };
+
+  const refreshWeather = async () => {
+    if (!trip) return;
+    setWeatherState({ status: 'loading' });
+    try {
+      const forecast = await weatherRepository.getWeather(trip, language, true);
+      setWeatherState({ status: 'ready', forecast });
+    } catch {
+      setWeatherState({ status: 'unavailable' });
+    }
+  };
+
+  const updateReminder = async (daysBefore: ReminderDaysBefore | 0) => {
+    if (!trip || pendingReminder !== null) return;
+    setPendingReminder(daysBefore);
+    setReminderError(null);
+    try {
+      if (daysBefore === 0) {
+        await reminderRepository.cancel(trip.id);
+        setReminder(null);
+      } else {
+        setReminder(await reminderRepository.schedule(trip, daysBefore, language));
+      }
+    } catch (error) {
+      setReminderError(
+        error instanceof ReminderRepositoryError && error.code === 'PERMISSION_DENIED'
+          ? 'permission'
+          : error instanceof ReminderRepositoryError && error.code === 'INVALID_DATE'
+            ? 'date'
+            : 'storage',
+      );
+    } finally {
+      setPendingReminder(null);
+    }
   };
 
   if (state !== 'content' || !trip) {
@@ -215,6 +284,87 @@ export function TripDetailScreen({ tripId }: { tripId: string }) {
 
         <View style={styles.section}>
           <Text accessibilityRole="header" style={[styles.sectionTitle, { color: theme.colors.ink }]}>
+            {t('weatherTitle')}
+          </Text>
+          <View style={styles.sectionContent}>
+            <WeatherStrip onRefresh={() => void refreshWeather()} state={weatherState} />
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text accessibilityRole="header" style={[styles.sectionTitle, { color: theme.colors.ink }]}>
+            {t('tripPackingTitle')}
+          </Text>
+          <View style={[styles.packingCallout, { borderColor: theme.colors.outline }]}>
+            <View style={[styles.ruleStamp, { backgroundColor: theme.colors.sun }]}>
+              <Text style={[styles.ruleStampText, { color: theme.colors.onWarm }]}>RULE</Text>
+            </View>
+            <Text style={[styles.packingBody, { color: theme.colors.inkMuted }]}>{t('tripPackingBody')}</Text>
+            <AppButton
+              label={t('tripPackingAction')}
+              onPress={() => router.push(`/trip/${trip.id}/packing-studio`)}
+            />
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text accessibilityRole="header" style={[styles.sectionTitle, { color: theme.colors.ink }]}>
+            {t('reminderTitle')}
+          </Text>
+          <Text style={[styles.reminderBody, { color: theme.colors.inkMuted }]}>{t('reminderBody')}</Text>
+          <View style={styles.reminderOptions}>
+            {(
+              [
+                [0, 'reminderOff'],
+                [1, 'reminderOneDay'],
+                [3, 'reminderThreeDays'],
+              ] as const
+            ).map(([value, labelKey]) => {
+              const selected = value === 0 ? reminder === null : reminder?.daysBefore === value;
+              return (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityState={{ busy: pendingReminder === value, selected }}
+                  disabled={pendingReminder !== null}
+                  key={value}
+                  onPress={() => void updateReminder(value)}
+                  style={({ pressed }) => [
+                    styles.reminderOption,
+                    {
+                      backgroundColor: selected ? theme.colors.primarySoft : theme.colors.surface,
+                      borderColor: selected ? theme.colors.primary : theme.colors.outline,
+                    },
+                    pressed ? styles.pressed : null,
+                  ]}>
+                  {pendingReminder === value ? <ActivityIndicator color={theme.colors.primary} size="small" /> : null}
+                  <Text style={[styles.reminderOptionText, { color: selected ? theme.colors.primary : theme.colors.ink }]}>
+                    {selected ? '✓ ' : ''}
+                    {t(labelKey)}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+          {reminder ? (
+            <Text style={[styles.reminderStatus, { color: theme.colors.success }]}>
+              ✓ {t('reminderScheduled', { date: formatReminderDate(reminder.scheduledFor, language) })}
+            </Text>
+          ) : null}
+          {reminderError ? (
+            <Text accessibilityRole="alert" style={[styles.reminderError, { color: theme.colors.danger }]}>
+              {t(
+                reminderError === 'permission'
+                  ? 'reminderPermissionDenied'
+                  : reminderError === 'date'
+                    ? 'reminderDateError'
+                    : 'reminderSaveError',
+              )}
+            </Text>
+          ) : null}
+        </View>
+
+        <View style={styles.section}>
+          <Text accessibilityRole="header" style={[styles.sectionTitle, { color: theme.colors.ink }]}>
             {t('tripNotesTitle')}
           </Text>
           <Text style={[styles.note, { color: trip.note ? theme.colors.ink : theme.colors.inkMuted }]}>
@@ -259,6 +409,7 @@ const styles = StyleSheet.create({
   typeTag: { overflow: 'hidden', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 18, fontSize: 13, lineHeight: 18, fontWeight: '800' },
   duration: { fontSize: 13, lineHeight: 18, fontWeight: '700' },
   section: { marginTop: 32 },
+  sectionContent: { marginTop: 12 },
   sectionTitle: { fontSize: 22, lineHeight: 29, fontWeight: '800' },
   readiness: { marginTop: 12, padding: 20, borderRadius: 20, flexDirection: 'row', alignItems: 'center', gap: 16 },
   readinessMark: { width: 48, height: 48, borderRadius: 24, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
@@ -266,7 +417,25 @@ const styles = StyleSheet.create({
   readinessCopy: { flex: 1, gap: 12 },
   readinessBody: { fontSize: 15, lineHeight: 22, fontWeight: '700' },
   checklistButton: { alignSelf: 'flex-start' },
+  packingCallout: { marginTop: 12, borderTopWidth: 1, borderBottomWidth: 1, paddingVertical: 20, gap: 14 },
+  ruleStamp: { alignSelf: 'flex-start', transform: [{ rotate: '-3deg' }], paddingHorizontal: 12, paddingVertical: 7 },
+  ruleStampText: { fontSize: 11, lineHeight: 15, fontWeight: '900', letterSpacing: 1.2 },
+  packingBody: { fontSize: 15, lineHeight: 23 },
+  reminderBody: { marginTop: 6, fontSize: 14, lineHeight: 21 },
+  reminderOptions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 },
+  reminderOption: { minHeight: 48, borderWidth: 1, borderRadius: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingHorizontal: 14 },
+  reminderOptionText: { fontSize: 13, lineHeight: 18, fontWeight: '800' },
+  reminderStatus: { marginTop: 10, fontSize: 13, lineHeight: 19, fontWeight: '800' },
+  reminderError: { marginTop: 10, fontSize: 13, lineHeight: 20, fontWeight: '700' },
+  pressed: { opacity: 0.68 },
   note: { marginTop: 10, fontSize: 16, lineHeight: 25 },
   deleteError: { marginTop: 28, fontSize: 14, lineHeight: 21, fontWeight: '700' },
   deleteButton: { marginTop: 32 },
 });
+
+function formatReminderDate(timestamp: number, language: 'vi' | 'en'): string {
+  return new Intl.DateTimeFormat(language === 'vi' ? 'vi-VN' : 'en-US', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(new Date(timestamp));
+}

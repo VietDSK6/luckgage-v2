@@ -33,7 +33,10 @@ export interface ChecklistRepository {
   setCategoryPacked(categoryId: string, isPacked: boolean): Promise<void>;
   deleteItem(itemId: string): Promise<ChecklistItem>;
   restoreItem(item: ChecklistItem): Promise<void>;
+  appendItems(tripId: string, items: ChecklistAppendItem[]): Promise<number>;
 }
+
+export type ChecklistAppendItem = ChecklistItemDraft & { categoryName: string };
 
 type CategoryRow = {
   id: string;
@@ -277,6 +280,68 @@ export class SQLiteChecklistRepository implements ChecklistRepository {
       );
     } catch (error) {
       throw mapStorageError('Could not restore checklist item', error);
+    }
+  }
+
+  async appendItems(tripId: string, items: ChecklistAppendItem[]): Promise<number> {
+    if (items.length === 0) {
+      throw new ChecklistRepositoryError('VALIDATION', 'Select at least one item');
+    }
+    const grouped = new Map<
+      string,
+      { name: string; quantity: number; note: string | null }[]
+    >();
+    for (const item of items) {
+      const categoryName = requireName(item.categoryName, 'Every item needs a category');
+      const normalized = requireItemDraft(item);
+      grouped.set(categoryName, [...(grouped.get(categoryName) ?? []), normalized]);
+    }
+
+    try {
+      await this.database.withTransactionAsync(async () => {
+        const next = await this.database.getFirstAsync<{ next_position: number }>(
+          `SELECT COALESCE(MAX(position), -1) + 1 AS next_position
+           FROM checklist_categories WHERE trip_id = ?`,
+          tripId,
+        );
+        const firstPosition = next?.next_position ?? 0;
+        const timestamp = this.now();
+        let categoryIndex = 0;
+
+        for (const [categoryName, categoryItems] of grouped) {
+          const categoryId = this.createId();
+          await this.database.runAsync(
+            `INSERT INTO checklist_categories
+              (id, trip_id, name, position, created_at, updated_at)
+             VALUES (?, ?, ?, ?, ?, ?)`,
+            categoryId,
+            tripId,
+            categoryName,
+            firstPosition + categoryIndex,
+            timestamp,
+            timestamp,
+          );
+          for (const [itemIndex, item] of categoryItems.entries()) {
+            await this.database.runAsync(
+              `INSERT INTO checklist_items
+                (id, category_id, name, quantity, note, is_packed, position, created_at, updated_at)
+               VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?)`,
+              this.createId(),
+              categoryId,
+              item.name,
+              item.quantity,
+              item.note,
+              itemIndex,
+              timestamp,
+              timestamp,
+            );
+          }
+          categoryIndex += 1;
+        }
+      });
+      return items.length;
+    } catch (error) {
+      throw preserveOrMap('Could not append packing suggestions', error);
     }
   }
 

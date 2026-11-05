@@ -45,3 +45,20 @@ jest.mock('expo-sqlite/kv-store', () => ({
 jest.mock('expo-system-ui', () => ({
   setBackgroundColorAsync: jest.fn(async () => undefined),
 }));
+
+jest.mock('expo-notifications', () => ({
+  AndroidImportance: { DEFAULT: 3 },
+  SchedulableTriggerInputTypes: { DATE: 'date' },
+  cancelScheduledNotificationAsync: jest.fn(async () => undefined),
+  getPermissionsAsync: jest.fn(async () => ({ granted: false, status: 'undetermined' })),
+  requestPermissionsAsync: jest.fn(async () => ({ granted: true, status: 'granted' })),
+  scheduleNotificationAsync: jest.fn(async () => 'notification-1'),
+  setNotificationChannelAsync: jest.fn(async () => undefined),
+  setNotificationHandler: jest.fn(),
+}));
+
+Object.defineProperty(globalThis, 'fetch', {
+  configurable: true,
+  writable: true,
+  value: jest.fn(async () => ({ ok: false, json: async () => ({}) })),
+});

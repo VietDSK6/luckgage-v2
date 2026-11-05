@@ -3,7 +3,7 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 import { initializeLocalDatabase } from './database';
 
 describe('initializeLocalDatabase', () => {
-  test('enables pragmas and migrates a new database through the checklist schema', async () => {
+  test('enables pragmas and migrates a new database through the phase 1D schema', async () => {
     const execAsync = jest.fn(async (_source: string) => undefined);
     const getFirstAsync = jest.fn(async (_source: string) => ({ user_version: 0 }));
     const withTransactionAsync = jest.fn(async (operation: () => Promise<void>) => operation());
@@ -11,7 +11,7 @@ describe('initializeLocalDatabase', () => {
 
     await initializeLocalDatabase(database);
 
-    expect(execAsync).toHaveBeenCalledTimes(5);
+    expect(execAsync).toHaveBeenCalledTimes(7);
     expect(execAsync.mock.calls[0][0]).toContain('PRAGMA journal_mode = WAL');
     expect(execAsync.mock.calls[0][0]).toContain('PRAGMA foreign_keys = ON');
     expect(execAsync.mock.calls[1][0]).toContain('CREATE TABLE IF NOT EXISTS trips');
@@ -22,12 +22,15 @@ describe('initializeLocalDatabase', () => {
     expect(execAsync.mock.calls[3][0]).toContain('CREATE TABLE IF NOT EXISTS checklist_items');
     expect(execAsync.mock.calls[3][0]).toContain('ON DELETE CASCADE');
     expect(execAsync.mock.calls[4][0]).toBe('PRAGMA user_version = 2');
-    expect(withTransactionAsync).toHaveBeenCalledTimes(2);
+    expect(execAsync.mock.calls[5][0]).toContain('CREATE TABLE IF NOT EXISTS weather_cache');
+    expect(execAsync.mock.calls[5][0]).toContain('CREATE TABLE IF NOT EXISTS local_reminders');
+    expect(execAsync.mock.calls[6][0]).toBe('PRAGMA user_version = 3');
+    expect(withTransactionAsync).toHaveBeenCalledTimes(3);
   });
 
   test('does not rerun migration when the schema is current', async () => {
     const execAsync = jest.fn(async (_source: string) => undefined);
-    const getFirstAsync = jest.fn(async (_source: string) => ({ user_version: 2 }));
+    const getFirstAsync = jest.fn(async (_source: string) => ({ user_version: 3 }));
     const withTransactionAsync = jest.fn(async (operation: () => Promise<void>) => operation());
     const database = { execAsync, getFirstAsync, withTransactionAsync } as unknown as SQLiteDatabase;
 
@@ -45,10 +48,27 @@ describe('initializeLocalDatabase', () => {
 
     await initializeLocalDatabase(database);
 
-    expect(execAsync).toHaveBeenCalledTimes(3);
+    expect(execAsync).toHaveBeenCalledTimes(5);
     expect(execAsync.mock.calls[1][0]).not.toContain('CREATE TABLE IF NOT EXISTS trips');
     expect(execAsync.mock.calls[1][0]).toContain('CREATE TABLE IF NOT EXISTS checklist_categories');
     expect(execAsync.mock.calls[2][0]).toBe('PRAGMA user_version = 2');
+    expect(execAsync.mock.calls[3][0]).toContain('CREATE TABLE IF NOT EXISTS weather_cache');
+    expect(execAsync.mock.calls[4][0]).toBe('PRAGMA user_version = 3');
+    expect(withTransactionAsync).toHaveBeenCalledTimes(2);
+  });
+
+  test('upgrades checklist schema with weather cache and reminder tables', async () => {
+    const execAsync = jest.fn(async (_source: string) => undefined);
+    const getFirstAsync = jest.fn(async (_source: string) => ({ user_version: 2 }));
+    const withTransactionAsync = jest.fn(async (operation: () => Promise<void>) => operation());
+    const database = { execAsync, getFirstAsync, withTransactionAsync } as unknown as SQLiteDatabase;
+
+    await initializeLocalDatabase(database);
+
+    expect(execAsync).toHaveBeenCalledTimes(3);
+    expect(execAsync.mock.calls[1][0]).toContain('CREATE TABLE IF NOT EXISTS weather_cache');
+    expect(execAsync.mock.calls[1][0]).toContain('CREATE TABLE IF NOT EXISTS local_reminders');
+    expect(execAsync.mock.calls[2][0]).toBe('PRAGMA user_version = 3');
     expect(withTransactionAsync).toHaveBeenCalledTimes(1);
   });
 });

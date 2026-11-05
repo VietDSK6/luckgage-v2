@@ -4,7 +4,9 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { initializeLocalDatabase, DATABASE_NAME } from '@/data/local/database';
 import { ChecklistRepositoryProvider } from '@/data/repositories/ChecklistRepositoryProvider';
+import { ReminderRepositoryProvider } from '@/data/repositories/ReminderRepositoryProvider';
 import { TripRepositoryProvider } from '@/data/repositories/TripRepositoryProvider';
+import { WeatherRepositoryProvider } from '@/data/repositories/WeatherRepositoryProvider';
 import { AppLoadingScreen } from '@/design/components/AppLoadingScreen';
 import { AppThemeProvider } from '@/design/theme/AppThemeProvider';
 import { I18nProvider } from '@/i18n/I18nProvider';
@@ -22,11 +24,15 @@ export function AppProviders({ children }: PropsWithChildren) {
             useSuspense>
             <TripRepositoryProvider>
               <ChecklistRepositoryProvider>
-                <PreferencesProvider>
-                  <I18nProvider>
-                    <AppThemeProvider>{children}</AppThemeProvider>
-                  </I18nProvider>
-                </PreferencesProvider>
+                <WeatherRepositoryProvider>
+                  <ReminderRepositoryProvider>
+                    <PreferencesProvider>
+                      <I18nProvider>
+                        <AppThemeProvider>{children}</AppThemeProvider>
+                      </I18nProvider>
+                    </PreferencesProvider>
+                  </ReminderRepositoryProvider>
+                </WeatherRepositoryProvider>
               </ChecklistRepositoryProvider>
             </TripRepositoryProvider>
           </SQLiteProvider>

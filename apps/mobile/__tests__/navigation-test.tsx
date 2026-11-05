@@ -7,6 +7,7 @@ import IndexRoute from '../app/index';
 import SettingsRoute from '../app/settings';
 import TripDetailRoute from '../app/trip/[tripId]/index';
 import ChecklistRoute from '../app/trip/[tripId]/checklist';
+import PackingStudioRoute from '../app/trip/[tripId]/packing-studio';
 import EditTripRoute from '../app/trip/[tripId]/edit';
 import NewTripRoute from '../app/trip/new';
 
@@ -200,5 +201,52 @@ describe('app navigation', () => {
 
     expect(await screen.findByRole('checkbox', { name: 'Hộ chiếu, số lượng 1, đã xếp' })).toBeTruthy();
     expect(database.runAsync.mock.calls.some(([source]) => String(source).includes('is_packed = ?'))).toBe(true);
+  });
+
+  test('keeps packing suggestions as an editable preview until confirmation, then appends them', async () => {
+    const user = userEvent.setup();
+    database.getFirstAsync.mockImplementation(async (source: string) => {
+      if (source.includes('FROM trips')) return persistedTripRow;
+      if (source.includes('MAX(position)')) return { next_position: 0 };
+      return null;
+    });
+    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
+
+    await renderRouter(
+      {
+        _layout: RootLayout,
+        index: IndexRoute,
+        'trip/[tripId]/index': TripDetailRoute,
+        'trip/[tripId]/checklist': ChecklistRoute,
+        'trip/[tripId]/packing-studio': PackingStudioRoute,
+      },
+      { initialUrl: '/trip/trip-1/packing-studio' },
+    );
+
+    await user.press(await screen.findByRole('button', { name: 'Tạo bản gợi ý' }));
+    expect(await screen.findByText('Kiểm tra từng món')).toBeTruthy();
+    expect(database.runAsync).not.toHaveBeenCalled();
+
+    const idInput = screen.getByDisplayValue('Giấy tờ tùy thân');
+    await user.clear(idInput);
+    await user.type(idInput, 'CCCD');
+    await user.press(screen.getByRole('button', { name: /Thêm \d+ món vào checklist/ }));
+    expect(database.runAsync).not.toHaveBeenCalled();
+
+    const buttons = alertSpy.mock.calls[0]?.[2];
+    const confirm = buttons?.find((button) => button.style !== 'cancel');
+    await act(async () => {
+      confirm?.onPress?.();
+      await Promise.resolve();
+    });
+
+    expect(await screen.findByText('Đã nối thêm vào checklist')).toBeTruthy();
+    expect(
+      database.runAsync.mock.calls.some(
+        ([source, ...params]) =>
+          String(source).includes('INSERT INTO checklist_items') && params.includes('CCCD'),
+      ),
+    ).toBe(true);
+    alertSpy.mockRestore();
   });
 });

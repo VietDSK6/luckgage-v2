@@ -6,12 +6,23 @@ import { AppBottomNavigation } from '@/design/components/AppBottomNavigation';
 import { useAppTheme } from '@/design/theme/AppThemeProvider';
 import { useI18n } from '@/i18n/I18nProvider';
 import { usePreferences } from '@/platform/preferences/PreferencesProvider';
-import type { AppLanguage, ThemeMode } from '@/platform/preferences/preferences';
+import type {
+  AppLanguage,
+  TemperatureUnit,
+  ThemeMode,
+} from '@/platform/preferences/preferences';
 
 export function FoundationScreen() {
   const { theme } = useAppTheme();
   const { t } = useI18n();
-  const { language, setLanguage, setThemeMode, themeMode } = usePreferences();
+  const {
+    language,
+    setLanguage,
+    setTemperatureUnit,
+    setThemeMode,
+    temperatureUnit,
+    themeMode,
+  } = usePreferences();
   const themeOptions: PreferenceOption<ThemeMode>[] = [
     { value: 'system', label: t('themeSystem') },
     { value: 'light', label: t('themeLight') },
@@ -20,6 +31,10 @@ export function FoundationScreen() {
   const languageOptions: PreferenceOption<AppLanguage>[] = [
     { value: 'vi', label: t('languageVietnamese') },
     { value: 'en', label: t('languageEnglish') },
+  ];
+  const temperatureOptions: PreferenceOption<TemperatureUnit>[] = [
+    { value: 'celsius', label: t('temperatureCelsius') },
+    { value: 'fahrenheit', label: t('temperatureFahrenheit') },
   ];
 
   return (
@@ -86,6 +101,13 @@ export function FoundationScreen() {
               options={languageOptions}
               theme={theme}
               value={language}
+            />
+            <PreferenceSelector
+              label={t('temperatureLabel')}
+              onChange={(value) => void setTemperatureUnit(value)}
+              options={temperatureOptions}
+              theme={theme}
+              value={temperatureUnit}
             />
           </View>
 

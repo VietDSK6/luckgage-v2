@@ -1,7 +1,7 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
 export const DATABASE_NAME = 'luckgage.db';
-export const DATABASE_VERSION = 2;
+export const DATABASE_VERSION = 3;
 
 export async function initializeLocalDatabase(database: SQLiteDatabase): Promise<void> {
   await database.execAsync(`
@@ -69,6 +69,32 @@ export async function initializeLocalDatabase(database: SQLiteDatabase): Promise
           ON checklist_items (category_id, position, created_at);
       `);
       await database.execAsync('PRAGMA user_version = 2');
+    });
+  }
+
+  if (currentVersion < 3) {
+    await database.withTransactionAsync(async () => {
+      await database.execAsync(`
+        CREATE TABLE IF NOT EXISTS weather_cache (
+          trip_id TEXT PRIMARY KEY NOT NULL,
+          destination TEXT NOT NULL,
+          start_date TEXT NOT NULL,
+          end_date TEXT NOT NULL,
+          payload_json TEXT NOT NULL,
+          fetched_at INTEGER NOT NULL,
+          FOREIGN KEY (trip_id) REFERENCES trips (id) ON DELETE CASCADE
+        );
+
+        CREATE TABLE IF NOT EXISTS local_reminders (
+          trip_id TEXT PRIMARY KEY NOT NULL,
+          days_before INTEGER NOT NULL CHECK (days_before IN (1, 3)),
+          notification_id TEXT NOT NULL,
+          scheduled_for INTEGER NOT NULL,
+          updated_at INTEGER NOT NULL,
+          FOREIGN KEY (trip_id) REFERENCES trips (id) ON DELETE CASCADE
+        );
+      `);
+      await database.execAsync('PRAGMA user_version = 3');
     });
   }
 }

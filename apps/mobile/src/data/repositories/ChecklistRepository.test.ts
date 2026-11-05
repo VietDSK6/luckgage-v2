@@ -42,7 +42,7 @@ describe('SQLiteChecklistRepository', () => {
 
   test('normalizes and appends an item at the next category position', async () => {
     const getFirstAsync = jest.fn(async () => ({ next_position: 3 }));
-    const runAsync = jest.fn(async () => ({ changes: 1, lastInsertRowId: 0 }));
+    const runAsync = jest.fn(async (..._args: unknown[]) => ({ changes: 1, lastInsertRowId: 0 }));
     const database = { getFirstAsync, runAsync } as unknown as SQLiteDatabase;
     const repository = new SQLiteChecklistRepository(database, () => 100, () => 'item-4');
 
@@ -115,5 +115,30 @@ describe('SQLiteChecklistRepository', () => {
       repository.createItem('category-1', { name: 'Socks', quantity: 0 }),
     ).rejects.toMatchObject<Partial<ChecklistRepositoryError>>({ code: 'VALIDATION' });
     expect(runAsync).not.toHaveBeenCalled();
+  });
+
+  test('appends selected suggestions in one transaction without updating existing rows', async () => {
+    const ids = ['category-docs', 'item-passport', 'item-tickets'];
+    const getFirstAsync = jest.fn(async () => ({ next_position: 2 }));
+    const runAsync = jest.fn(async (..._args: unknown[]) => ({ changes: 1, lastInsertRowId: 0 }));
+    const withTransactionAsync = jest.fn(async (operation: () => Promise<void>) => operation());
+    const repository = new SQLiteChecklistRepository(
+      { getFirstAsync, runAsync, withTransactionAsync } as unknown as SQLiteDatabase,
+      () => 500,
+      () => ids.shift() ?? 'unexpected',
+    );
+
+    await expect(
+      repository.appendItems('trip-1', [
+        { categoryName: 'Documents', name: 'Passport', quantity: 1 },
+        { categoryName: 'Documents', name: 'Tickets', quantity: 2, note: 'Offline copy' },
+      ]),
+    ).resolves.toBe(2);
+
+    expect(withTransactionAsync).toHaveBeenCalledTimes(1);
+    expect(runAsync).toHaveBeenCalledTimes(3);
+    expect(runAsync.mock.calls.every(([source]) => !String(source).includes('UPDATE'))).toBe(true);
+    expect(runAsync.mock.calls[0]?.[3]).toBe('Documents');
+    expect(runAsync.mock.calls[0]?.[4]).toBe(2);
   });
 });
