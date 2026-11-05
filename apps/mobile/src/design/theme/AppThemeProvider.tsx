@@ -40,7 +40,6 @@ export function AppThemeProvider({ children }: PropsWithChildren) {
 
 export function useAppTheme(): AppThemeContextValue {
   const context = useContext(AppThemeContext);
-
   if (!context) {
     throw new Error('useAppTheme must be used inside AppThemeProvider');
   }

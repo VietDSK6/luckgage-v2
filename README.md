@@ -1,8 +1,8 @@
 # luckgage v2
 
 luckgage v2 will combine an Expo mobile app, a self-hosted TypeScript REST API, PostgreSQL, and a
-React admin app. **Phase 1A foundation is complete**; Phase 1B Trips has not started. Backend and
-admin have not been scaffolded.
+React admin app. **Phase 1B Trips vertical slice is complete**; Phase 1C Checklist has not started.
+Backend and admin have not been scaffolded.
 
 ## Sources of truth
 
@@ -23,8 +23,8 @@ npm install
 npm run mobile
 ```
 
-From the Expo CLI, choose a supported Android or iOS target. This foundation does not require an
-emulator or device for repository verification.
+From the Expo CLI, choose a supported Android or iOS target. Trips persist in the local SQLite
+database between app restarts.
 
 The only example environment value is public. Copy `apps/mobile/.env.example` to
 `apps/mobile/.env.local` when a local API URL is needed later. No API client exists yet.
@@ -45,9 +45,13 @@ placeholders now. Expo/native dependencies stay in `apps/mobile/package.json`.
 ## Current scope
 
 `apps/mobile` contains Expo SDK 58, Expo Router, strict TypeScript, a safe-area app shell, semantic
-light/dark tokens, system/light/dark preferences, Vietnamese/English preferences, an Expo SQLite
-provider, development error logging, an error boundary, and focused Jest tests. Preferences use
-the SQLite-backed key-value store.
+light/dark tokens, system/light/dark preferences, Vietnamese/English preferences, development
+error logging, an error boundary, and focused Jest tests. Preferences use the SQLite-backed
+key-value store.
 
-Trips, Checklist, Smart List, Auth, feature tables, API, admin, and shared packages are
-intentionally not implemented in this phase.
+The Trips slice includes calendar-date validation, UUID identifiers, a versioned SQLite schema,
+a repository seam, timeline grouping, Trips Hub, three-step create/review, edit, detail, delete,
+empty/loading/error states, and local restart persistence.
+
+Checklist, Smart List, Auth, remote sync, API, admin, and shared packages are intentionally not
+implemented in this phase.

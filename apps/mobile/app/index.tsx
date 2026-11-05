@@ -1,5 +1,5 @@
-import { FoundationScreen } from '@/features/foundation/FoundationScreen';
+import { TripsHubScreen } from '@/features/trips/TripsHubScreen';
 
 export default function IndexRoute() {
-  return <FoundationScreen />;
+  return <TripsHubScreen />;
 }

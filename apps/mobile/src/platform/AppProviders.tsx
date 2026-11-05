@@ -3,6 +3,7 @@ import { Suspense, type PropsWithChildren } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { initializeLocalDatabase, DATABASE_NAME } from '@/data/local/database';
+import { TripRepositoryProvider } from '@/data/repositories/TripRepositoryProvider';
 import { AppLoadingScreen } from '@/design/components/AppLoadingScreen';
 import { AppThemeProvider } from '@/design/theme/AppThemeProvider';
 import { I18nProvider } from '@/i18n/I18nProvider';
@@ -18,11 +19,13 @@ export function AppProviders({ children }: PropsWithChildren) {
             databaseName={DATABASE_NAME}
             onInit={initializeLocalDatabase}
             useSuspense>
-            <PreferencesProvider>
-              <I18nProvider>
-                <AppThemeProvider>{children}</AppThemeProvider>
-              </I18nProvider>
-            </PreferencesProvider>
+            <TripRepositoryProvider>
+              <PreferencesProvider>
+                <I18nProvider>
+                  <AppThemeProvider>{children}</AppThemeProvider>
+                </I18nProvider>
+              </PreferencesProvider>
+            </TripRepositoryProvider>
           </SQLiteProvider>
         </Suspense>
       </AppErrorBoundary>

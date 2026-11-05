@@ -3,11 +3,11 @@ import { createContext, type PropsWithChildren, useContext, useMemo } from 'reac
 import { usePreferences } from '@/platform/preferences/PreferencesProvider';
 import type { AppLanguage } from '@/platform/preferences/preferences';
 
-import { type MessageKey, translate } from './messages';
+import { type MessageKey, type MessageValues, translate } from './messages';
 
 type I18nContextValue = {
   language: AppLanguage;
-  t: (key: MessageKey) => string;
+  t: (key: MessageKey, values?: MessageValues) => string;
 };
 
 const I18nContext = createContext<I18nContextValue | null>(null);
@@ -17,7 +17,7 @@ export function I18nProvider({ children }: PropsWithChildren) {
   const value = useMemo(
     () => ({
       language,
-      t: (key: MessageKey) => translate(language, key),
+      t: (key: MessageKey, values?: MessageValues) => translate(language, key, values),
     }),
     [language],
   );
