@@ -9,7 +9,8 @@
   "scripts": {
     "mobile": "npm run start --workspace @luckgage/mobile",
     "typecheck": "npm run typecheck --workspace @luckgage/mobile",
-    "lint": "npm run lint --workspace @luckgage/mobile"
+    "lint": "npm run lint --workspace @luckgage/mobile",
+    "test": "npm run test --workspace @luckgage/mobile"
   },
   "engines": {
     "node": ">=22.13.0"
