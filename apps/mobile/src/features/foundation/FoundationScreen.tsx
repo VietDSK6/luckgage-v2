@@ -2,6 +2,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import type { AppTheme } from '@/design/tokens';
+import { AppBottomNavigation } from '@/design/components/AppBottomNavigation';
 import { useAppTheme } from '@/design/theme/AppThemeProvider';
 import { useI18n } from '@/i18n/I18nProvider';
 import { usePreferences } from '@/platform/preferences/PreferencesProvider';
@@ -27,7 +28,8 @@ export function FoundationScreen() {
       edges={['top', 'right', 'bottom', 'left']}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
-        contentInsetAdjustmentBehavior="automatic">
+        contentInsetAdjustmentBehavior="automatic"
+        style={styles.scroll}>
         <View style={styles.content}>
           <View style={styles.eyebrowRow}>
             <View style={[styles.routeDot, { backgroundColor: theme.colors.accent }]} />
@@ -92,6 +94,7 @@ export function FoundationScreen() {
           </Text>
         </View>
       </ScrollView>
+      <AppBottomNavigation active="settings" />
     </SafeAreaView>
   );
 }
@@ -156,6 +159,9 @@ function PreferenceSelector<Value extends string>({
 
 const styles = StyleSheet.create({
   safeArea: {
+    flex: 1,
+  },
+  scroll: {
     flex: 1,
   },
   scrollContent: {
