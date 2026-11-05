@@ -1,8 +1,8 @@
 # luckgage v2
 
 luckgage v2 will combine an Expo mobile app, a self-hosted TypeScript REST API, PostgreSQL, and a
-React admin app. The repository is currently at **Phase 1A foundation**: only the Expo mobile shell
-has been bootstrapped. Backend and admin have not been scaffolded.
+React admin app. **Phase 1A foundation is complete**; Phase 1B Trips has not started. Backend and
+admin have not been scaffolded.
 
 ## Sources of truth
 
@@ -34,7 +34,8 @@ The only example environment value is public. Copy `apps/mobile/.env.example` to
 ```bash
 npm run typecheck
 npm run lint
-npx expo-doctor apps/mobile
+npm test
+npx expo-doctor@latest apps/mobile
 git diff --check
 ```
 
@@ -43,6 +44,10 @@ placeholders now. Expo/native dependencies stay in `apps/mobile/package.json`.
 
 ## Current scope
 
-`apps/mobile` contains Expo SDK 58, Expo Router, strict TypeScript, a safe-area app shell, and one
-foundation confirmation screen. Trips, Checklist, Smart List, Auth, SQLite, API, admin, and shared
-packages are intentionally not implemented in this phase.
+`apps/mobile` contains Expo SDK 58, Expo Router, strict TypeScript, a safe-area app shell, semantic
+light/dark tokens, system/light/dark preferences, Vietnamese/English preferences, an Expo SQLite
+provider, development error logging, an error boundary, and focused Jest tests. Preferences use
+the SQLite-backed key-value store.
+
+Trips, Checklist, Smart List, Auth, feature tables, API, admin, and shared packages are
+intentionally not implemented in this phase.

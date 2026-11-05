@@ -70,8 +70,8 @@ nhưng số lớp và singleton DI không phù hợp Phase 1A.
 | Route type rõ ràng | `src/navigation/types.ts` | ADAPT | Type safety tốt, nhưng slink truyền object/callback lớn qua route | Bật typed routes; chỉ truyền ID hoặc mode ngắn |
 | Safe-area provider và inset | `src/navigation/MainStack.tsx`, `src/presentation/components/page/AISPage.tsx` | ADAPT | Cần safe area nhưng không cần page abstraction sớm | Root layout dùng Router; screen shell dùng `SafeAreaView` từ safe-area-context |
 | Tách route khỏi screen | `src/navigation/`, `src/presentation/containers/` | ADAPT | Phù hợp tài liệu mobile luckgage nhưng route slink vẫn import screen trực tiếp khối lớn | Route file mỏng trong `app/`, nội dung màn hình ở `src/` |
-| Semantic theme light/dark | `src/theme/unistyles/themes.ts`, `unistyles.ts` | ADAPT | Ý tưởng semantic token tốt; Unistyles chưa cần cho một screen bootstrap | Dùng style cục bộ tối thiểu; chỉ tạo token/theme khi Phase 1A yêu cầu thực sự |
-| i18n vi/en với key typed | `src/locales/index.ts`, `vi.json`, `en.json` | ADAPT | Đúng target nhưng catalog slink lệch rất lớn giữa vi/en và mang business copy riêng | Chưa thêm ở bootstrap tối thiểu; Phase 1A tạo catalog luckgage cân bằng |
+| Semantic theme light/dark | `src/theme/unistyles/themes.ts`, `unistyles.ts` | ADAPT | Ý tưởng semantic token tốt; Unistyles không cần cho foundation | Phase 1A dùng token/context nhỏ, hỗ trợ system/light/dark và lưu preference |
+| i18n vi/en với key typed | `src/locales/index.ts`, `vi.json`, `en.json` | ADAPT | Đúng target nhưng catalog slink lệch rất lớn giữa vi/en và mang business copy riêng | Phase 1A dùng message map typed, cân bằng vi/en cho copy đang có |
 | Accessibility role/label ở component tương tác | `src/presentation/containers/lms/lesson/index.tsx` | ADOPT | Khớp product invariant về label và status không chỉ bằng màu | Màn hình foundation có heading semantics; action tương lai phải có label và target 48 dp |
 | Domain/data/presentation boundaries | `src/domain/`, `src/data/`, `src/presentation/` | ADAPT | Boundary hữu ích, nhưng hàng nghìn file và use case cho CRUD là quá mức | Tổ chức theo feature; chỉ tạo repository contract khi Phase 1 có persistence thật |
 | Singleton DI container và generator boilerplate | `src/di/DIContainer.ts`, `scripts/ais-template.mjs` | REJECT | Quá phức tạp cho Phase 1A và trái explicit composition trong architecture doc | Dùng import/composition trực tiếp; không thêm container hoặc codegen |
@@ -81,7 +81,7 @@ nhưng số lớp và singleton DI không phù hợp Phase 1A.
 | Lưu token bằng AsyncStorage | `src/domain/services/StorageManager.ts` | REJECT | Không đáp ứng security requirement cho credential nhạy cảm | Phase 3 dùng Expo SecureStore cho refresh credential |
 | Repository/service/use-case cho mọi domain | `src/data/repositories/`, `src/domain/use-cases/` | REJECT | Boilerplate lớn hơn nhu cầu và có duplicate naming `use-cases`/`usecases` | Chỉ thêm lớp khi có reuse hoặc migration seam thật |
 | Focused Jest test cho mapper, cache và refresh | `__tests__/api-service.refresh-token.test.ts`, `lms-course-merge.test.ts` | ADOPT | Test theo invariant/failure path, không theo số lượng | Khi có behavior, thêm unit/component test nhỏ tương ứng |
-| App render smoke test | `__tests__/App.test.tsx` | ADAPT | Có giá trị sau khi test setup tồn tại, nhưng chưa cần kéo Jest chỉ cho màn hình tĩnh | Phase 1A test setup sẽ thêm navigation/render smoke theo gate |
+| App render smoke test | `__tests__/App.test.tsx` | ADAPT | Có giá trị khi test setup tồn tại, nhưng không dùng snapshot lớn | Phase 1A dùng Expo Router testing library để smoke route thật và đổi ngôn ngữ |
 | Jest preset, ESLint, Prettier, typecheck scripts | `jest.config.js`, `.eslintrc.js`, `.prettierrc.js`, `package.json` | ADAPT | Tooling hợp lý nhưng version/config gắn bare RN và có cấu hình trùng | Dùng tooling do Expo SDK 58 scaffold cung cấp; giữ strict `tsc --noEmit` |
 | Alias `@/*` | `tsconfig.json`, `babel.config.js` | ADAPT | Alias hữu ích nhưng danh sách alias slink quá nhiều và phải đồng bộ hai nơi | Dùng tối đa `@/* -> src/*` khi cần; bootstrap có thể dùng relative import đơn giản |
 | Babel/Metro tùy biến | `babel.config.js`, `metro.config.js` | REJECT | Slink có config package lệch RN 0.78/0.79 và plugin Reanimated không ở vị trí như chính AGENTS yêu cầu | Dùng default Expo config; chỉ thêm custom config khi có nhu cầu chứng minh được |
@@ -110,6 +110,6 @@ nhưng số lớp và singleton DI không phù hợp Phase 1A.
 ## Quyết định áp dụng vào foundation
 
 Foundation dùng npm workspaces, Expo SDK 58 managed project, Expo Router, strict TypeScript,
-route mỏng, source screen trong `src`, safe area và một màn hình xác nhận. Chỉ thêm dependency do
-Expo scaffold/Router cần. Theme, i18n, storage, API, auth, DI, state library và test framework sẽ
-không được kéo vào trước khi phase tương ứng cần chúng.
+route mỏng, source screen trong `src` và safe area. Phase 1A bổ sung semantic light/dark tokens,
+vi/en typed messages, SQLite-backed preferences, SQLite provider, error boundary/dev logging và
+Jest 30 theo hướng dẫn Expo. API, auth, DI và state library vẫn được hoãn đến phase cần chúng.
