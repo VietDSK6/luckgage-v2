@@ -6,6 +6,7 @@ import RootLayout from '../app/_layout';
 import IndexRoute from '../app/index';
 import SettingsRoute from '../app/settings';
 import TripDetailRoute from '../app/trip/[tripId]/index';
+import ChecklistRoute from '../app/trip/[tripId]/checklist';
 import EditTripRoute from '../app/trip/[tripId]/edit';
 import NewTripRoute from '../app/trip/new';
 
@@ -166,5 +167,38 @@ describe('app navigation', () => {
     });
     expect(await screen.findByText('Đi đâu tiếp?')).toBeTruthy();
     alertSpy.mockRestore();
+  });
+
+  test('creates a checklist category, quick-adds an item, and packs it', async () => {
+    const user = userEvent.setup();
+    database.getFirstAsync.mockImplementation(async (source: string) =>
+      source.includes('FROM trips') ? persistedTripRow : { next_position: 0 },
+    );
+
+    await renderRouter(
+      {
+        _layout: RootLayout,
+        index: IndexRoute,
+        'trip/[tripId]/index': TripDetailRoute,
+        'trip/[tripId]/checklist': ChecklistRoute,
+      },
+      { initialUrl: '/trip/trip-1/checklist' },
+    );
+
+    expect(await screen.findByText('Bắt đầu từ một ngăn hành lý')).toBeTruthy();
+    await user.type(screen.getByPlaceholderText('Ví dụ: Quần áo'), 'Tài liệu');
+    await user.press(screen.getByRole('button', { name: 'Thêm danh mục' }));
+
+    expect(await screen.findByRole('header', { name: 'Tài liệu' })).toBeTruthy();
+    await user.type(screen.getByPlaceholderText('Thêm nhanh vật dụng…'), 'Hộ chiếu');
+    await user.press(screen.getByRole('button', { name: 'Thêm vật dụng vào Tài liệu' }));
+
+    const item = await screen.findByRole('checkbox', {
+      name: 'Hộ chiếu, số lượng 1, chưa xếp',
+    });
+    await user.press(item);
+
+    expect(await screen.findByRole('checkbox', { name: 'Hộ chiếu, số lượng 1, đã xếp' })).toBeTruthy();
+    expect(database.runAsync.mock.calls.some(([source]) => String(source).includes('is_packed = ?'))).toBe(true);
   });
 });

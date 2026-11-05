@@ -3,6 +3,7 @@ import { useCallback, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useChecklistRepository } from '@/data/repositories/ChecklistRepositoryProvider';
 import { useTripRepository } from '@/data/repositories/TripRepositoryProvider';
 import { AppButton } from '@/design/components/AppButton';
 import { AppPageHeader } from '@/design/components/AppPageHeader';
@@ -10,17 +11,24 @@ import { useAppTheme } from '@/design/theme/AppThemeProvider';
 import { useI18n } from '@/i18n/I18nProvider';
 import { usePreferences } from '@/platform/preferences/PreferencesProvider';
 
+import { getChecklistProgress, type ChecklistProgress } from '@/features/checklist/domain/checklist';
 import { calendarDateFromLocalDate, formatCalendarDate } from './domain/calendarDate';
 import { getTripDurationDays, getTripTimeline, type Trip } from './domain/trip';
 import { tripTypeMessageKeys } from './tripPresentation';
 
 export function TripDetailScreen({ tripId }: { tripId: string }) {
   const repository = useTripRepository();
+  const checklistRepository = useChecklistRepository();
   const router = useRouter();
   const { theme } = useAppTheme();
   const { t } = useI18n();
   const { language } = usePreferences();
   const [trip, setTrip] = useState<Trip | null>(null);
+  const [checklistProgress, setChecklistProgress] = useState<ChecklistProgress>({
+    packed: 0,
+    total: 0,
+    percentage: 0,
+  });
   const [state, setState] = useState<'loading' | 'content' | 'notFound' | 'error'>('loading');
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState(false);
@@ -34,7 +42,10 @@ export function TripDetailScreen({ tripId }: { tripId: string }) {
     }
 
     try {
-      const nextTrip = await repository.getById(tripId);
+      const [nextTrip, checklist] = await Promise.all([
+        repository.getById(tripId),
+        checklistRepository.getChecklist(tripId),
+      ]);
       if (requestId !== requestSequence.current) {
         return;
       }
@@ -43,13 +54,14 @@ export function TripDetailScreen({ tripId }: { tripId: string }) {
         return;
       }
       setTrip(nextTrip);
+      setChecklistProgress(getChecklistProgress(checklist));
       setState('content');
     } catch {
       if (requestId === requestSequence.current) {
         setState('error');
       }
     }
-  }, [repository, tripId]);
+  }, [checklistRepository, repository, tripId]);
 
   useFocusEffect(
     useCallback(() => {
@@ -178,11 +190,26 @@ export function TripDetailScreen({ tripId }: { tripId: string }) {
           </Text>
           <View style={[styles.readiness, { backgroundColor: theme.colors.primarySoft }]}>
             <View style={[styles.readinessMark, { borderColor: theme.colors.primary }]}>
-              <Text style={[styles.readinessMarkText, { color: theme.colors.primary }]}>01</Text>
+              <Text style={[styles.readinessMarkText, { color: theme.colors.primary }]}>
+                {checklistProgress.percentage}%
+              </Text>
             </View>
-            <Text style={[styles.readinessBody, { color: theme.colors.primary }]}>
-              {t('tripReadinessBody')}
-            </Text>
+            <View style={styles.readinessCopy}>
+              <Text style={[styles.readinessBody, { color: theme.colors.primary }]}>
+                {checklistProgress.total > 0
+                  ? t('tripReadinessProgress', {
+                      packed: checklistProgress.packed,
+                      total: checklistProgress.total,
+                    })
+                  : t('tripReadinessBody')}
+              </Text>
+              <AppButton
+                label={t('tripChecklistAction')}
+                onPress={() => router.push(`/trip/${trip.id}/checklist`)}
+                style={styles.checklistButton}
+                variant="secondary"
+              />
+            </View>
           </View>
         </View>
 
@@ -235,8 +262,10 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 22, lineHeight: 29, fontWeight: '800' },
   readiness: { marginTop: 12, padding: 20, borderRadius: 20, flexDirection: 'row', alignItems: 'center', gap: 16 },
   readinessMark: { width: 48, height: 48, borderRadius: 24, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
-  readinessMarkText: { fontSize: 14, lineHeight: 18, fontWeight: '900' },
-  readinessBody: { flex: 1, fontSize: 15, lineHeight: 22, fontWeight: '600' },
+  readinessMarkText: { fontSize: 12, lineHeight: 17, fontWeight: '900', fontVariant: ['tabular-nums'] },
+  readinessCopy: { flex: 1, gap: 12 },
+  readinessBody: { fontSize: 15, lineHeight: 22, fontWeight: '700' },
+  checklistButton: { alignSelf: 'flex-start' },
   note: { marginTop: 10, fontSize: 16, lineHeight: 25 },
   deleteError: { marginTop: 28, fontSize: 14, lineHeight: 21, fontWeight: '700' },
   deleteButton: { marginTop: 32 },

@@ -3,6 +3,7 @@ import { Suspense, type PropsWithChildren } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { initializeLocalDatabase, DATABASE_NAME } from '@/data/local/database';
+import { ChecklistRepositoryProvider } from '@/data/repositories/ChecklistRepositoryProvider';
 import { TripRepositoryProvider } from '@/data/repositories/TripRepositoryProvider';
 import { AppLoadingScreen } from '@/design/components/AppLoadingScreen';
 import { AppThemeProvider } from '@/design/theme/AppThemeProvider';
@@ -20,11 +21,13 @@ export function AppProviders({ children }: PropsWithChildren) {
             onInit={initializeLocalDatabase}
             useSuspense>
             <TripRepositoryProvider>
-              <PreferencesProvider>
-                <I18nProvider>
-                  <AppThemeProvider>{children}</AppThemeProvider>
-                </I18nProvider>
-              </PreferencesProvider>
+              <ChecklistRepositoryProvider>
+                <PreferencesProvider>
+                  <I18nProvider>
+                    <AppThemeProvider>{children}</AppThemeProvider>
+                  </I18nProvider>
+                </PreferencesProvider>
+              </ChecklistRepositoryProvider>
             </TripRepositoryProvider>
           </SQLiteProvider>
         </Suspense>

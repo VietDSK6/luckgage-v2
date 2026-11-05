@@ -1,7 +1,7 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
 export const DATABASE_NAME = 'luckgage.db';
-export const DATABASE_VERSION = 1;
+export const DATABASE_VERSION = 2;
 
 export async function initializeLocalDatabase(database: SQLiteDatabase): Promise<void> {
   await database.execAsync(`
@@ -35,6 +35,40 @@ export async function initializeLocalDatabase(database: SQLiteDatabase): Promise
           ON trips (start_date, end_date, created_at);
       `);
       await database.execAsync('PRAGMA user_version = 1');
+    });
+  }
+
+  if (currentVersion < 2) {
+    await database.withTransactionAsync(async () => {
+      await database.execAsync(`
+        CREATE TABLE IF NOT EXISTS checklist_categories (
+          id TEXT PRIMARY KEY NOT NULL,
+          trip_id TEXT NOT NULL,
+          name TEXT NOT NULL CHECK (length(trim(name)) > 0),
+          position INTEGER NOT NULL CHECK (position >= 0),
+          created_at INTEGER NOT NULL,
+          updated_at INTEGER NOT NULL,
+          FOREIGN KEY (trip_id) REFERENCES trips (id) ON DELETE CASCADE
+        );
+        CREATE INDEX IF NOT EXISTS checklist_categories_trip_idx
+          ON checklist_categories (trip_id, position, created_at);
+
+        CREATE TABLE IF NOT EXISTS checklist_items (
+          id TEXT PRIMARY KEY NOT NULL,
+          category_id TEXT NOT NULL,
+          name TEXT NOT NULL CHECK (length(trim(name)) > 0),
+          quantity INTEGER NOT NULL DEFAULT 1 CHECK (quantity >= 1),
+          note TEXT,
+          is_packed INTEGER NOT NULL DEFAULT 0 CHECK (is_packed IN (0, 1)),
+          position INTEGER NOT NULL CHECK (position >= 0),
+          created_at INTEGER NOT NULL,
+          updated_at INTEGER NOT NULL,
+          FOREIGN KEY (category_id) REFERENCES checklist_categories (id) ON DELETE CASCADE
+        );
+        CREATE INDEX IF NOT EXISTS checklist_items_category_idx
+          ON checklist_items (category_id, position, created_at);
+      `);
+      await database.execAsync('PRAGMA user_version = 2');
     });
   }
 }

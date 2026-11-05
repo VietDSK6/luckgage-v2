@@ -1,7 +1,8 @@
 # luckgage v2
 
 luckgage v2 will combine an Expo mobile app, a self-hosted TypeScript REST API, PostgreSQL, and a
-React admin app. **Phase 1B Trips vertical slice is complete**; Phase 1C Checklist has not started.
+React admin app. **Phase 1C Checklist vertical slice is complete**; Phase 1D suggestions,
+weather, and reminders have not started.
 Backend and admin have not been scaffolded.
 
 ## Sources of truth
@@ -23,8 +24,8 @@ npm install
 npm run mobile
 ```
 
-From the Expo CLI, choose a supported Android or iOS target. Trips persist in the local SQLite
-database between app restarts.
+From the Expo CLI, choose a supported Android or iOS target. Trips and their checklists persist in
+the local SQLite database between app restarts.
 
 The only example environment value is public. Copy `apps/mobile/.env.example` to
 `apps/mobile/.env.local` when a local API URL is needed later. No API client exists yet.
@@ -53,5 +54,9 @@ The Trips slice includes calendar-date validation, UUID identifiers, a versioned
 a repository seam, timeline grouping, Trips Hub, three-step create/review, edit, detail, delete,
 empty/loading/error states, and local restart persistence.
 
-Checklist, Smart List, Auth, remote sync, API, admin, and shared packages are intentionally not
-implemented in this phase.
+The Checklist slice adds the schema v2 category/item relations with cascading deletion, progress,
+search, packed/unpacked filters, category and item CRUD, per-category bulk state, inline quick-add,
+item quantity/notes, undo delete, completion feedback, and a one-tap entry from Trip Detail.
+
+Smart List, weather, reminders, Auth, remote sync, API, admin, and shared packages are intentionally
+not implemented in this phase.
