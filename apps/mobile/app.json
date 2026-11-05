@@ -1,0 +1,23 @@
+{
+  "expo": {
+    "name": "luckgage",
+    "slug": "luckgage",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "luckgage",
+    "platforms": [
+      "ios",
+      "android"
+    ],
+    "userInterfaceStyle": "automatic",
+    "android": {
+      "predictiveBackGestureEnabled": true
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
