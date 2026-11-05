@@ -1,38 +1,94 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import type { AppTheme } from '@/design/tokens';
+import { useAppTheme } from '@/design/theme/AppThemeProvider';
+import { useI18n } from '@/i18n/I18nProvider';
+import { usePreferences } from '@/platform/preferences/PreferencesProvider';
+import type { AppLanguage, ThemeMode } from '@/platform/preferences/preferences';
+
 export function FoundationScreen() {
+  const { theme } = useAppTheme();
+  const { t } = useI18n();
+  const { language, setLanguage, setThemeMode, themeMode } = usePreferences();
+  const themeOptions: PreferenceOption<ThemeMode>[] = [
+    { value: 'system', label: t('themeSystem') },
+    { value: 'light', label: t('themeLight') },
+    { value: 'dark', label: t('themeDark') },
+  ];
+  const languageOptions: PreferenceOption<AppLanguage>[] = [
+    { value: 'vi', label: t('languageVietnamese') },
+    { value: 'en', label: t('languageEnglish') },
+  ];
+
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top', 'right', 'bottom', 'left']}>
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: theme.colors.background }]}
+      edges={['top', 'right', 'bottom', 'left']}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         contentInsetAdjustmentBehavior="automatic">
         <View style={styles.content}>
           <View style={styles.eyebrowRow}>
-            <View style={styles.routeDot} />
-            <Text style={styles.eyebrow}>PHASE 1A · FOUNDATION</Text>
+            <View style={[styles.routeDot, { backgroundColor: theme.colors.accent }]} />
+            <Text style={[styles.eyebrow, { color: theme.colors.primary }]}>{t('phaseLabel')}</Text>
           </View>
 
-          <View style={styles.tag}>
-            <View style={styles.tagHole} />
-            <Text accessibilityRole="header" style={styles.title}>
-              luckgage v2
+          <View
+            style={[
+              styles.tag,
+              {
+                backgroundColor: theme.colors.surface,
+                borderColor: theme.colors.outline,
+              },
+            ]}>
+            <View
+              style={[
+                styles.tagHole,
+                {
+                  backgroundColor: theme.colors.background,
+                  borderColor: theme.colors.primarySoft,
+                },
+              ]}
+            />
+            <Text accessibilityRole="header" style={[styles.title, { color: theme.colors.ink }]}>
+              {t('title')}
             </Text>
-            <Text style={styles.subtitle}>
-              Nền tảng mobile đã sẵn sàng cho những chuyến đi tiếp theo.
+            <Text style={[styles.subtitle, { color: theme.colors.inkMuted }]}>
+              {t('subtitle')}
             </Text>
 
-            <View style={styles.divider} />
+            <View style={[styles.divider, { backgroundColor: theme.colors.outline }]} />
 
-            <View accessibilityLabel="Expo Router, TypeScript strict và safe area đã sẵn sàng">
-              <Text style={styles.status}>✓ Expo Router</Text>
-              <Text style={styles.status}>✓ TypeScript strict</Text>
-              <Text style={styles.status}>✓ Safe-area shell</Text>
+            <View>
+              <Text style={[styles.status, { color: theme.colors.ink }]}>✓ {t('routerReady')}</Text>
+              <Text style={[styles.status, { color: theme.colors.ink }]}>✓ {t('typescriptReady')}</Text>
+              <Text style={[styles.status, { color: theme.colors.ink }]}>✓ {t('databaseReady')}</Text>
             </View>
+
+            <View style={[styles.divider, { backgroundColor: theme.colors.outline }]} />
+
+            <Text accessibilityRole="header" style={[styles.settingsTitle, { color: theme.colors.ink }]}>
+              {t('settingsTitle')}
+            </Text>
+            <PreferenceSelector
+              label={t('themeLabel')}
+              onChange={(value) => void setThemeMode(value)}
+              options={themeOptions}
+              theme={theme}
+              value={themeMode}
+            />
+            <PreferenceSelector
+              label={t('languageLabel')}
+              onChange={(value) => void setLanguage(value)}
+              options={languageOptions}
+              theme={theme}
+              value={language}
+            />
           </View>
 
-          <Text style={styles.note}>
-            Chưa có feature nghiệp vụ, backend hoặc admin trong foundation này.
+          <Text style={[styles.note, { color: theme.colors.inkMuted }]}>
+            {t('note')}
           </Text>
         </View>
       </ScrollView>
@@ -40,10 +96,67 @@ export function FoundationScreen() {
   );
 }
 
+type PreferenceOption<Value extends string> = {
+  value: Value;
+  label: string;
+};
+
+type PreferenceSelectorProps<Value extends string> = {
+  label: string;
+  options: PreferenceOption<Value>[];
+  value: Value;
+  onChange: (value: Value) => void;
+  theme: AppTheme;
+};
+
+function PreferenceSelector<Value extends string>({
+  label,
+  onChange,
+  options,
+  theme,
+  value,
+}: PreferenceSelectorProps<Value>) {
+  return (
+    <View style={styles.preferenceGroup}>
+      <Text style={[styles.preferenceLabel, { color: theme.colors.inkMuted }]}>{label}</Text>
+      <View style={styles.options}>
+        {options.map((option) => {
+          const isSelected = option.value === value;
+
+          return (
+            <Pressable
+              key={option.value}
+              accessibilityLabel={option.label}
+              accessibilityRole="button"
+              accessibilityState={{ selected: isSelected }}
+              onPress={() => onChange(option.value)}
+              style={({ pressed }) => [
+                styles.option,
+                {
+                  backgroundColor: isSelected ? theme.colors.primarySoft : theme.colors.surface,
+                  borderColor: isSelected ? theme.colors.primary : theme.colors.outline,
+                },
+                pressed ? styles.optionPressed : null,
+              ]}>
+              <Text
+                style={[
+                  styles.optionText,
+                  { color: isSelected ? theme.colors.primary : theme.colors.ink },
+                ]}>
+                {isSelected ? '✓ ' : ''}
+                {option.label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#FFF8ED',
   },
   scrollContent: {
     flexGrow: 1,
@@ -66,10 +179,8 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: '#F26B5E',
   },
   eyebrow: {
-    color: '#0F766E',
     fontSize: 13,
     fontWeight: '700',
     letterSpacing: 1.2,
@@ -79,9 +190,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     padding: 24,
     borderWidth: 1,
-    borderColor: '#D8DFDD',
     borderRadius: 28,
-    backgroundColor: '#FFFFFF',
   },
   tagHole: {
     position: 'absolute',
@@ -91,36 +200,65 @@ const styles = StyleSheet.create({
     height: 18,
     borderRadius: 9,
     borderWidth: 5,
-    borderColor: '#DDF4EF',
-    backgroundColor: '#FFF8ED',
   },
   title: {
     maxWidth: '85%',
-    color: '#15272A',
     fontSize: 32,
     lineHeight: 38,
     fontWeight: '700',
   },
   subtitle: {
     marginTop: 12,
-    color: '#607174',
     fontSize: 17,
     lineHeight: 26,
   },
   divider: {
     height: 1,
     marginVertical: 24,
-    backgroundColor: '#D8DFDD',
   },
   status: {
     minHeight: 32,
-    color: '#15272A',
     fontSize: 16,
     lineHeight: 24,
   },
+  settingsTitle: {
+    fontSize: 20,
+    lineHeight: 28,
+    fontWeight: '700',
+  },
+  preferenceGroup: {
+    marginTop: 20,
+    gap: 8,
+  },
+  preferenceLabel: {
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: '600',
+  },
+  options: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  option: {
+    minHeight: 48,
+    minWidth: 88,
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  optionPressed: {
+    opacity: 0.78,
+  },
+  optionText: {
+    fontSize: 15,
+    lineHeight: 22,
+    fontWeight: '700',
+  },
   note: {
     marginTop: 20,
-    color: '#607174',
     fontSize: 14,
     lineHeight: 21,
     textAlign: 'center',
