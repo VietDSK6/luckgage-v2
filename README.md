@@ -1,8 +1,8 @@
 # luckgage v2
 
-luckgage v2 will combine an Expo mobile app, a self-hosted TypeScript REST API, PostgreSQL, and a
-React admin app. **Phase 1D local mobile scope is complete**; Phase 2 backend has not started.
-Backend and admin have not been scaffolded.
+luckgage v2 combines an Expo mobile app, a self-hosted TypeScript REST API, PostgreSQL, and a React
+admin app. **Phase 1D local mobile scope and Phase 2A backend foundation are complete.** Phase 2B
+Auth/Users and the admin app have not started.
 
 ## Sources of truth
 
@@ -15,6 +15,7 @@ Backend and admin have not been scaffolded.
 
 - Node.js 22.13 or newer (Expo SDK 58 requirement)
 - npm 11 or a compatible npm version
+- Docker-compatible runtime for local PostgreSQL
 
 ## Install and run
 
@@ -29,12 +30,28 @@ the local SQLite database between app restarts.
 The only example environment value is public. Copy `apps/mobile/.env.example` to
 `apps/mobile/.env.local` when a local API URL is needed later. No API client exists yet.
 
+To run the independent backend foundation:
+
+```bash
+cp apps/api/.env.example apps/api/.env
+npm run db:up
+npm run db:migrate
+npm run db:seed
+npm run api
+```
+
+The API exposes liveness at `/api/v1/health/live`, database/migration readiness at
+`/api/v1/health/ready`, Swagger UI at `/openapi`, and JSON at `/openapi.json`. See
+[`apps/api/README.md`](apps/api/README.md) for its commands and contracts.
+
 ## Checks
 
 ```bash
 npm run typecheck
 npm run lint
 npm test
+npm run api:build
+npm run openapi:check
 npx expo-doctor@latest apps/mobile
 git diff --check
 ```
@@ -66,4 +83,10 @@ denied permission and weather failure never block trip or checklist flows.
 
 The local schema is version 3: trips, checklist relations, weather cache, and reminder metadata.
 
-Auth, remote sync, API, admin, and shared packages are intentionally not implemented in this phase.
+`apps/api` now provides the Phase 2A NestJS foundation: validated environment configuration,
+PostgreSQL 17 Compose service, Prisma 7 migration/seed flow, versioned REST prefix, CORS and Helmet,
+request IDs, structured request logs, stable problem responses, health/readiness, focused tests, and
+a generated OpenAPI artifact.
+
+Auth/Users, remote sync, trips/checklist server modules, backend weather, admin, and shared packages
+are intentionally not implemented yet.

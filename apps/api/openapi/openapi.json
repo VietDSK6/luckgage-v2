@@ -1,0 +1,159 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/api/v1/health/live": {
+      "get": {
+        "operationId": "HealthController_getLiveness",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LivenessDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Check whether the API process is alive",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/api/v1/health/ready": {
+      "get": {
+        "operationId": "HealthController_getReadiness",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadinessDto"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Check database connectivity and migration state",
+        "tags": [
+          "health"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "luckgage API",
+    "description": "Versioned REST API for luckgage mobile and admin clients.",
+    "version": "1.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "schemas": {
+      "LivenessDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "up"
+          },
+          "service": {
+            "type": "string",
+            "example": "luckgage-api"
+          }
+        },
+        "required": [
+          "status",
+          "service"
+        ]
+      },
+      "ReadinessDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "up"
+          },
+          "service": {
+            "type": "string",
+            "example": "luckgage-api"
+          },
+          "checks": {
+            "type": "object",
+            "example": {
+              "database": "up",
+              "migrations": "up"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "service",
+          "checks"
+        ]
+      },
+      "ProblemDetailsDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "number",
+            "example": 422
+          },
+          "code": {
+            "type": "string",
+            "example": "VALIDATION_FAILED"
+          },
+          "title": {
+            "type": "string",
+            "example": "Validation failed"
+          },
+          "detail": {
+            "type": "string",
+            "example": "One or more fields are invalid."
+          },
+          "requestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fieldErrors": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "example": {
+              "name": [
+                "name must be a string"
+              ]
+            }
+          }
+        },
+        "required": [
+          "status",
+          "code",
+          "title",
+          "detail",
+          "requestId"
+        ]
+      }
+    }
+  }
+}

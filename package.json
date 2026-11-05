@@ -8,9 +8,17 @@
   ],
   "scripts": {
     "mobile": "npm run start --workspace @luckgage/mobile",
-    "typecheck": "npm run typecheck --workspace @luckgage/mobile",
-    "lint": "npm run lint --workspace @luckgage/mobile",
-    "test": "npm run test --workspace @luckgage/mobile"
+    "api": "npm run start:dev --workspace @luckgage/api",
+    "api:build": "npm run build --workspace @luckgage/api",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "db:up": "docker compose up -d postgres",
+    "db:down": "docker compose down",
+    "db:migrate": "npm run db:migrate --workspace @luckgage/api",
+    "db:seed": "npm run db:seed --workspace @luckgage/api",
+    "openapi:generate": "npm run openapi:generate --workspace @luckgage/api",
+    "openapi:check": "npm run openapi:check --workspace @luckgage/api"
   },
   "engines": {
     "node": ">=22.13.0"
