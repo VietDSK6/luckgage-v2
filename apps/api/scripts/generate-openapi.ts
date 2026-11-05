@@ -6,6 +6,7 @@ import { NestFactory } from '@nestjs/core';
 
 process.env.NODE_ENV ??= 'test';
 process.env.DATABASE_URL ??= 'postgresql://luckgage:luckgage_local@localhost:5433/luckgage';
+process.env.JWT_ACCESS_SECRET ??= 'openapi-only-access-secret-at-least-32-characters';
 
 const { AppModule } = await import('../src/app.module.js');
 const { configureApplication } = await import('../src/bootstrap.js');

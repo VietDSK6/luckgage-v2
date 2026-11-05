@@ -8,3 +8,68 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+enum UserRole {
+  USER
+  ADMIN
+
+  @@map("user_role")
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+
+  @@map("user_status")
+}
+
+enum UserLocale {
+  vi
+  en
+
+  @@map("user_locale")
+}
+
+enum AuthSessionKind {
+  MOBILE_REFRESH
+  ADMIN_WEB
+
+  @@map("auth_session_kind")
+}
+
+model User {
+  id           String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email        String       @unique @db.VarChar(254)
+  passwordHash String       @map("password_hash")
+  displayName  String       @map("display_name") @db.VarChar(80)
+  role         UserRole     @default(USER)
+  status       UserStatus   @default(ACTIVE)
+  locale       UserLocale   @default(vi)
+  createdAt    DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
+  lastLoginAt  DateTime?    @map("last_login_at") @db.Timestamptz(3)
+  sessions     AuthSession[]
+
+  @@map("users")
+}
+
+model AuthSession {
+  id               String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId           String          @map("user_id") @db.Uuid
+  kind             AuthSessionKind
+  refreshTokenHash String          @unique @map("refresh_token_hash") @db.Char(64)
+  familyId         String          @map("family_id") @db.Uuid
+  deviceLabel      String?         @map("device_label") @db.VarChar(120)
+  expiresAt        DateTime        @map("expires_at") @db.Timestamptz(3)
+  createdAt        DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+  lastUsedAt       DateTime?       @map("last_used_at") @db.Timestamptz(3)
+  revokedAt        DateTime?       @map("revoked_at") @db.Timestamptz(3)
+  rotatedFromId    String?         @unique @map("rotated_from_id") @db.Uuid
+  user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rotatedFrom      AuthSession?    @relation("SessionRotation", fields: [rotatedFromId], references: [id], onDelete: SetNull)
+  rotations        AuthSession[]   @relation("SessionRotation")
+
+  @@index([userId])
+  @@index([familyId])
+  @@map("auth_sessions")
+}

@@ -1,5 +1,16 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
+export class ValidationFieldErrorDto {
+  @ApiProperty({ type: String, example: 'email' })
+  field!: string;
+
+  @ApiProperty({ type: String, example: 'IS_EMAIL' })
+  code!: string;
+
+  @ApiProperty({ type: String, example: 'email must be an email' })
+  message!: string;
+}
+
 export class ProblemDetailsDto {
   @ApiProperty({ type: Number, example: 422 })
   status!: number;
@@ -17,13 +28,11 @@ export class ProblemDetailsDto {
   requestId!: string;
 
   @ApiPropertyOptional({
-    type: 'object',
-    additionalProperties: { type: 'array', items: { type: 'string' } },
-    example: { name: ['name must be a string'] },
+    type: () => [ValidationFieldErrorDto],
   })
-  fieldErrors?: Record<string, string[]>;
+  fieldErrors?: ValidationFieldErrorDto[];
 }
 
 export interface ProblemDetails extends ProblemDetailsDto {
-  fieldErrors?: Record<string, string[]>;
+  fieldErrors?: ValidationFieldErrorDto[];
 }

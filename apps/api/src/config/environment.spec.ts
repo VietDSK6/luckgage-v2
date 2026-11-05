@@ -2,10 +2,15 @@ import { describe, expect, it } from 'vitest';
 
 import { parseAllowedOrigins, validateEnvironment } from './environment.js';
 
+const validEnvironment = {
+  DATABASE_URL: 'postgresql://localhost/luckgage',
+  JWT_ACCESS_SECRET: 'test-only-access-secret-at-least-32-characters',
+};
+
 describe('environment configuration', () => {
   it('coerces validated environment values', () => {
     const environment = validateEnvironment({
-      DATABASE_URL: 'postgresql://localhost/luckgage',
+      ...validEnvironment,
       PORT: '4100',
     });
 
@@ -15,13 +20,33 @@ describe('environment configuration', () => {
 
   it('rejects an invalid port', () => {
     expect(() =>
-      validateEnvironment({ DATABASE_URL: 'postgresql://localhost/luckgage', PORT: '0' }),
+      validateEnvironment({ ...validEnvironment, PORT: '0' }),
     ).toThrow();
   });
 
   it('rejects invalid database and CORS URLs', () => {
     expect(() =>
-      validateEnvironment({ DATABASE_URL: 'sqlite:local.db', ALLOWED_ORIGINS: 'mobile-app' }),
+      validateEnvironment({
+        ...validEnvironment,
+        DATABASE_URL: 'sqlite:local.db',
+        ALLOWED_ORIGINS: 'mobile-app',
+      }),
+    ).toThrow();
+  });
+
+  it('rejects a short access-token secret', () => {
+    expect(() =>
+      validateEnvironment({ ...validEnvironment, JWT_ACCESS_SECRET: 'too-short' }),
+    ).toThrow();
+  });
+
+  it('rejects the documented development secret in production', () => {
+    expect(() =>
+      validateEnvironment({
+        ...validEnvironment,
+        NODE_ENV: 'production',
+        JWT_ACCESS_SECRET: 'development-only-change-this-32-chars',
+      }),
     ).toThrow();
   });
 

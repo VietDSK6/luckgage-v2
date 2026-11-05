@@ -2,15 +2,15 @@ services:
   postgres:
     image: postgres:17-alpine
     environment:
-      POSTGRES_DB: luckgage
+      POSTGRES_DB: ${POSTGRES_DB:-luckgage}
       POSTGRES_PASSWORD: luckgage_local
       POSTGRES_USER: luckgage
     ports:
-      - "5433:5432"
+      - "${POSTGRES_PORT:-5433}:5432"
     volumes:
       - luckgage-postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U luckgage -d luckgage"]
+      test: ["CMD-SHELL", "pg_isready -U luckgage -d $${POSTGRES_DB}"]
       interval: 5s
       timeout: 3s
       retries: 10

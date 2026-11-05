@@ -104,13 +104,18 @@ export class HttpExceptionFilter implements ExceptionFilter {
     return 'The request could not be completed.';
   }
 
-  private isFieldErrors(value: unknown): value is Record<string, string[]> {
+  private isFieldErrors(
+    value: unknown,
+  ): value is Array<{ field: string; code: string; message: string }> {
     return (
-      typeof value === 'object' &&
-      value !== null &&
-      Object.values(value).every(
-        (messages) =>
-          Array.isArray(messages) && messages.every((message) => typeof message === 'string'),
+      Array.isArray(value) &&
+      value.every(
+        (fieldError) =>
+          typeof fieldError === 'object' &&
+          fieldError !== null &&
+          typeof Reflect.get(fieldError, 'field') === 'string' &&
+          typeof Reflect.get(fieldError, 'code') === 'string' &&
+          typeof Reflect.get(fieldError, 'message') === 'string',
       )
     );
   }

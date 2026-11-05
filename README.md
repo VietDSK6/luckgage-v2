@@ -1,8 +1,8 @@
 # luckgage v2
 
 luckgage v2 combines an Expo mobile app, a self-hosted TypeScript REST API, PostgreSQL, and a React
-admin app. **Phase 1D local mobile scope and Phase 2A backend foundation are complete.** Phase 2B
-Auth/Users and the admin app have not started.
+admin app. **Phase 1D local mobile scope and Phase 2A–2B backend scope are complete.** Phase 2C
+Trips/Membership/Checklist and the admin web app have not started.
 
 ## Sources of truth
 
@@ -83,10 +83,12 @@ denied permission and weather failure never block trip or checklist flows.
 
 The local schema is version 3: trips, checklist relations, weather cache, and reminder metadata.
 
-`apps/api` now provides the Phase 2A NestJS foundation: validated environment configuration,
+`apps/api` provides the Phase 2A NestJS foundation: validated environment configuration,
 PostgreSQL 17 Compose service, Prisma 7 migration/seed flow, versioned REST prefix, CORS and Helmet,
 request IDs, structured request logs, stable problem responses, health/readiness, focused tests, and
-a generated OpenAPI artifact.
+a generated OpenAPI artifact. Phase 2B adds Argon2id passwords, mobile access/rotating refresh
+sessions, reuse detection and revocation, current-profile endpoints, USER/ADMIN guards, rate limits,
+secure admin cookie sessions with CSRF protection, and paginated admin user status management.
 
-Auth/Users, remote sync, trips/checklist server modules, backend weather, admin, and shared packages
+Remote sync, trips/checklist server modules, backend weather, the admin web app, and shared packages
 are intentionally not implemented yet.

@@ -7,30 +7,43 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule, type OpenAPIObject } from '@nestjs/swagger';
+import type { NextFunction, Request, Response } from 'express';
 import helmet from 'helmet';
 
+import { ADMIN_SESSION_COOKIE } from './auth/admin-session.js';
 import { parseAllowedOrigins, type Environment } from './config/environment.js';
 import { HttpExceptionFilter } from './http/http-exception.filter.js';
 
 function flattenValidationErrors(
   errors: ValidationError[],
   parentPath = '',
-): Record<string, string[]> {
-  return errors.reduce<Record<string, string[]>>((fieldErrors, error) => {
+): Array<{ field: string; code: string; message: string }> {
+  return errors.flatMap((error) => {
     const path = parentPath ? `${parentPath}.${error.property}` : error.property;
-    const messages = error.constraints ? Object.values(error.constraints) : [];
-    if (messages.length > 0) {
-      fieldErrors[path] = messages;
-    }
-    Object.assign(fieldErrors, flattenValidationErrors(error.children ?? [], path));
-    return fieldErrors;
-  }, {});
+    const ownErrors = Object.entries(error.constraints ?? {}).map(([constraint, message]) => ({
+      field: path,
+      code: constraint.replace(/([a-z0-9])([A-Z])/g, '$1_$2').toUpperCase(),
+      message,
+    }));
+    return [...ownErrors, ...flattenValidationErrors(error.children ?? [], path)];
+  });
 }
 
 export function configureApplication(app: INestApplication): OpenAPIObject {
   const config = app.get(ConfigService<Environment, true>);
 
-  app.use(helmet());
+  const apiHelmet = helmet();
+  const openApiHelmet = helmet({
+    contentSecurityPolicy: {
+      directives: {
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+      },
+    },
+  });
+  app.use((request: Request, response: Response, next: NextFunction) =>
+    (request.path.startsWith('/openapi') ? openApiHelmet : apiHelmet)(request, response, next),
+  );
   app.enableCors({
     origin: parseAllowedOrigins(config.get('ALLOWED_ORIGINS', { infer: true })),
     credentials: true,
@@ -59,6 +72,15 @@ export function configureApplication(app: INestApplication): OpenAPIObject {
       .setTitle('luckgage API')
       .setDescription('Versioned REST API for luckgage mobile and admin clients.')
       .setVersion('1.0')
+      .addBearerAuth(
+        { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
+        'bearer',
+      )
+      .addCookieAuth(
+        ADMIN_SESSION_COOKIE,
+        { type: 'apiKey', in: 'cookie' },
+        'adminSession',
+      )
       .build(),
   );
   SwaggerModule.setup('openapi', app, openApi, {

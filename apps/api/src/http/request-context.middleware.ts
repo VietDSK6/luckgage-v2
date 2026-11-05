@@ -28,6 +28,7 @@ export class RequestContextMiddleware implements NestMiddleware {
         route: request.originalUrl,
         statusCode: response.statusCode,
         durationMs: Math.round((performance.now() - startedAt) * 100) / 100,
+        userId: request.auth?.userId,
       });
     });
 

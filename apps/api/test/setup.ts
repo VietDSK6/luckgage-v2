@@ -1,6 +1,10 @@
-process.env.NODE_ENV = 'test';
-process.env.PORT = '3000';
-process.env.DATABASE_URL =
+process.env.NODE_ENV ??= 'test';
+process.env.PORT ??= '3000';
+process.env.DATABASE_URL ??=
   'postgresql://luckgage:luckgage_local@localhost:5433/luckgage?schema=public';
-process.env.ALLOWED_ORIGINS = 'http://localhost:5173';
-process.env.LOG_LEVEL = 'error';
+process.env.JWT_ACCESS_SECRET ??= 'test-only-access-secret-at-least-32-characters';
+process.env.ACCESS_TOKEN_TTL_SECONDS ??= '900';
+process.env.REFRESH_TOKEN_TTL_DAYS ??= '30';
+process.env.ADMIN_SESSION_TTL_HOURS ??= '8';
+process.env.ALLOWED_ORIGINS ??= 'http://localhost:5173';
+process.env.LOG_LEVEL ??= 'error';

@@ -62,5 +62,27 @@ describe('API foundation', () => {
 
     expect(response.body.paths).toHaveProperty('/api/v1/health/live');
     expect(response.body.paths).toHaveProperty('/api/v1/health/ready');
+    expect(response.body.paths).toHaveProperty('/api/v1/auth/register');
+    expect(response.body.paths).toHaveProperty('/api/v1/admin/users');
+
+    const docs = await request(app.getHttpServer()).get('/openapi').expect(200);
+    expect(docs.headers['content-security-policy']).toContain(
+      "script-src 'self' 'unsafe-inline'",
+    );
+  });
+
+  it('returns structured field errors for invalid input', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/api/v1/auth/register')
+      .send({ email: 'invalid', password: 'short', displayName: '' })
+      .expect(422);
+
+    expect(response.body).toMatchObject({
+      status: 422,
+      code: 'VALIDATION_FAILED',
+      fieldErrors: expect.arrayContaining([
+        expect.objectContaining({ field: 'email', code: 'IS_EMAIL' }),
+      ]),
+    });
   });
 });
