@@ -46,6 +46,13 @@ jest.mock('expo-system-ui', () => ({
   setBackgroundColorAsync: jest.fn(async () => undefined),
 }));
 
+jest.mock('expo-secure-store', () => ({
+  WHEN_UNLOCKED_THIS_DEVICE_ONLY: 6,
+  deleteItemAsync: jest.fn(async () => undefined),
+  getItemAsync: jest.fn(async () => null),
+  setItemAsync: jest.fn(async () => undefined),
+}));
+
 jest.mock('expo-notifications', () => ({
   AndroidImportance: { DEFAULT: 3 },
   SchedulableTriggerInputTypes: { DATE: 'date' },
@@ -60,5 +67,5 @@ jest.mock('expo-notifications', () => ({
 Object.defineProperty(globalThis, 'fetch', {
   configurable: true,
   writable: true,
-  value: jest.fn(async () => ({ ok: false, json: async () => ({}) })),
+  value: jest.fn(async () => ({ ok: false, status: 500, text: async () => '{}' })),
 });

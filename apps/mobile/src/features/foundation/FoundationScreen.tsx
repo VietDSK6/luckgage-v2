@@ -1,9 +1,12 @@
+import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import type { AppTheme } from '@/design/tokens';
 import { AppBottomNavigation } from '@/design/components/AppBottomNavigation';
+import { AppButton } from '@/design/components/AppButton';
 import { useAppTheme } from '@/design/theme/AppThemeProvider';
+import { useAuth } from '@/features/auth/AuthProvider';
 import { useI18n } from '@/i18n/I18nProvider';
 import { usePreferences } from '@/platform/preferences/PreferencesProvider';
 import type {
@@ -15,6 +18,9 @@ import type {
 export function FoundationScreen() {
   const { theme } = useAppTheme();
   const { t } = useI18n();
+  const { logout, user } = useAuth();
+  const [signingOut, setSigningOut] = useState(false);
+  const [signOutError, setSignOutError] = useState(false);
   const {
     language,
     setLanguage,
@@ -36,6 +42,17 @@ export function FoundationScreen() {
     { value: 'celsius', label: t('temperatureCelsius') },
     { value: 'fahrenheit', label: t('temperatureFahrenheit') },
   ];
+  const signOut = async () => {
+    setSigningOut(true);
+    setSignOutError(false);
+    try {
+      await logout();
+    } catch {
+      setSignOutError(true);
+    } finally {
+      setSigningOut(false);
+    }
+  };
 
   return (
     <SafeAreaView
@@ -81,7 +98,39 @@ export function FoundationScreen() {
               <Text style={[styles.status, { color: theme.colors.ink }]}>✓ {t('routerReady')}</Text>
               <Text style={[styles.status, { color: theme.colors.ink }]}>✓ {t('typescriptReady')}</Text>
               <Text style={[styles.status, { color: theme.colors.ink }]}>✓ {t('databaseReady')}</Text>
+              <Text style={[styles.status, { color: theme.colors.ink }]}>✓ {t('authReady')}</Text>
             </View>
+
+            <View style={[styles.divider, { backgroundColor: theme.colors.outline }]} />
+
+            <Text accessibilityRole="header" style={[styles.settingsTitle, { color: theme.colors.ink }]}>
+              {t('authProfileTitle')}
+            </Text>
+            <View style={[styles.profile, { backgroundColor: theme.colors.background }]}>
+              <View style={[styles.avatar, { backgroundColor: theme.colors.primarySoft }]}>
+                <Text style={[styles.avatarText, { color: theme.colors.primary }]}>
+                  {user?.displayName.trim().charAt(0).toUpperCase() || '?'}
+                </Text>
+              </View>
+              <View style={styles.profileCopy}>
+                <Text style={[styles.profileName, { color: theme.colors.ink }]}>{user?.displayName}</Text>
+                <Text style={[styles.profileEmail, { color: theme.colors.inkMuted }]}>{user?.email}</Text>
+              </View>
+            </View>
+            <Text style={[styles.sessionNote, { color: theme.colors.inkMuted }]}>
+              {t('authSessionNote')}
+            </Text>
+            {signOutError ? (
+              <Text accessibilityRole="alert" style={[styles.signOutError, { color: theme.colors.danger }]}>
+                {t('authSignOutError')}
+              </Text>
+            ) : null}
+            <AppButton
+              label={signingOut ? t('authSigningOut') : t('authSignOut')}
+              loading={signingOut}
+              onPress={() => void signOut()}
+              variant="danger"
+            />
 
             <View style={[styles.divider, { backgroundColor: theme.colors.outline }]} />
 
@@ -254,6 +303,22 @@ const styles = StyleSheet.create({
     lineHeight: 28,
     fontWeight: '700',
   },
+  profile: {
+    marginTop: 16,
+    minHeight: 72,
+    borderRadius: 16,
+    padding: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  avatar: { width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center' },
+  avatarText: { fontSize: 20, lineHeight: 25, fontWeight: '800' },
+  profileCopy: { flex: 1 },
+  profileName: { fontSize: 16, lineHeight: 23, fontWeight: '700' },
+  profileEmail: { marginTop: 2, fontSize: 14, lineHeight: 20 },
+  sessionNote: { marginTop: 10, marginBottom: 14, fontSize: 13, lineHeight: 19 },
+  signOutError: { marginBottom: 12, fontSize: 13, lineHeight: 19, fontWeight: '600' },
   preferenceGroup: {
     marginTop: 20,
     gap: 8,

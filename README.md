@@ -1,8 +1,8 @@
 # luckgage v2
 
 luckgage v2 combines an Expo mobile app, a self-hosted TypeScript REST API, PostgreSQL, and a React
-admin app. **Phase 1D local mobile scope and backend Phase 2A–2D are complete.** Mobile/backend
-integration (Phase 3) and the admin web app have not started.
+admin app. **Phase 1D local mobile scope, backend Phase 2A–2D, and mobile integration Phase 3A are
+complete.** Trip/checklist server integration (Phase 3B) and the admin web app have not started.
 
 ## Sources of truth
 
@@ -27,8 +27,10 @@ npm run mobile
 From the Expo CLI, choose a supported Android or iOS target. Trips and their checklists persist in
 the local SQLite database between app restarts.
 
-The only example environment value is public. Copy `apps/mobile/.env.example` to
-`apps/mobile/.env.local` when a local API URL is needed later. No API client exists yet.
+The only mobile environment value is public. Copy `apps/mobile/.env.example` to
+`apps/mobile/.env.local` and set `EXPO_PUBLIC_API_BASE_URL` to the API origin. The client normalizes
+that origin to `/api/v1/`; use the development machine's LAN address for a physical device rather
+than `127.0.0.1`.
 
 To run the independent backend foundation:
 
@@ -64,7 +66,9 @@ placeholders now. Expo/native dependencies stay in `apps/mobile/package.json`.
 `apps/mobile` contains Expo SDK 58, Expo Router, strict TypeScript, a safe-area app shell, semantic
 light/dark tokens, system/light/dark preferences, Vietnamese/English preferences, development
 error logging, an error boundary, and focused Jest tests. Preferences use the SQLite-backed
-key-value store.
+key-value store. Phase 3A adds localized welcome/register/login screens, authenticated route groups,
+logout cleanup, restart recovery, and a typed API client. Refresh credentials are stored only in
+Expo SecureStore, access tokens stay in memory, and concurrent 401 responses share one refresh.
 
 The Trips slice includes calendar-date validation, UUID identifiers, a versioned SQLite schema,
 a repository seam, timeline grouping, Trips Hub, three-step create/review, edit, detail, delete,
@@ -99,5 +103,6 @@ timeout/retry/cache/stale fallback. Weather remains optional: failures return `U
 breaking trip or checklist flows. Rule and content administration endpoints are ready for the later
 admin UI and are protected by the existing admin cookie, role, and CSRF policy.
 
-Remote mobile integration, the admin web app, and shared generated clients are intentionally not
-implemented yet.
+Trips and checklists intentionally remain on the local repositories until Phase 3B. Join/invite,
+conflict handling, server suggestions/weather adoption, the admin web app, and shared generated
+clients are not implemented yet.

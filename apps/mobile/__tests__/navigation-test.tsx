@@ -3,13 +3,13 @@ import { renderRouter } from 'expo-router/testing-library';
 import { Alert } from 'react-native';
 
 import RootLayout from '../app/_layout';
-import IndexRoute from '../app/index';
-import SettingsRoute from '../app/settings';
-import TripDetailRoute from '../app/trip/[tripId]/index';
-import ChecklistRoute from '../app/trip/[tripId]/checklist';
-import PackingStudioRoute from '../app/trip/[tripId]/packing-studio';
-import EditTripRoute from '../app/trip/[tripId]/edit';
-import NewTripRoute from '../app/trip/new';
+import IndexRoute from '../app/(app)/index';
+import SettingsRoute from '../app/(app)/settings';
+import TripDetailRoute from '../app/(app)/trip/[tripId]/index';
+import ChecklistRoute from '../app/(app)/trip/[tripId]/checklist';
+import PackingStudioRoute from '../app/(app)/trip/[tripId]/packing-studio';
+import EditTripRoute from '../app/(app)/trip/[tripId]/edit';
+import NewTripRoute from '../app/(app)/trip/new';
 
 type SQLiteMock = {
   getAllAsync: jest.Mock;
