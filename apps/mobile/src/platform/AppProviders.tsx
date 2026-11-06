@@ -5,6 +5,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { initializeLocalDatabase, DATABASE_NAME } from '@/data/local/database';
 import { ApiClientProvider } from '@/data/remote/ApiClientProvider';
 import { ChecklistRepositoryProvider } from '@/data/repositories/ChecklistRepositoryProvider';
+import { MembershipRepositoryProvider } from '@/data/repositories/MembershipRepositoryProvider';
 import { PackingSuggestionsRepositoryProvider } from '@/data/repositories/PackingSuggestionsRepositoryProvider';
 import { ReminderRepositoryProvider } from '@/data/repositories/ReminderRepositoryProvider';
 import { TripRepositoryProvider } from '@/data/repositories/TripRepositoryProvider';
@@ -31,13 +32,15 @@ export function AppProviders({ children }: PropsWithChildren) {
                   <ApiClientProvider>
                     <AuthProvider>
                       <TripRepositoryProvider>
-                        <ChecklistRepositoryProvider>
-                          <PackingSuggestionsRepositoryProvider>
-                            <WeatherRepositoryProvider>
-                              <ReminderRepositoryProvider>{children}</ReminderRepositoryProvider>
-                            </WeatherRepositoryProvider>
-                          </PackingSuggestionsRepositoryProvider>
-                        </ChecklistRepositoryProvider>
+                        <MembershipRepositoryProvider>
+                          <ChecklistRepositoryProvider>
+                            <PackingSuggestionsRepositoryProvider>
+                              <WeatherRepositoryProvider>
+                                <ReminderRepositoryProvider>{children}</ReminderRepositoryProvider>
+                              </WeatherRepositoryProvider>
+                            </PackingSuggestionsRepositoryProvider>
+                          </ChecklistRepositoryProvider>
+                        </MembershipRepositoryProvider>
                       </TripRepositoryProvider>
                     </AuthProvider>
                   </ApiClientProvider>

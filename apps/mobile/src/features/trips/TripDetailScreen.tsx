@@ -212,9 +212,9 @@ export function TripDetailScreen({ tripId }: { tripId: string }) {
       edges={['top', 'right', 'bottom', 'left']}
       style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
       <AppPageHeader
-        actionLabel={t('commonEdit')}
+        actionLabel={trip.currentUserRole === 'owner' ? t('commonEdit') : undefined}
         eyebrow={t('tripDetailLabel')}
-        onAction={() => router.push(`/trip/${trip.id}/edit`)}
+        onAction={trip.currentUserRole === 'owner' ? () => router.push(`/trip/${trip.id}/edit`) : undefined}
         onBack={goBack}
         title={trip.name}
       />
@@ -244,9 +244,14 @@ export function TripDetailScreen({ tripId }: { tripId: string }) {
             </View>
           </View>
           <View style={styles.tagRow}>
-            <Text style={[styles.typeTag, { backgroundColor: theme.colors.primarySoft, color: theme.colors.primary }]}>
-              {t(tripTypeMessageKeys[trip.tripType])}
-            </Text>
+            <View style={styles.tripTags}>
+              <Text style={[styles.typeTag, { backgroundColor: theme.colors.primarySoft, color: theme.colors.primary }]}>
+                {t(tripTypeMessageKeys[trip.tripType])}
+              </Text>
+              <Text style={[styles.roleTag, { borderColor: theme.colors.outline, color: theme.colors.inkMuted }]}>
+                {t(trip.currentUserRole === 'owner' ? 'membersOwnerRole' : 'membersMemberRole')}
+              </Text>
+            </View>
             <Text style={[styles.duration, { color: theme.colors.inkMuted }]}>
               {t('tripDuration', { count: getTripDurationDays(trip) })}
             </Text>
@@ -303,6 +308,42 @@ export function TripDetailScreen({ tripId }: { tripId: string }) {
             <AppButton
               label={t('tripPackingAction')}
               onPress={() => router.push(`/trip/${trip.id}/packing-studio`)}
+            />
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text accessibilityRole="header" style={[styles.sectionTitle, { color: theme.colors.ink }]}>
+            {t('tripMembersTitle')}
+          </Text>
+          <View style={[styles.membersPanel, { borderColor: theme.colors.outline }]}>
+            <View style={styles.memberStack}>
+              {trip.memberPreview.slice(0, 3).map((member, index) => (
+                <View
+                  key={member.userId}
+                  style={[
+                    styles.memberAvatar,
+                    {
+                      backgroundColor: member.role === 'owner' ? theme.colors.sun : theme.colors.primarySoft,
+                      borderColor: theme.colors.background,
+                      marginLeft: index === 0 ? 0 : -10,
+                    },
+                  ]}>
+                  <Text
+                    style={[
+                      styles.memberAvatarText,
+                      { color: member.role === 'owner' ? theme.colors.onWarm : theme.colors.primary },
+                    ]}>
+                    {memberInitials(member.displayName)}
+                  </Text>
+                </View>
+              ))}
+            </View>
+            <Text style={[styles.membersBody, { color: theme.colors.inkMuted }]}>{t('tripMembersBody')}</Text>
+            <AppButton
+              label={t('tripMembersAction')}
+              onPress={() => router.push(`/trip/${trip.id}/members`)}
+              variant="secondary"
             />
           </View>
         </View>
@@ -377,13 +418,15 @@ export function TripDetailScreen({ tripId }: { tripId: string }) {
             {t('tripDeleteError')}
           </Text>
         ) : null}
-        <AppButton
-          label={isDeleting ? t('tripDeleting') : t('commonDelete')}
-          loading={isDeleting}
-          onPress={confirmDelete}
-          style={styles.deleteButton}
-          variant="danger"
-        />
+        {trip.currentUserRole === 'owner' ? (
+          <AppButton
+            label={isDeleting ? t('tripDeleting') : t('commonDelete')}
+            loading={isDeleting}
+            onPress={confirmDelete}
+            style={styles.deleteButton}
+            variant="danger"
+          />
+        ) : null}
       </ScrollView>
     </SafeAreaView>
   );
@@ -406,7 +449,9 @@ const styles = StyleSheet.create({
   metaLabel: { fontSize: 11, lineHeight: 15, fontWeight: '800', letterSpacing: 0.7 },
   metaValue: { fontSize: 15, lineHeight: 21, fontWeight: '700' },
   tagRow: { marginTop: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+  tripTags: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8 },
   typeTag: { overflow: 'hidden', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 18, fontSize: 13, lineHeight: 18, fontWeight: '800' },
+  roleTag: { overflow: 'hidden', borderWidth: 1, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 18, fontSize: 12, lineHeight: 17, fontWeight: '800' },
   duration: { fontSize: 13, lineHeight: 18, fontWeight: '700' },
   section: { marginTop: 32 },
   sectionContent: { marginTop: 12 },
@@ -421,6 +466,11 @@ const styles = StyleSheet.create({
   ruleStamp: { alignSelf: 'flex-start', transform: [{ rotate: '-3deg' }], paddingHorizontal: 12, paddingVertical: 7 },
   ruleStampText: { fontSize: 11, lineHeight: 15, fontWeight: '900', letterSpacing: 1.2 },
   packingBody: { fontSize: 15, lineHeight: 23 },
+  membersPanel: { marginTop: 12, borderTopWidth: 1, borderBottomWidth: 1, paddingVertical: 18, gap: 14 },
+  memberStack: { minHeight: 48, flexDirection: 'row', alignItems: 'center' },
+  memberAvatar: { width: 48, height: 48, borderRadius: 24, borderWidth: 3, alignItems: 'center', justifyContent: 'center' },
+  memberAvatarText: { fontSize: 13, lineHeight: 18, fontWeight: '900' },
+  membersBody: { fontSize: 14, lineHeight: 21 },
   reminderBody: { marginTop: 6, fontSize: 14, lineHeight: 21 },
   reminderOptions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 },
   reminderOption: { minHeight: 48, borderWidth: 1, borderRadius: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingHorizontal: 14 },
@@ -438,4 +488,13 @@ function formatReminderDate(timestamp: number, language: 'vi' | 'en'): string {
     dateStyle: 'medium',
     timeStyle: 'short',
   }).format(new Date(timestamp));
+}
+
+function memberInitials(name: string): string {
+  return name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? '')
+    .join('');
 }

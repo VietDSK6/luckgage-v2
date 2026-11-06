@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { ChecklistRepositoryError } from '@/data/repositories/ChecklistRepository';
 import { useChecklistRepository } from '@/data/repositories/ChecklistRepositoryProvider';
 import { useTripRepository } from '@/data/repositories/TripRepositoryProvider';
 import { AppButton } from '@/design/components/AppButton';
@@ -59,12 +60,12 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
   const [itemEditor, setItemEditor] = useState<ItemEditor | null>(null);
   const [pendingOperation, setPendingOperation] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [mutationError, setMutationError] = useState(false);
+  const [mutationError, setMutationError] = useState<'generic' | 'conflict' | null>(null);
   const [undoItem, setUndoItem] = useState<ChecklistItem | null>(null);
   const requestSequence = useRef(0);
   const hasLoaded = useRef(false);
 
-  const load = useCallback(async (refresh = false) => {
+  const load = useCallback(async (refresh = false, preserveMutationError = false) => {
     const requestId = ++requestSequence.current;
     if (!tripId) {
       setScreenState('notFound');
@@ -85,11 +86,11 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
       setTrip(nextTrip);
       setCategories(nextCategories);
       setScreenState('content');
-      setMutationError(false);
+      if (!preserveMutationError) setMutationError(null);
       hasLoaded.current = true;
     } catch {
       if (requestId === requestSequence.current) {
-        if (hasLoaded.current) setMutationError(true);
+        if (hasLoaded.current) setMutationError('generic');
         else setScreenState('error');
       }
     } finally {
@@ -126,11 +127,20 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
   const beginOperation = (operation: string): boolean => {
     if (pendingOperation) return false;
     setPendingOperation(operation);
-    setMutationError(false);
+    setMutationError(null);
     return true;
   };
 
   const finishOperation = () => setPendingOperation(null);
+
+  const handleMutationFailure = async (error: unknown) => {
+    if (error instanceof ChecklistRepositoryError && error.code === 'CONFLICT') {
+      setMutationError('conflict');
+      await load(true, true);
+      return;
+    }
+    setMutationError('generic');
+  };
 
   const createCategory = async () => {
     const name = newCategoryName.trim();
@@ -139,8 +149,8 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
       const category = await checklistRepository.createCategory(tripId, name);
       setCategories((current) => [...current, category]);
       setNewCategoryName('');
-    } catch {
-      setMutationError(true);
+    } catch (error) {
+      await handleMutationFailure(error);
     } finally {
       finishOperation();
     }
@@ -158,8 +168,8 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
       );
       setEditingCategoryId(null);
       setEditingCategoryName('');
-    } catch {
-      setMutationError(true);
+    } catch (error) {
+      await handleMutationFailure(error);
     } finally {
       finishOperation();
     }
@@ -172,8 +182,8 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
       setCategories((current) => current.filter((candidate) => candidate.id !== category.id));
       if (editingCategoryId === category.id) setEditingCategoryId(null);
       if (itemEditor?.item.categoryId === category.id) setItemEditor(null);
-    } catch {
-      setMutationError(true);
+    } catch (error) {
+      await handleMutationFailure(error);
     } finally {
       finishOperation();
     }
@@ -211,8 +221,8 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
         ),
       );
       setQuickAddNames((current) => ({ ...current, [category.id]: '' }));
-    } catch {
-      setMutationError(true);
+    } catch (error) {
+      await handleMutationFailure(error);
     } finally {
       finishOperation();
     }
@@ -224,9 +234,9 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
     setCategories((current) => updateItem(current, item.id, (candidate) => ({ ...candidate, isPacked: nextPacked })));
     try {
       await checklistRepository.setItemPacked(item.id, nextPacked);
-    } catch {
+    } catch (error) {
       setCategories((current) => updateItem(current, item.id, (candidate) => ({ ...candidate, isPacked: item.isPacked })));
-      setMutationError(true);
+      await handleMutationFailure(error);
     } finally {
       finishOperation();
     }
@@ -246,7 +256,7 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
     );
     try {
       await checklistRepository.setCategoryPacked(category.id, nextPacked);
-    } catch {
+    } catch (error) {
       setCategories((current) =>
         current.map((candidate) =>
           candidate.id === category.id
@@ -260,7 +270,7 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
             : candidate,
         ),
       );
-      setMutationError(true);
+      await handleMutationFailure(error);
     } finally {
       finishOperation();
     }
@@ -288,8 +298,8 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
       });
       setCategories((current) => updateItem(current, updated.id, () => updated));
       setItemEditor(null);
-    } catch {
-      setMutationError(true);
+    } catch (error) {
+      await handleMutationFailure(error);
     } finally {
       finishOperation();
     }
@@ -302,9 +312,9 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
     try {
       const deleted = await checklistRepository.deleteItem(item.id);
       setUndoItem(deleted);
-    } catch {
+    } catch (error) {
       setCategories((current) => insertItem(current, item));
-      setMutationError(true);
+      await handleMutationFailure(error);
     } finally {
       finishOperation();
     }
@@ -317,8 +327,8 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
     try {
       const restored = await checklistRepository.restoreItem(item);
       setCategories((current) => insertItem(current, restored));
-    } catch {
-      setMutationError(true);
+    } catch (error) {
+      await handleMutationFailure(error);
     } finally {
       finishOperation();
     }
@@ -451,10 +461,10 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
           {mutationError ? (
             <Pressable
               accessibilityRole="alert"
-              onPress={() => setMutationError(false)}
+              onPress={() => setMutationError(null)}
               style={[styles.errorBanner, { borderColor: theme.colors.danger }]}>
               <Text style={[styles.errorText, { color: theme.colors.danger }]}>
-                {t('checklistMutationError')}
+                {t(mutationError === 'conflict' ? 'checklistConflictError' : 'checklistMutationError')}
               </Text>
             </Pressable>
           ) : null}

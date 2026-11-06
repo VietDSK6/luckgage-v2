@@ -184,6 +184,12 @@ function mapTrip(payload: ApiTrip): Trip {
   const endDate = parseCalendarDate(payload?.endDate);
   const tripType = domainTripTypes[payload?.tripType];
   const updatedAt = Date.parse(payload?.updatedAt);
+  const currentUserRole =
+    payload?.currentUserRole === 'OWNER'
+      ? 'owner'
+      : payload?.currentUserRole === 'MEMBER'
+        ? 'member'
+        : null;
 
   if (
     !payload?.id ||
@@ -192,6 +198,8 @@ function mapTrip(payload: ApiTrip): Trip {
     !startDate ||
     !endDate ||
     !tripType ||
+    !currentUserRole ||
+    !Array.isArray(payload.memberPreview) ||
     !Number.isInteger(payload.version) ||
     payload.version < 1 ||
     !Number.isFinite(updatedAt)
@@ -208,6 +216,21 @@ function mapTrip(payload: ApiTrip): Trip {
     endDate,
     tripType,
     note: payload.note ?? null,
+    currentUserRole,
+    memberPreview: payload.memberPreview.map((member) => {
+      if (
+        !member?.userId ||
+        !member.displayName ||
+        (member.role !== 'OWNER' && member.role !== 'MEMBER')
+      ) {
+        throw new TripRepositoryError('REMOTE', 'Trip member preview contains invalid data');
+      }
+      return {
+        userId: member.userId,
+        displayName: member.displayName,
+        role: member.role === 'OWNER' ? 'owner' : 'member',
+      };
+    }),
     createdAt: updatedAt,
     updatedAt,
   };

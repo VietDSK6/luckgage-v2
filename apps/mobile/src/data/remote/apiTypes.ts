@@ -73,6 +73,20 @@ export type ApiLocationsResponse = {
   items: ApiLocation[];
 };
 
+export type ApiTripMemberRole = 'OWNER' | 'MEMBER';
+
+export type ApiMemberPreview = {
+  userId: string;
+  displayName: string;
+  role: ApiTripMemberRole;
+};
+
+export type ApiChecklistProgress = {
+  packedItems: number;
+  totalItems: number;
+  percentage: number;
+};
+
 export type ApiTrip = {
   id: string;
   name: string;
@@ -80,9 +94,15 @@ export type ApiTrip = {
   startDate: string;
   endDate: string;
   tripType: ApiTripType;
+  timelineStatus: 'UPCOMING' | 'ACTIVE' | 'PAST';
+  daysUntilStart: number;
+  checklistProgress: ApiChecklistProgress;
+  memberPreview: ApiMemberPreview[];
+  currentUserRole: ApiTripMemberRole;
   version: number;
   updatedAt: string;
   note?: string | null;
+  weather?: { status: 'UNAVAILABLE' };
 };
 
 export type ApiTripsPage = {
@@ -157,4 +177,34 @@ export type ApiPackingPreview = {
 export type ApiPackingApplyResponse = {
   addedCategoryCount: number;
   addedItemCount: number;
+};
+
+export type ApiInvitePreview = {
+  tripId: string;
+  tripName: string;
+  destinationLabel: string;
+  startDate: string;
+  endDate: string;
+  ownerDisplayName: string;
+  memberCount: number;
+  expiresAt: string;
+};
+
+export type ApiTripMember = {
+  userId: string;
+  displayName: string;
+  role: ApiTripMemberRole;
+  joinedAt: string;
+};
+
+export type ApiTripMembers = {
+  items: ApiTripMember[];
+};
+
+export type ApiInviteCreated = {
+  id: string;
+  code: string;
+  expiresAt: string;
+  maxUses: number;
+  useCount: number;
 };

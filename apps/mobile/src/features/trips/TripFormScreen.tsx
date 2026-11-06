@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { TripRepositoryError } from '@/data/repositories/TripRepository';
 import { useTripRepository } from '@/data/repositories/TripRepositoryProvider';
 import { AppButton } from '@/design/components/AppButton';
 import { AppPageHeader } from '@/design/components/AppPageHeader';
@@ -59,7 +60,7 @@ export function TripFormScreen({ tripId }: { tripId?: string }) {
   const [isLoading, setIsLoading] = useState(Boolean(tripId));
   const [isSaving, setIsSaving] = useState(false);
   const [loadError, setLoadError] = useState<'notFound' | 'storage' | null>(null);
-  const [saveError, setSaveError] = useState(false);
+  const [saveError, setSaveError] = useState<'generic' | 'conflict' | null>(null);
   const [destinationSuggestions, setDestinationSuggestions] = useState<TripDestination[]>([]);
   const [destinationSearchState, setDestinationSearchState] = useState<
     'idle' | 'loading' | 'error'
@@ -152,7 +153,7 @@ export function TripFormScreen({ tripId }: { tripId?: string }) {
       [key]: value,
       ...(key === 'destination' ? { destinationDetails: undefined } : {}),
     }));
-    setSaveError(false);
+    setSaveError(null);
     setErrors((current) => {
       if (key === 'destination') {
         return { ...current, destination: undefined };
@@ -195,15 +196,19 @@ export function TripFormScreen({ tripId }: { tripId?: string }) {
     }
 
     setIsSaving(true);
-    setSaveError(false);
+    setSaveError(null);
 
     try {
       const savedTrip = tripId
         ? await repository.update(tripId, draft)
         : await repository.create(draft);
       router.replace(`/trip/${savedTrip.id}`);
-    } catch {
-      setSaveError(true);
+    } catch (error) {
+      setSaveError(
+        error instanceof TripRepositoryError && error.code === 'CONFLICT'
+          ? 'conflict'
+          : 'generic',
+      );
     } finally {
       setIsSaving(false);
     }
@@ -278,7 +283,7 @@ export function TripFormScreen({ tripId }: { tripId?: string }) {
           ) : null}
           {saveError ? (
             <Text accessibilityRole="alert" style={[styles.saveError, { color: theme.colors.danger }]}>
-              {t('tripSaveError')}
+              {t(saveError === 'conflict' ? 'tripSaveConflict' : 'tripSaveError')}
             </Text>
           ) : null}
         </ScrollView>

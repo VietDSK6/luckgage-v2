@@ -119,7 +119,11 @@ export function TripsHubScreen() {
         keyExtractor={(trip) => String(trip.id)}
         ListEmptyComponent={
           !isLoading && trips.length === 0 && !hasError ? (
-            <EmptyJourney onCreate={() => router.push('/trip/new')} theme={theme} />
+            <EmptyJourney
+              onCreate={() => router.push('/trip/new')}
+              onJoin={() => router.push('/trip/join')}
+              theme={theme}
+            />
           ) : undefined
         }
         ListHeaderComponent={
@@ -142,11 +146,21 @@ export function TripsHubScreen() {
               </View>
             </View>
 
-            <AppButton
-              label={t('tripsCreate')}
-              onPress={() => router.push('/trip/new')}
-              style={styles.createButton}
-            />
+            {trips.length > 0 ? (
+              <View style={styles.tripActions}>
+                <AppButton
+                  label={t('tripsCreate')}
+                  onPress={() => router.push('/trip/new')}
+                  style={styles.tripAction}
+                />
+                <AppButton
+                  label={t('tripsJoin')}
+                  onPress={() => router.push('/trip/join')}
+                  style={styles.tripAction}
+                  variant="secondary"
+                />
+              </View>
+            ) : null}
 
             {isLoading ? <LoadingTrips theme={theme} /> : null}
             {hasError && trips.length === 0 ? (
@@ -325,7 +339,15 @@ function TripCompactRow({
   );
 }
 
-function EmptyJourney({ onCreate, theme }: { onCreate: () => void; theme: AppTheme }) {
+function EmptyJourney({
+  onCreate,
+  onJoin,
+  theme,
+}: {
+  onCreate: () => void;
+  onJoin: () => void;
+  theme: AppTheme;
+}) {
   const { t } = useI18n();
 
   return (
@@ -341,7 +363,15 @@ function EmptyJourney({ onCreate, theme }: { onCreate: () => void; theme: AppThe
         {t('tripsEmptyTitle')}
       </Text>
       <Text style={[styles.emptyBody, { color: theme.colors.inkMuted }]}>{t('tripsEmptyBody')}</Text>
-      <AppButton label={t('tripsCreate')} onPress={onCreate} style={styles.emptyButton} />
+      <View style={styles.emptyActions}>
+        <AppButton label={t('tripsCreate')} onPress={onCreate} style={styles.emptyButton} />
+        <AppButton
+          label={t('tripsJoin')}
+          onPress={onJoin}
+          style={styles.emptyButton}
+          variant="secondary"
+        />
+      </View>
     </View>
   );
 }
@@ -401,7 +431,8 @@ const styles = StyleSheet.create({
   },
   routeStampText: { fontSize: 11, lineHeight: 13, fontWeight: '900', letterSpacing: 1 },
   routeStampArrow: { fontSize: 18, lineHeight: 20, fontWeight: '800' },
-  createButton: { marginTop: 24, alignSelf: 'flex-start', minWidth: 180 },
+  tripActions: { marginTop: 24, flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  tripAction: { minWidth: 160 },
   hero: {
     position: 'relative',
     overflow: 'hidden',
@@ -449,7 +480,8 @@ const styles = StyleSheet.create({
   emptyTagLine: { marginTop: 8, height: 2, width: 76, opacity: 0.5 },
   emptyTitle: { marginTop: 28, fontSize: 24, lineHeight: 31, fontWeight: '800', maxWidth: 360 },
   emptyBody: { marginTop: 8, fontSize: 16, lineHeight: 24, maxWidth: 460 },
-  emptyButton: { marginTop: 24 },
+  emptyActions: { marginTop: 24, flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  emptyButton: { minWidth: 160 },
   loading: { marginTop: 32, gap: 12 },
   loadingHero: { height: 220, borderRadius: 28 },
   loadingLine: { height: 18, width: '72%', borderRadius: 9 },

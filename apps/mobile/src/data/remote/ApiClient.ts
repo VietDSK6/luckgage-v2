@@ -296,9 +296,23 @@ const sensitiveLogKeys = new Set([
 ]);
 
 export function sanitizeApiLogValue(value: unknown, depth = 0): unknown {
+  return sanitizeLogValue(value, sensitiveLogKeys, depth);
+}
+
+export function sanitizeApiRequestLogValue(url: string, value: unknown): unknown {
+  return sanitizeLogValue(
+    value,
+    isInviteUrl(url) ? new Set([...sensitiveLogKeys, 'code']) : sensitiveLogKeys,
+    0,
+  );
+}
+
+function sanitizeLogValue(value: unknown, sensitiveKeys: ReadonlySet<string>, depth: number): unknown {
   if (depth > 5) return '[truncated]';
   if (Array.isArray(value)) {
-    const values = value.slice(0, 30).map((item) => sanitizeApiLogValue(item, depth + 1));
+    const values = value.slice(0, 30).map((item) =>
+      sanitizeLogValue(item, sensitiveKeys, depth + 1),
+    );
     return value.length > 30 ? [...values, `[${value.length - 30} more items]`] : values;
   }
   if (!value || typeof value !== 'object') return value;
@@ -306,9 +320,9 @@ export function sanitizeApiLogValue(value: unknown, depth = 0): unknown {
   return Object.fromEntries(
     Object.entries(value).map(([key, item]) => [
       key,
-      sensitiveLogKeys.has(key.toLowerCase())
+      sensitiveKeys.has(key.toLowerCase())
         ? '[redacted]'
-        : sanitizeApiLogValue(item, depth + 1),
+        : sanitizeLogValue(item, sensitiveKeys, depth + 1),
     ]),
   );
 }
@@ -325,11 +339,16 @@ function shouldLogApi(): boolean {
   return __DEV__ && process.env.NODE_ENV !== 'test';
 }
 
+function isInviteUrl(url: string): boolean {
+  const pathSegments = new URL(url).pathname.split('/');
+  return pathSegments.includes('invites') || pathSegments.includes('trip-invites');
+}
+
 function logApiRequest(trace: ApiTrace, body: unknown, authenticated: boolean): void {
   if (!shouldLogApi()) return;
   console.log(`[API →] ${trace.method} ${trace.url}`, {
     authenticated,
-    ...(body === undefined ? {} : { body: sanitizeApiLogValue(body) }),
+    ...(body === undefined ? {} : { body: sanitizeApiRequestLogValue(trace.url, body) }),
   });
 }
 
@@ -341,7 +360,10 @@ function logApiResponse(trace: ApiTrace, response: Response, payload: unknown): 
     {
       ok: response.ok,
       requestId,
-      payload: sanitizeApiLogValue(payload),
+      payload:
+        response.ok && trace.method === 'POST' && /\/trips\/[^/]+\/invites$/.test(new URL(trace.url).pathname)
+          ? sanitizeApiRequestLogValue(trace.url, payload)
+          : sanitizeApiLogValue(payload),
     },
   );
 }

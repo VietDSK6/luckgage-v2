@@ -3,7 +3,12 @@ import type {
   RefreshCredentialStore,
 } from '@/platform/security/refreshCredentialStore';
 
-import { ApiClient, resolveApiBaseUrl, sanitizeApiLogValue } from './ApiClient';
+import {
+  ApiClient,
+  resolveApiBaseUrl,
+  sanitizeApiLogValue,
+  sanitizeApiRequestLogValue,
+} from './ApiClient';
 import type { AuthResponsePayload } from './apiTypes';
 
 class MemoryCredentialStore implements RefreshCredentialStore {
@@ -210,6 +215,17 @@ describe('ApiClient', () => {
       password: '[redacted]',
       accessToken: '[redacted]',
       nested: { refreshToken: '[redacted]', weatherCode: 61, code: 'UNAVAILABLE' },
+    });
+  });
+
+  test('redacts raw join codes only for invite request diagnostics', () => {
+    expect(
+      sanitizeApiRequestLogValue('http://localhost:3000/api/v1/trip-invites/join', {
+        code: 'LUCK-SECRET88',
+      }),
+    ).toEqual({ code: '[redacted]' });
+    expect(sanitizeApiLogValue({ code: 'INVITE_EXPIRED' })).toEqual({
+      code: 'INVITE_EXPIRED',
     });
   });
 });

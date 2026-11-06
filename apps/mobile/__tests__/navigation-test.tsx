@@ -7,8 +7,10 @@ import IndexRoute from '../app/(app)/index';
 import SettingsRoute from '../app/(app)/settings';
 import TripDetailRoute from '../app/(app)/trip/[tripId]/index';
 import ChecklistRoute from '../app/(app)/trip/[tripId]/checklist';
+import MembersRoute from '../app/(app)/trip/[tripId]/members';
 import PackingStudioRoute from '../app/(app)/trip/[tripId]/packing-studio';
 import EditTripRoute from '../app/(app)/trip/[tripId]/edit';
+import JoinTripRoute from '../app/(app)/trip/join';
 import NewTripRoute from '../app/(app)/trip/new';
 import type {
   ApiChecklistCategory,
@@ -42,6 +44,11 @@ const persistedTrip: ApiTrip = {
   startDate: '2026-11-05',
   endDate: '2026-11-08',
   tripType: 'LEISURE',
+  timelineStatus: 'ACTIVE',
+  daysUntilStart: 0,
+  checklistProgress: { packedItems: 0, totalItems: 0, percentage: 0 },
+  memberPreview: [{ userId: 'owner-1', displayName: 'Luckgage Demo', role: 'OWNER' }],
+  currentUserRole: 'OWNER',
   note: null,
   version: 1,
   updatedAt: '2026-11-05T00:00:00.000Z',
@@ -50,6 +57,7 @@ const persistedTrip: ApiTrip = {
 const fetchMock = globalThis.fetch as jest.Mock;
 let serverTrip: ApiTrip | null;
 let serverCategories: ApiChecklistCategory[];
+let serverMembers: { userId: string; displayName: string; role: 'OWNER' | 'MEMBER'; joinedAt: string }[];
 let appliedPackingRequest: unknown;
 
 function apiResponse(status: number, body?: unknown) {
@@ -79,6 +87,22 @@ function installApiMock() {
     }
     if (path === '/locations/search' && method === 'GET') {
       return apiResponse(200, { items: [] });
+    }
+    if (path === '/trip-invites/preview' && method === 'POST') {
+      return apiResponse(200, {
+        tripId: 'trip-1',
+        tripName: 'Hội An',
+        destinationLabel: 'Hội An',
+        startDate: '2026-11-05',
+        endDate: '2026-11-08',
+        ownerDisplayName: 'Luckgage Demo',
+        memberCount: serverMembers.length,
+        expiresAt: '2026-11-07T00:00:00.000Z',
+      });
+    }
+    if (path === '/trip-invites/join' && method === 'POST') {
+      serverTrip = { ...persistedTrip, currentUserRole: 'MEMBER' };
+      return apiResponse(200, serverTrip);
     }
     if (path === '/trips' && method === 'POST') {
       serverTrip = {
@@ -116,6 +140,26 @@ function installApiMock() {
         progress: { packedItems: 0, totalItems: 0, percentage: 0 },
         categories: serverCategories,
       });
+    }
+    if (path === '/trips/trip-1/members' && method === 'GET') {
+      return apiResponse(200, { items: serverMembers });
+    }
+    if (path === '/trips/trip-1/invites' && method === 'POST') {
+      return apiResponse(201, {
+        id: 'invite-1',
+        code: 'LUCK-8K4M2P7Q',
+        expiresAt: '2026-11-07T00:00:00.000Z',
+        maxUses: body.maxUses,
+        useCount: 0,
+      });
+    }
+    if (path === '/trips/trip-1/invites/invite-1' && method === 'DELETE') {
+      return apiResponse(204);
+    }
+    if (path.startsWith('/trips/trip-1/members/') && method === 'DELETE') {
+      const userId = path.split('/').at(-1);
+      serverMembers = serverMembers.filter((member) => member.userId !== userId);
+      return apiResponse(204);
     }
     if (path === '/trips/trip-1/checklist/categories' && method === 'POST') {
       const category: ApiChecklistCategory = {
@@ -209,6 +253,14 @@ beforeEach(() => {
   database.runAsync.mockResolvedValue({ changes: 1, lastInsertRowId: 1 });
   serverTrip = null;
   serverCategories = [];
+  serverMembers = [
+    {
+      userId: 'owner-1',
+      displayName: 'Luckgage Demo',
+      role: 'OWNER',
+      joinedAt: '2026-11-05T00:00:00.000Z',
+    },
+  ];
   appliedPackingRequest = null;
   installApiMock();
 });
@@ -424,5 +476,62 @@ describe('app navigation', () => {
     });
     expect(database.runAsync).not.toHaveBeenCalled();
     alertSpy.mockRestore();
+  });
+
+  test('previews an invite before joining and opens the shared trip', async () => {
+    const user = userEvent.setup();
+
+    await renderRouter(
+      {
+        _layout: RootLayout,
+        index: IndexRoute,
+        'trip/join': JoinTripRoute,
+        'trip/[tripId]/index': TripDetailRoute,
+      },
+      { initialUrl: '/trip/join' },
+    );
+
+    await user.type(await screen.findByLabelText('Mã tham gia'), 'luck-8k4m2p7q');
+    await user.press(screen.getByRole('button', { name: 'Xem trước chuyến đi' }));
+
+    expect(await screen.findByText('THẺ MỜI ĐÃ XÁC THỰC')).toBeTruthy();
+    expect(screen.getByText('Luckgage Demo')).toBeTruthy();
+    expect(serverTrip).toBeNull();
+
+    await user.press(screen.getByRole('button', { name: 'Xác nhận tham gia' }));
+    expect(await screen.findByText('TRIP COMMAND CENTER')).toBeTruthy();
+    expect(serverTrip?.currentUserRole).toBe('MEMBER');
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringMatching(/\/api\/v1\/trip-invites\/join$/),
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ code: 'LUCK-8K4M2P7Q' }),
+      }),
+    );
+  });
+
+  test('lets an owner create a one-time-visible invite from the members screen', async () => {
+    const user = userEvent.setup();
+    serverTrip = { ...persistedTrip };
+
+    await renderRouter(
+      {
+        _layout: RootLayout,
+        index: IndexRoute,
+        'trip/[tripId]/index': TripDetailRoute,
+        'trip/[tripId]/members': MembersRoute,
+      },
+      { initialUrl: '/trip/trip-1/members' },
+    );
+
+    expect(await screen.findByText('Nhóm chuyến đi')).toBeTruthy();
+    expect(screen.getByText('Luckgage Demo')).toBeTruthy();
+    await user.press(screen.getByRole('button', { name: 'Tạo mã mời' }));
+
+    expect(await screen.findByText('LUCK-8K4M2P7Q')).toBeTruthy();
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringMatching(/\/api\/v1\/trips\/trip-1\/invites$/),
+      expect.objectContaining({ method: 'POST' }),
+    );
   });
 });

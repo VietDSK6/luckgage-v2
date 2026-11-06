@@ -12,6 +12,8 @@ const trip: Trip = {
   endDate: '2026-11-08' as Trip['endDate'],
   tripType: 'beach',
   note: null,
+  currentUserRole: 'owner',
+  memberPreview: [],
   createdAt: 1,
   updatedAt: 1,
 };

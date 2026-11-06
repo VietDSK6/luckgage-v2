@@ -80,6 +80,8 @@ function trip(id: string, startDate: string, endDate: string): Trip {
     endDate: requiredDate(endDate),
     tripType: 'leisure',
     note: null,
+    currentUserRole: 'owner',
+    memberPreview: [],
     createdAt: Number(id),
     updatedAt: Number(id),
   };

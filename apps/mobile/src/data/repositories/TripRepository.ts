@@ -203,6 +203,8 @@ function mapTripRow(row: TripRow): Trip {
     endDate,
     tripType: row.trip_type,
     note: row.note,
+    currentUserRole: 'owner',
+    memberPreview: [],
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };

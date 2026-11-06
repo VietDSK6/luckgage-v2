@@ -1,8 +1,8 @@
 # luckgage v2
 
 luckgage v2 combines an Expo mobile app, a self-hosted TypeScript REST API, PostgreSQL, and a React
-admin app. **Phase 1D local mobile scope, backend Phase 2A–2D, and mobile integration Phase 3A–3B
-are complete.** Join collaboration (Phase 3C) and the admin web app have not started.
+admin app. **Phase 1D local mobile scope, backend Phase 2A–2D, and mobile integration Phase 3A–3C
+are complete.** Migration cleanup (Phase 3D) and the admin web app have not started.
 
 ## Sources of truth
 
@@ -114,5 +114,7 @@ breaking trip or checklist flows. Rule and content administration endpoints are 
 admin UI and are protected by the existing admin cookie, role, and CSRF policy.
 
 Phase 3B replaces the production local adapters for trips, checklists, packing suggestions, and
-weather with typed remote adapters and contract/component coverage. Join/invite, multi-user conflict
-UX, migration cleanup, the admin web app, and shared generated clients are not implemented yet.
+weather with typed remote adapters and contract/component coverage. Phase 3C adds invite preview and
+confirmed join, owner invite creation/revocation, member listing/removal, refetch-on-focus and
+pull-to-refresh, plus explicit stale-version recovery for shared checklist and trip edits. Phase 3D
+migration cleanup, the admin web app, and shared generated clients are not implemented yet.

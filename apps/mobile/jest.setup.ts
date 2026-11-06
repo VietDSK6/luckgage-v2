@@ -64,6 +64,10 @@ jest.mock('expo-notifications', () => ({
   setNotificationHandler: jest.fn(),
 }));
 
+jest.mock('expo-clipboard', () => ({
+  setStringAsync: jest.fn(async () => undefined),
+}));
+
 Object.defineProperty(globalThis, 'fetch', {
   configurable: true,
   writable: true,

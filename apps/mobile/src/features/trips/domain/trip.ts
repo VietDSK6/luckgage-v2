@@ -30,6 +30,14 @@ export type TripDestination = {
   country: string | null;
 };
 
+export type TripMemberRole = 'owner' | 'member';
+
+export type TripMemberPreview = {
+  userId: string;
+  displayName: string;
+  role: TripMemberRole;
+};
+
 export type Trip = {
   id: string;
   name: string;
@@ -39,6 +47,8 @@ export type Trip = {
   endDate: CalendarDate;
   tripType: TripType;
   note: string | null;
+  currentUserRole: TripMemberRole;
+  memberPreview: TripMemberPreview[];
   createdAt: number;
   updatedAt: number;
 };
