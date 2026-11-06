@@ -19,10 +19,22 @@ export const tripTypes = [
 
 export type TripType = (typeof tripTypes)[number];
 
+export type TripDestination = {
+  label: string;
+  providerPlaceId: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  timezone: string | null;
+  countryCode: string | null;
+  adminArea: string | null;
+  country: string | null;
+};
+
 export type Trip = {
   id: string;
   name: string;
   destination: string;
+  destinationDetails?: TripDestination;
   startDate: CalendarDate;
   endDate: CalendarDate;
   tripType: TripType;
@@ -34,6 +46,7 @@ export type Trip = {
 export type TripDraft = {
   name: string;
   destination: string;
+  destinationDetails?: TripDestination;
   startDate: string;
   endDate: string;
   tripType: TripType;
@@ -101,6 +114,9 @@ export function validateTripDraft(draft: TripDraft): {
     value: {
       name: draft.name.trim() || destination,
       destination,
+      ...(draft.destinationDetails?.label === destination
+        ? { destinationDetails: draft.destinationDetails }
+        : {}),
       startDate,
       endDate,
       tripType: draft.tripType,
@@ -113,6 +129,7 @@ export function tripToDraft(trip: Trip): TripDraft {
   return {
     name: trip.name,
     destination: trip.destination,
+    ...(trip.destinationDetails ? { destinationDetails: trip.destinationDetails } : {}),
     startDate: trip.startDate,
     endDate: trip.endDate,
     tripType: trip.tripType,

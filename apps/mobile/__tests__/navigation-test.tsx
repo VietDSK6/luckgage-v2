@@ -10,6 +10,11 @@ import ChecklistRoute from '../app/(app)/trip/[tripId]/checklist';
 import PackingStudioRoute from '../app/(app)/trip/[tripId]/packing-studio';
 import EditTripRoute from '../app/(app)/trip/[tripId]/edit';
 import NewTripRoute from '../app/(app)/trip/new';
+import type {
+  ApiChecklistCategory,
+  ApiChecklistItem,
+  ApiTrip,
+} from '../src/data/remote/apiTypes';
 
 type SQLiteMock = {
   getAllAsync: jest.Mock;
@@ -21,23 +26,191 @@ const { __mockDatabase: database } = jest.requireMock('expo-sqlite') as {
   __mockDatabase: SQLiteMock;
 };
 
-const persistedTripRow = {
+const persistedTrip: ApiTrip = {
   id: 'trip-1',
   name: 'Hội An',
-  destination: 'Hội An',
-  start_date: '2026-11-05',
-  end_date: '2026-11-08',
-  trip_type: 'leisure',
+  destination: {
+    label: 'Hội An',
+    providerPlaceId: null,
+    latitude: null,
+    longitude: null,
+    timezone: null,
+    countryCode: null,
+    adminArea: null,
+    country: null,
+  },
+  startDate: '2026-11-05',
+  endDate: '2026-11-08',
+  tripType: 'LEISURE',
   note: null,
-  created_at: 100,
-  updated_at: 100,
+  version: 1,
+  updatedAt: '2026-11-05T00:00:00.000Z',
 };
+
+const fetchMock = globalThis.fetch as jest.Mock;
+let serverTrip: ApiTrip | null;
+let serverCategories: ApiChecklistCategory[];
+let appliedPackingRequest: unknown;
+
+function apiResponse(status: number, body?: unknown) {
+  return {
+    ok: status >= 200 && status < 300,
+    status,
+    text: async () => (body === undefined ? '' : JSON.stringify(body)),
+  };
+}
+
+function installApiMock() {
+  fetchMock.mockImplementation(async (input: string, init?: RequestInit) => {
+    const url = new URL(input);
+    const path = url.pathname.replace('/api/v1', '');
+    const method = init?.method ?? 'GET';
+    const body = init?.body ? JSON.parse(String(init.body)) : undefined;
+
+    if (path === '/trips' && method === 'GET') {
+      const items = serverTrip ? [serverTrip] : [];
+      return apiResponse(200, {
+        items,
+        page: 1,
+        pageSize: 100,
+        totalItems: items.length,
+        totalPages: items.length ? 1 : 0,
+      });
+    }
+    if (path === '/locations/search' && method === 'GET') {
+      return apiResponse(200, { items: [] });
+    }
+    if (path === '/trips' && method === 'POST') {
+      serverTrip = {
+        ...persistedTrip,
+        name: body.name,
+        destination: { ...persistedTrip.destination, ...body.destination },
+        startDate: body.startDate,
+        endDate: body.endDate,
+        tripType: body.tripType,
+        note: body.note,
+      };
+      return apiResponse(201, serverTrip);
+    }
+    if (path === '/trips/trip-1' && method === 'GET') {
+      return serverTrip ? apiResponse(200, serverTrip) : apiResponse(404, apiProblem(404));
+    }
+    if (path === '/trips/trip-1' && method === 'PATCH') {
+      if (!serverTrip) return apiResponse(404, apiProblem(404));
+      serverTrip = {
+        ...serverTrip,
+        ...body,
+        destination: { ...serverTrip.destination, ...body.destination },
+        version: serverTrip.version + 1,
+        updatedAt: '2026-11-06T00:00:00.000Z',
+      };
+      return apiResponse(200, serverTrip);
+    }
+    if (path === '/trips/trip-1' && method === 'DELETE') {
+      serverTrip = null;
+      return apiResponse(204);
+    }
+    if (path === '/trips/trip-1/checklist' && method === 'GET') {
+      return apiResponse(200, {
+        tripId: 'trip-1',
+        progress: { packedItems: 0, totalItems: 0, percentage: 0 },
+        categories: serverCategories,
+      });
+    }
+    if (path === '/trips/trip-1/checklist/categories' && method === 'POST') {
+      const category: ApiChecklistCategory = {
+        id: 'category-1',
+        name: body.name,
+        position: 0,
+        version: 1,
+        items: [],
+      };
+      serverCategories.push(category);
+      return apiResponse(201, category);
+    }
+    if (path === '/checklist-categories/category-1/items' && method === 'POST') {
+      const item: ApiChecklistItem = {
+        id: `item-${serverCategories[0].items.length + 1}`,
+        name: body.name,
+        quantity: body.quantity ?? 1,
+        note: body.note ?? null,
+        isPacked: false,
+        position: serverCategories[0].items.length,
+        version: 1,
+        createdAt: '2026-11-05T00:00:00.000Z',
+        updatedAt: '2026-11-05T00:00:00.000Z',
+      };
+      serverCategories[0].items.push(item);
+      return apiResponse(201, item);
+    }
+    if (path === '/checklist-items/item-1' && method === 'PATCH') {
+      const item = serverCategories[0].items[0];
+      Object.assign(item, body, {
+        version: item.version + 1,
+        updatedAt: '2026-11-06T00:00:00.000Z',
+      });
+      return apiResponse(200, item);
+    }
+    if (path === '/trips/trip-1/weather' && method === 'GET') {
+      return apiResponse(200, {
+        status: 'UNAVAILABLE',
+        fetchedAt: null,
+        daily: [],
+        lowTemperatureCelsius: null,
+        highTemperatureCelsius: null,
+        rainChancePercent: null,
+      });
+    }
+    if (path === '/trips/trip-1/packing-suggestions/preview' && method === 'POST') {
+      return apiResponse(200, {
+        source: 'RULE_BASED',
+        sourceLabel: 'Gợi ý theo quy tắc; thời tiết không bắt buộc',
+        generatedAt: '2026-11-06T00:00:00.000Z',
+        weatherStatus: 'UNAVAILABLE',
+        categories: [
+          {
+            clientKey: 'documents',
+            name: 'Giấy tờ',
+            items: [
+              {
+                clientKey: 'photo-id',
+                name: 'Giấy tờ tùy thân',
+                quantity: 1,
+                note: null,
+                reason: 'Giấy tờ thiết yếu',
+                matchedRules: [{ ruleId: 'rule-1', version: 1 }],
+              },
+            ],
+          },
+        ],
+      });
+    }
+    if (path === '/trips/trip-1/packing-suggestions/apply' && method === 'POST') {
+      appliedPackingRequest = body;
+      return apiResponse(201, {
+        addedCategoryCount: body.categories.length,
+        addedItemCount: body.categories.flatMap((category: { items: unknown[] }) => category.items)
+          .length,
+        checklistProgress: { packedItems: 0, totalItems: 1, percentage: 0 },
+      });
+    }
+    return apiResponse(404, apiProblem(404));
+  });
+}
+
+function apiProblem(status: number) {
+  return { status, code: 'NOT_FOUND', title: 'Not found', detail: 'Not found' };
+}
 
 beforeEach(() => {
   jest.clearAllMocks();
   database.getAllAsync.mockResolvedValue([]);
   database.getFirstAsync.mockResolvedValue(null);
   database.runAsync.mockResolvedValue({ changes: 1, lastInsertRowId: 1 });
+  serverTrip = null;
+  serverCategories = [];
+  appliedPackingRequest = null;
+  installApiMock();
 });
 
 describe('app navigation', () => {
@@ -95,8 +268,6 @@ describe('app navigation', () => {
 
   test('creates a trip and opens its persisted detail', async () => {
     const user = userEvent.setup();
-    database.getFirstAsync.mockResolvedValue(persistedTripRow);
-
     await renderRouter(
       {
         _layout: RootLayout,
@@ -115,12 +286,16 @@ describe('app navigation', () => {
 
     expect(await screen.findByText('TRIP COMMAND CENTER')).toBeTruthy();
     expect(screen.getAllByText('Hội An').length).toBeGreaterThan(0);
-    expect(database.runAsync).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringMatching(/\/api\/v1\/trips$/),
+      expect.objectContaining({ method: 'POST' }),
+    );
+    expect(database.runAsync).not.toHaveBeenCalled();
   });
 
   test('loads the edit flow and persists an update before returning to detail', async () => {
     const user = userEvent.setup();
-    database.getFirstAsync.mockResolvedValue(persistedTripRow);
+    serverTrip = { ...persistedTrip };
 
     await renderRouter(
       {
@@ -138,12 +313,15 @@ describe('app navigation', () => {
     await user.press(await screen.findByRole('button', { name: 'Lưu thay đổi' }));
 
     expect(await screen.findByText('TRIP COMMAND CENTER')).toBeTruthy();
-    expect(String(database.runAsync.mock.calls[0][0])).toContain('UPDATE trips SET');
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringMatching(/\/api\/v1\/trips\/trip-1$/),
+      expect.objectContaining({ method: 'PATCH' }),
+    );
   });
 
   test('confirms and deletes a persisted trip', async () => {
     const user = userEvent.setup();
-    database.getFirstAsync.mockResolvedValue(persistedTripRow);
+    serverTrip = { ...persistedTrip };
     const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
 
     await renderRouter(
@@ -164,7 +342,7 @@ describe('app navigation', () => {
     });
 
     await waitFor(() => {
-      expect(String(database.runAsync.mock.calls[0]?.[0])).toContain('DELETE FROM trips');
+      expect(serverTrip).toBeNull();
     });
     expect(await screen.findByText('Đi đâu tiếp?')).toBeTruthy();
     alertSpy.mockRestore();
@@ -172,9 +350,7 @@ describe('app navigation', () => {
 
   test('creates a checklist category, quick-adds an item, and packs it', async () => {
     const user = userEvent.setup();
-    database.getFirstAsync.mockImplementation(async (source: string) =>
-      source.includes('FROM trips') ? persistedTripRow : { next_position: 0 },
-    );
+    serverTrip = { ...persistedTrip };
 
     await renderRouter(
       {
@@ -200,16 +376,13 @@ describe('app navigation', () => {
     await user.press(item);
 
     expect(await screen.findByRole('checkbox', { name: 'Hộ chiếu, số lượng 1, đã xếp' })).toBeTruthy();
-    expect(database.runAsync.mock.calls.some(([source]) => String(source).includes('is_packed = ?'))).toBe(true);
+    expect(serverCategories[0].items[0].isPacked).toBe(true);
+    expect(database.runAsync).not.toHaveBeenCalled();
   });
 
   test('keeps packing suggestions as an editable preview until confirmation, then appends them', async () => {
     const user = userEvent.setup();
-    database.getFirstAsync.mockImplementation(async (source: string) => {
-      if (source.includes('FROM trips')) return persistedTripRow;
-      if (source.includes('MAX(position)')) return { next_position: 0 };
-      return null;
-    });
+    serverTrip = { ...persistedTrip };
     const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
 
     await renderRouter(
@@ -241,12 +414,15 @@ describe('app navigation', () => {
     });
 
     expect(await screen.findByText('Đã nối thêm vào checklist')).toBeTruthy();
-    expect(
-      database.runAsync.mock.calls.some(
-        ([source, ...params]) =>
-          String(source).includes('INSERT INTO checklist_items') && params.includes('CCCD'),
-      ),
-    ).toBe(true);
+    expect(appliedPackingRequest).toEqual({
+      categories: [
+        {
+          name: 'Giấy tờ',
+          items: [{ name: 'CCCD', quantity: 1, note: null }],
+        },
+      ],
+    });
+    expect(database.runAsync).not.toHaveBeenCalled();
     alertSpy.mockRestore();
   });
 });

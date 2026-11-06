@@ -1,13 +1,15 @@
-import { useSQLiteContext } from 'expo-sqlite';
 import { createContext, type PropsWithChildren, useContext, useMemo } from 'react';
 
-import { SQLiteChecklistRepository, type ChecklistRepository } from './ChecklistRepository';
+import { useApiClient } from '@/data/remote/ApiClientProvider';
+
+import type { ChecklistRepository } from './ChecklistRepository';
+import { RemoteChecklistRepository } from './RemoteChecklistRepository';
 
 const ChecklistRepositoryContext = createContext<ChecklistRepository | null>(null);
 
 export function ChecklistRepositoryProvider({ children }: PropsWithChildren) {
-  const database = useSQLiteContext();
-  const repository = useMemo(() => new SQLiteChecklistRepository(database), [database]);
+  const apiClient = useApiClient();
+  const repository = useMemo(() => new RemoteChecklistRepository(apiClient), [apiClient]);
 
   return (
     <ChecklistRepositoryContext.Provider value={repository}>

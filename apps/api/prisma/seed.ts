@@ -27,6 +27,7 @@ try {
   await prisma.$queryRaw`SELECT 1`;
   await seedPackingRules();
   await seedTripSuggestions();
+  await seedDemoUser();
   const adminEmail = process.env.SEED_ADMIN_EMAIL?.trim().toLowerCase();
   const adminPassword = process.env.SEED_ADMIN_PASSWORD;
 
@@ -129,6 +130,30 @@ async function seedPackingRules(): Promise<void> {
       items: { deleteMany: {}, create: baseItems },
     },
   });
+}
+
+async function seedDemoUser(): Promise<void> {
+  const passwordHash = await hashPassword('DemoLuckgage2026!');
+  const demoUser = await prisma.user.upsert({
+    where: { email: 'demo@luckgage.app' },
+    create: {
+      email: 'demo@luckgage.app',
+      passwordHash,
+      displayName: 'Luckgage Demo',
+      role: UserRole.USER,
+      status: UserStatus.ACTIVE,
+      locale: UserLocale.vi,
+    },
+    update: {
+      passwordHash,
+      displayName: 'Luckgage Demo',
+      role: UserRole.USER,
+      status: UserStatus.ACTIVE,
+      locale: UserLocale.vi,
+    },
+  });
+  await prisma.authSession.deleteMany({ where: { userId: demoUser.id } });
+  console.info('Shared demo account is ready.');
 }
 
 async function seedTripSuggestions(): Promise<void> {

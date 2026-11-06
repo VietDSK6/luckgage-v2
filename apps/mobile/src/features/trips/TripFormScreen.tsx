@@ -32,6 +32,7 @@ import {
   tripTypes,
   type TripDraft,
   type TripDraftErrors,
+  type TripDestination,
   validateTripDraft,
 } from './domain/trip';
 import { tripTypeMessageKeys } from './tripPresentation';
@@ -59,6 +60,39 @@ export function TripFormScreen({ tripId }: { tripId?: string }) {
   const [isSaving, setIsSaving] = useState(false);
   const [loadError, setLoadError] = useState<'notFound' | 'storage' | null>(null);
   const [saveError, setSaveError] = useState(false);
+  const [destinationSuggestions, setDestinationSuggestions] = useState<TripDestination[]>([]);
+  const [destinationSearchState, setDestinationSearchState] = useState<
+    'idle' | 'loading' | 'error'
+  >('idle');
+
+  useEffect(() => {
+    const query = draft.destination.trim();
+    if (query.length < 2 || draft.destinationDetails?.label === query) {
+      return;
+    }
+
+    let active = true;
+    const timer = setTimeout(() => {
+      setDestinationSearchState('loading');
+      repository
+        .searchDestinations(query, language)
+        .then((locations) => {
+          if (!active) return;
+          setDestinationSuggestions(locations);
+          setDestinationSearchState('idle');
+        })
+        .catch(() => {
+          if (!active) return;
+          setDestinationSuggestions([]);
+          setDestinationSearchState('error');
+        });
+    }, 350);
+
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [draft.destination, draft.destinationDetails?.label, language, repository]);
 
   useEffect(() => {
     if (!tripId) {
@@ -109,7 +143,15 @@ export function TripFormScreen({ tripId }: { tripId?: string }) {
   };
 
   const updateDraft = <Key extends keyof TripDraft>(key: Key, value: TripDraft[Key]) => {
-    setDraft((current) => ({ ...current, [key]: value }));
+    if (key === 'destination') {
+      setDestinationSuggestions([]);
+      setDestinationSearchState('idle');
+    }
+    setDraft((current) => ({
+      ...current,
+      [key]: value,
+      ...(key === 'destination' ? { destinationDetails: undefined } : {}),
+    }));
     setSaveError(false);
     setErrors((current) => {
       if (key === 'destination') {
@@ -209,7 +251,24 @@ export function TripFormScreen({ tripId }: { tripId?: string }) {
           showsVerticalScrollIndicator={false}>
           <ProgressTrack label={t('tripFormStep', { current: step })} step={step} theme={theme} />
           {step === 1 ? (
-            <WhereStep draft={draft} errors={errors} onChange={updateDraft} theme={theme} />
+            <WhereStep
+              destinationSearchState={destinationSearchState}
+              destinationSuggestions={destinationSuggestions}
+              draft={draft}
+              errors={errors}
+              onChange={updateDraft}
+              onSelectDestination={(destination) => {
+                setDraft((current) => ({
+                  ...current,
+                  destination: destination.label,
+                  destinationDetails: destination,
+                }));
+                setErrors((current) => ({ ...current, destination: undefined }));
+                setDestinationSuggestions([]);
+                setDestinationSearchState('idle');
+              }}
+              theme={theme}
+            />
           ) : null}
           {step === 2 ? (
             <StyleStep draft={draft} onChange={updateDraft} theme={theme} />
@@ -260,14 +319,20 @@ function ProgressTrack({ label, step, theme }: { label: string; step: FormStep; 
 }
 
 function WhereStep({
+  destinationSearchState,
+  destinationSuggestions,
   draft,
   errors,
   onChange,
+  onSelectDestination,
   theme,
 }: {
+  destinationSearchState: 'idle' | 'loading' | 'error';
+  destinationSuggestions: TripDestination[];
   draft: TripDraft;
   errors: TripDraftErrors;
   onChange: <Key extends keyof TripDraft>(key: Key, value: TripDraft[Key]) => void;
+  onSelectDestination: (destination: TripDestination) => void;
   theme: AppTheme;
 }) {
   const { t } = useI18n();
@@ -293,6 +358,40 @@ function WhereStep({
         theme={theme}
         value={draft.destination}
       />
+      {destinationSearchState === 'loading' ? (
+        <Text style={[styles.destinationStatus, { color: theme.colors.inkMuted }]}>
+          {t('tripDestinationSearching')}
+        </Text>
+      ) : null}
+      {destinationSearchState === 'error' ? (
+        <Text accessibilityRole="alert" style={[styles.destinationStatus, { color: theme.colors.danger }]}>
+          {t('tripDestinationSearchError')}
+        </Text>
+      ) : null}
+      {destinationSuggestions.length > 0 ? (
+        <View style={[styles.destinationSuggestions, { borderColor: theme.colors.outline }]}>
+          {destinationSuggestions.map((destination) => (
+            <Pressable
+              accessibilityRole="button"
+              key={`${destination.providerPlaceId ?? destination.label}:${destination.latitude ?? ''}`}
+              onPress={() => onSelectDestination(destination)}
+              style={({ pressed }) => [
+                styles.destinationSuggestion,
+                { backgroundColor: theme.colors.surface, borderColor: theme.colors.outline },
+                pressed ? styles.pressed : null,
+              ]}>
+              <Text style={[styles.destinationSuggestionLabel, { color: theme.colors.ink }]}>
+                {destination.label}
+              </Text>
+              {destination.adminArea || destination.country ? (
+                <Text style={[styles.destinationSuggestionMeta, { color: theme.colors.inkMuted }]}>
+                  {[destination.adminArea, destination.country].filter(Boolean).join(' · ')}
+                </Text>
+              ) : null}
+            </Pressable>
+          ))}
+        </View>
+      ) : null}
       <View style={styles.dateRow}>
         <LabeledInput
           error={errors.startDate ? t('tripDateInvalid') : undefined}
@@ -513,6 +612,11 @@ const styles = StyleSheet.create({
   inputLabel: { fontSize: 14, lineHeight: 20, fontWeight: '800' },
   input: { minHeight: 52, borderWidth: 1, borderRadius: 12, paddingHorizontal: 16, fontSize: 16, lineHeight: 22 },
   inputMultiline: { minHeight: 120, paddingTop: 14, paddingBottom: 14 },
+  destinationStatus: { marginTop: 8, fontSize: 13, lineHeight: 19, fontWeight: '600' },
+  destinationSuggestions: { overflow: 'hidden', marginTop: 8, borderWidth: 1, borderRadius: 16 },
+  destinationSuggestion: { minHeight: 58, justifyContent: 'center', borderBottomWidth: 1, paddingHorizontal: 16, paddingVertical: 10 },
+  destinationSuggestionLabel: { fontSize: 15, lineHeight: 21, fontWeight: '800' },
+  destinationSuggestionMeta: { marginTop: 2, fontSize: 12, lineHeight: 17, fontWeight: '600' },
   dateRow: { flexDirection: 'row', gap: 12 },
   dateField: { flex: 1 },
   fieldError: { fontSize: 13, lineHeight: 19, fontWeight: '600' },

@@ -7,10 +7,17 @@ import {
   type NormalizedTripDraft,
   type Trip,
   type TripDraft,
+  type TripDestination,
   validateTripDraft,
 } from '@/features/trips/domain/trip';
 
-export type TripRepositoryErrorCode = 'VALIDATION' | 'NOT_FOUND' | 'STORAGE';
+export type TripRepositoryErrorCode =
+  | 'VALIDATION'
+  | 'NOT_FOUND'
+  | 'STORAGE'
+  | 'NETWORK'
+  | 'CONFLICT'
+  | 'REMOTE';
 
 export class TripRepositoryError extends Error {
   constructor(
@@ -25,6 +32,7 @@ export class TripRepositoryError extends Error {
 
 export interface TripRepository {
   list(): Promise<Trip[]>;
+  searchDestinations(query: string, locale: 'vi' | 'en'): Promise<TripDestination[]>;
   getById(id: string): Promise<Trip | null>;
   create(draft: TripDraft): Promise<Trip>;
   update(id: string, draft: TripDraft): Promise<Trip>;
@@ -63,6 +71,10 @@ export class SQLiteTripRepository implements TripRepository {
     } catch (error) {
       throw mapStorageError('Could not load trips', error);
     }
+  }
+
+  async searchDestinations(): Promise<TripDestination[]> {
+    return [];
   }
 
   async getById(id: string): Promise<Trip | null> {

@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { useChecklistRepository } from '@/data/repositories/ChecklistRepositoryProvider';
+import { usePackingSuggestionsRepository } from '@/data/repositories/PackingSuggestionsRepositoryProvider';
 import { useTripRepository } from '@/data/repositories/TripRepositoryProvider';
 import { useWeatherRepository } from '@/data/repositories/WeatherRepositoryProvider';
 import { AppButton } from '@/design/components/AppButton';
@@ -26,7 +26,6 @@ import { useI18n } from '@/i18n/I18nProvider';
 import { usePreferences } from '@/platform/preferences/PreferencesProvider';
 
 import {
-  generatePackingPreview,
   packingActivities,
   packingActivityLabel,
   type PackingActivity,
@@ -37,7 +36,7 @@ import {
 type ScreenState = 'loading' | 'setup' | 'preview' | 'success' | 'notFound' | 'error';
 
 export function PackingStudioScreen({ tripId }: { tripId: string }) {
-  const checklistRepository = useChecklistRepository();
+  const packingRepository = usePackingSuggestionsRepository();
   const tripRepository = useTripRepository();
   const weatherRepository = useWeatherRepository();
   const router = useRouter();
@@ -51,6 +50,8 @@ export function PackingStudioScreen({ tripId }: { tripId: string }) {
   const [activities, setActivities] = useState<PackingActivity[]>([]);
   const [extraNotes, setExtraNotes] = useState('');
   const [preview, setPreview] = useState<PackingPreview | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [previewError, setPreviewError] = useState(false);
   const [isApplying, setIsApplying] = useState(false);
   const [applyError, setApplyError] = useState(false);
   const [appliedCount, setAppliedCount] = useState(0);
@@ -110,11 +111,26 @@ export function PackingStudioScreen({ tripId }: { tripId: string }) {
     );
   };
 
-  const buildPreview = () => {
-    if (!trip) return;
-    setPreview(generatePackingPreview({ trip, activities, extraNotes, weather, language }));
+  const buildPreview = async () => {
+    if (!trip || isGenerating) return;
+    setIsGenerating(true);
+    setPreviewError(false);
     setApplyError(false);
-    setState('preview');
+    try {
+      setPreview(
+        await packingRepository.preview({
+          tripId: trip.id,
+          activities,
+          notes: extraNotes,
+          locale: language,
+        }),
+      );
+      setState('preview');
+    } catch {
+      setPreviewError(true);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const updatePreviewItem = (
@@ -138,15 +154,7 @@ export function PackingStudioScreen({ tripId }: { tripId: string }) {
     setIsApplying(true);
     setApplyError(false);
     try {
-      const count = await checklistRepository.appendItems(
-        trip.id,
-        selectedItems.map((item) => ({
-          categoryName: item.categoryName,
-          name: item.name,
-          quantity: item.quantity,
-          note: item.note,
-        })),
-      );
+      const count = await packingRepository.apply(trip.id, selectedItems);
       setAppliedCount(count);
       setState('success');
     } catch {
@@ -299,7 +307,17 @@ export function PackingStudioScreen({ tripId }: { tripId: string }) {
                 style={[styles.notesInput, { backgroundColor: theme.colors.surface, borderColor: theme.colors.outline, color: theme.colors.ink }]}
                 value={extraNotes}
               />
-              <AppButton label={t('packingGenerate')} onPress={buildPreview} style={styles.primaryAction} />
+              {previewError ? (
+                <Text accessibilityRole="alert" style={[styles.applyError, { color: theme.colors.danger }]}>
+                  {t('packingPreviewError')}
+                </Text>
+              ) : null}
+              <AppButton
+                label={t('packingGenerate')}
+                loading={isGenerating}
+                onPress={() => void buildPreview()}
+                style={styles.primaryAction}
+              />
             </>
           ) : null}
 

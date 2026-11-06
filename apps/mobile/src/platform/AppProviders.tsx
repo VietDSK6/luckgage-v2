@@ -5,6 +5,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { initializeLocalDatabase, DATABASE_NAME } from '@/data/local/database';
 import { ApiClientProvider } from '@/data/remote/ApiClientProvider';
 import { ChecklistRepositoryProvider } from '@/data/repositories/ChecklistRepositoryProvider';
+import { PackingSuggestionsRepositoryProvider } from '@/data/repositories/PackingSuggestionsRepositoryProvider';
 import { ReminderRepositoryProvider } from '@/data/repositories/ReminderRepositoryProvider';
 import { TripRepositoryProvider } from '@/data/repositories/TripRepositoryProvider';
 import { WeatherRepositoryProvider } from '@/data/repositories/WeatherRepositoryProvider';
@@ -24,23 +25,25 @@ export function AppProviders({ children }: PropsWithChildren) {
             databaseName={DATABASE_NAME}
             onInit={initializeLocalDatabase}
             useSuspense>
-            <TripRepositoryProvider>
-              <ChecklistRepositoryProvider>
-                <WeatherRepositoryProvider>
-                  <ReminderRepositoryProvider>
-                    <PreferencesProvider>
-                      <I18nProvider>
-                        <AppThemeProvider>
-                          <ApiClientProvider>
-                            <AuthProvider>{children}</AuthProvider>
-                          </ApiClientProvider>
-                        </AppThemeProvider>
-                      </I18nProvider>
-                    </PreferencesProvider>
-                  </ReminderRepositoryProvider>
-                </WeatherRepositoryProvider>
-              </ChecklistRepositoryProvider>
-            </TripRepositoryProvider>
+            <PreferencesProvider>
+              <I18nProvider>
+                <AppThemeProvider>
+                  <ApiClientProvider>
+                    <AuthProvider>
+                      <TripRepositoryProvider>
+                        <ChecklistRepositoryProvider>
+                          <PackingSuggestionsRepositoryProvider>
+                            <WeatherRepositoryProvider>
+                              <ReminderRepositoryProvider>{children}</ReminderRepositoryProvider>
+                            </WeatherRepositoryProvider>
+                          </PackingSuggestionsRepositoryProvider>
+                        </ChecklistRepositoryProvider>
+                      </TripRepositoryProvider>
+                    </AuthProvider>
+                  </ApiClientProvider>
+                </AppThemeProvider>
+              </I18nProvider>
+            </PreferencesProvider>
           </SQLiteProvider>
         </Suspense>
       </AppErrorBoundary>

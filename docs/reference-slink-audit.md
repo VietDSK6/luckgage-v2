@@ -76,7 +76,7 @@ nhưng số lớp và singleton DI không phù hợp Phase 1A.
 | Domain/data/presentation boundaries | `src/domain/`, `src/data/`, `src/presentation/` | ADAPT | Boundary hữu ích, nhưng hàng nghìn file và use case cho CRUD là quá mức | Phase 1B đặt Trip domain trong feature và tạo đúng một repository seam SQLite phục vụ chuyển sang REST |
 | Singleton DI container và generator boilerplate | `src/di/DIContainer.ts`, `scripts/ais-template.mjs` | REJECT | Quá phức tạp cho Phase 1A và trái explicit composition trong architecture doc | Dùng import/composition trực tiếp; không thêm container hoặc codegen |
 | Result union ở data boundary | `src/core/ResultState.ts` | ADAPT | Typed error hữu ích nhưng generic result wrapper chưa cần | Trip repository map lỗi thành mã `VALIDATION` / `NOT_FOUND` / `STORAGE`; UI không parse SQLite error |
-| API client tập trung và một refresh coordinator | `src/api/api-service.ts`, `__tests__/api-service.refresh-token.test.ts` | ADAPT | Coordination là pattern đúng cho Phase 3, nhưng client hiện gắn navigation/storage và log response | Phase 3 tạo client theo API contract, không gọi navigation/toast và không log token/payload |
+| API client tập trung và một refresh coordinator | `src/api/api-service.ts`, `__tests__/api-service.refresh-token.test.ts` | ADAPT | Coordination và console diagnostics hữu ích cho Phase 3, nhưng client slink gắn navigation/storage và log thô toàn bộ response | Client luckgage không gọi navigation/toast; development console log method/URL/status/duration/request ID và payload đã redact password/token |
 | API endpoint qua environment config | `src/api/api-service.ts`, `.env*` | ADAPT | Base URL tập trung là đúng, nhưng không được copy endpoint hay credential | Chỉ tạo `EXPO_PUBLIC_API_BASE_URL` giả; mọi mobile env đều được coi là public |
 | Lưu token bằng AsyncStorage | `src/domain/services/StorageManager.ts` | REJECT | Không đáp ứng security requirement cho credential nhạy cảm | Phase 3 dùng Expo SecureStore cho refresh credential |
 | Repository/service/use-case cho mọi domain | `src/data/repositories/`, `src/domain/use-cases/` | REJECT | Boilerplate lớn hơn nhu cầu và có duplicate naming `use-cases`/`usecases` | Chỉ thêm lớp khi có reuse hoặc migration seam thật |
@@ -99,8 +99,8 @@ nhưng số lớp và singleton DI không phù hợp Phase 1A.
 - `.env`, `.env.dev`, `.env.prod`, Firebase config và keystore đang được Git track. Audit không đọc
   giá trị secret; luckgage phải ignore env thật/credential và chỉ commit `.env.example` giả.
 - Token truy cập/refresh của slink được lưu qua AsyncStorage; pattern này bị loại cho auth v2.
-- API layer đang log toàn bộ response và gọi navigation trực tiếp; có nguy cơ lộ dữ liệu và ghép
-  chặt transport với UI.
+- API layer slink đang log toàn bộ response và gọi navigation trực tiếp; luckgage chỉ ADAPT phần
+  console diagnostics, redact credential/token và giữ transport tách khỏi UI.
 - Navigation type có nhiều `any`, callback và object domain lớn; luckgage chỉ truyền ID/mode.
 - I18n catalog vi/en có độ phủ lệch lớn (1.029 dòng so với 152 dòng), nên không xem đây là mẫu
   hoàn thiện về localization.

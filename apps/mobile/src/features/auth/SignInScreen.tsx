@@ -12,6 +12,11 @@ import { authErrorMessageKey } from './authErrors';
 import { hasAuthErrors, validateSignIn, type AuthFieldErrors } from './authValidation';
 import { authValidationMessageKey } from './authValidationMessages';
 
+const demoCredentials = {
+  email: 'demo@luckgage.app',
+  password: 'DemoLuckgage2026!',
+} as const;
+
 export function SignInScreen() {
   const router = useRouter();
   const { login } = useAuth();
@@ -33,6 +38,22 @@ export function SignInScreen() {
     setSubmitting(true);
     try {
       await login({ email: email.trim().toLowerCase(), password });
+    } catch (error) {
+      setFormError(t(authErrorMessageKey(error)));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const signInDemo = async () => {
+    if (submitting) return;
+    setEmail(demoCredentials.email);
+    setPassword(demoCredentials.password);
+    setErrors({});
+    setFormError(null);
+    setSubmitting(true);
+    try {
+      await login(demoCredentials);
     } catch (error) {
       setFormError(t(authErrorMessageKey(error)));
     } finally {
@@ -90,6 +111,12 @@ export function SignInScreen() {
         label={submitting ? t('authSigningIn') : t('authSignIn')}
         loading={submitting}
         onPress={() => void submit()}
+      />
+      <AppButton
+        disabled={submitting}
+        label={t('authDemoSignIn')}
+        onPress={() => void signInDemo()}
+        variant="secondary"
       />
     </AuthFrame>
   );

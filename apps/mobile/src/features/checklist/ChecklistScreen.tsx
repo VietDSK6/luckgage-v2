@@ -6,6 +6,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -57,17 +58,20 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
   const [quickAddNames, setQuickAddNames] = useState<Record<string, string>>({});
   const [itemEditor, setItemEditor] = useState<ItemEditor | null>(null);
   const [pendingOperation, setPendingOperation] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [mutationError, setMutationError] = useState(false);
   const [undoItem, setUndoItem] = useState<ChecklistItem | null>(null);
   const requestSequence = useRef(0);
+  const hasLoaded = useRef(false);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (refresh = false) => {
     const requestId = ++requestSequence.current;
     if (!tripId) {
       setScreenState('notFound');
       return;
     }
 
+    if (refresh) setIsRefreshing(true);
     try {
       const [nextTrip, nextCategories] = await Promise.all([
         tripRepository.getById(tripId),
@@ -81,8 +85,15 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
       setTrip(nextTrip);
       setCategories(nextCategories);
       setScreenState('content');
+      setMutationError(false);
+      hasLoaded.current = true;
     } catch {
-      if (requestId === requestSequence.current) setScreenState('error');
+      if (requestId === requestSequence.current) {
+        if (hasLoaded.current) setMutationError(true);
+        else setScreenState('error');
+      }
+    } finally {
+      if (requestId === requestSequence.current) setIsRefreshing(false);
     }
   }, [checklistRepository, tripId, tripRepository]);
 
@@ -304,8 +315,8 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
     if (!item || !beginOperation(`item:restore:${item.id}`)) return;
     setUndoItem(null);
     try {
-      await checklistRepository.restoreItem(item);
-      setCategories((current) => insertItem(current, item));
+      const restored = await checklistRepository.restoreItem(item);
+      setCategories((current) => insertItem(current, restored));
     } catch {
       setMutationError(true);
     } finally {
@@ -372,6 +383,14 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
         <ScrollView
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
+          refreshControl={
+            <RefreshControl
+              colors={[theme.colors.primary]}
+              onRefresh={() => void load(true)}
+              refreshing={isRefreshing}
+              tintColor={theme.colors.primary}
+            />
+          }
           showsVerticalScrollIndicator={false}>
           {progress.total > 0 && progress.percentage === 100 ? (
             <View style={[styles.readyBanner, { backgroundColor: theme.colors.primarySoft }]}>

@@ -16,6 +16,10 @@ npm run db:seed
 npm run api
 ```
 
+The development command performs an initial TypeScript build, then watches both the compiler output
+and the Node process. This preserves the decorator metadata Nest needs for DTO transformation and
+validation while still restarting the API after source changes.
+
 To bootstrap the first local admin, set `SEED_ADMIN_EMAIL` and `SEED_ADMIN_PASSWORD` only in the
 ignored `apps/api/.env`, then run `npm run db:seed`. The seed creates a missing admin but never
 overwrites credentials for an existing account.

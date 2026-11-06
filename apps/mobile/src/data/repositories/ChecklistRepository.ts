@@ -9,7 +9,13 @@ import {
   type ChecklistItemDraft,
 } from '@/features/checklist/domain/checklist';
 
-export type ChecklistRepositoryErrorCode = 'VALIDATION' | 'NOT_FOUND' | 'STORAGE';
+export type ChecklistRepositoryErrorCode =
+  | 'VALIDATION'
+  | 'NOT_FOUND'
+  | 'STORAGE'
+  | 'NETWORK'
+  | 'CONFLICT'
+  | 'REMOTE';
 
 export class ChecklistRepositoryError extends Error {
   constructor(
@@ -32,8 +38,7 @@ export interface ChecklistRepository {
   setItemPacked(itemId: string, isPacked: boolean): Promise<void>;
   setCategoryPacked(categoryId: string, isPacked: boolean): Promise<void>;
   deleteItem(itemId: string): Promise<ChecklistItem>;
-  restoreItem(item: ChecklistItem): Promise<void>;
-  appendItems(tripId: string, items: ChecklistAppendItem[]): Promise<number>;
+  restoreItem(item: ChecklistItem): Promise<ChecklistItem>;
 }
 
 export type ChecklistAppendItem = ChecklistItemDraft & { categoryName: string };
@@ -262,7 +267,7 @@ export class SQLiteChecklistRepository implements ChecklistRepository {
     }
   }
 
-  async restoreItem(item: ChecklistItem): Promise<void> {
+  async restoreItem(item: ChecklistItem): Promise<ChecklistItem> {
     try {
       await this.database.runAsync(
         `INSERT INTO checklist_items
@@ -278,6 +283,7 @@ export class SQLiteChecklistRepository implements ChecklistRepository {
         item.createdAt,
         this.now(),
       );
+      return mapItemRow(await this.getItemRow(item.id));
     } catch (error) {
       throw mapStorageError('Could not restore checklist item', error);
     }

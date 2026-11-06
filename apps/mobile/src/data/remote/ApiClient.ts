@@ -12,6 +12,12 @@ import type {
 
 type Fetcher = typeof globalThis.fetch;
 type SessionListener = (session: AuthSession | null) => void;
+type ApiTrace = {
+  method: NonNullable<ApiRequestOptions['method']>;
+  url: string;
+  startedAt: number;
+};
+type TracedResponse = { response: Response; trace: ApiTrace };
 
 export type ApiRequestOptions = {
   method?: 'GET' | 'POST' | 'PATCH' | 'DELETE';
@@ -108,7 +114,7 @@ export class ApiClient {
     allowRefresh: boolean,
   ): Promise<Result> {
     const tokenUsed = this.accessToken;
-    const response = await this.send(path, options, tokenUsed);
+    const { response, trace } = await this.send(path, options, tokenUsed);
     if (response.status === 401 && allowRefresh && options.authenticated !== false) {
       if (tokenUsed && tokenUsed !== this.accessToken && this.accessToken) {
         return this.authenticatedRequest(path, options, false);
@@ -116,14 +122,15 @@ export class ApiClient {
       const refreshed = await this.refresh();
       if (refreshed) return this.authenticatedRequest(path, options, false);
     }
-    return parseResponse<Result>(response);
+    return parseResponse<Result>(response, trace);
   }
 
   private async publicRequest<Result>(
     path: string,
     options: ApiRequestOptions,
   ): Promise<Result> {
-    return parseResponse<Result>(await this.send(path, options, null));
+    const { response, trace } = await this.send(path, options, null);
+    return parseResponse<Result>(response, trace);
   }
 
   private async refresh(credential?: RefreshCredential): Promise<AuthSession | null> {
@@ -186,9 +193,12 @@ export class ApiClient {
     path: string,
     options: ApiRequestOptions,
     accessToken: string | null,
-  ): Promise<Response> {
+  ): Promise<TracedResponse> {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), this.timeoutMs);
+    const method = options.method ?? 'GET';
+    const url = buildUrl(this.baseUrl, path);
+    const trace: ApiTrace = { method, url: sanitizeLogUrl(url), startedAt: Date.now() };
     const headers: Record<string, string> = {
       Accept: 'application/json',
       ...options.headers,
@@ -196,14 +206,18 @@ export class ApiClient {
     if (options.body !== undefined) headers['Content-Type'] = 'application/json';
     if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
 
+    logApiRequest(trace, options.body, Boolean(accessToken));
+
     try {
-      return await this.fetcher(buildUrl(this.baseUrl, path), {
-        method: options.method ?? 'GET',
+      const response = await this.fetcher(url, {
+        method,
         headers,
         ...(options.body === undefined ? {} : { body: JSON.stringify(options.body) }),
         signal: controller.signal,
       });
+      return { response, trace };
     } catch (error) {
+      logApiNetworkError(trace, controller.signal.aborted ? 'REQUEST_TIMEOUT' : 'NETWORK_UNAVAILABLE');
       throw new ApiClientError(
         {
           status: 0,
@@ -244,14 +258,18 @@ function buildUrl(baseUrl: string, path: string): string {
   return new URL(path.replace(/^\//, ''), baseUrl).toString();
 }
 
-async function parseResponse<Result>(response: Response): Promise<Result> {
-  if (response.status === 204) return undefined as Result;
+async function parseResponse<Result>(response: Response, trace: ApiTrace): Promise<Result> {
+  if (response.status === 204) {
+    logApiResponse(trace, response, null);
+    return undefined as Result;
+  }
   const body = await response.text();
   let payload: unknown = null;
   if (body) {
     try {
       payload = JSON.parse(body) as unknown;
     } catch {
+      logApiResponse(trace, response, '[unreadable response body]');
       throw new ApiClientError({
         status: response.status,
         code: 'INVALID_API_RESPONSE',
@@ -260,8 +278,79 @@ async function parseResponse<Result>(response: Response): Promise<Result> {
       });
     }
   }
+  logApiResponse(trace, response, payload);
   if (!response.ok) throw problemFrom(payload, response.status);
   return payload as Result;
+}
+
+const sensitiveLogKeys = new Set([
+  'password',
+  'confirmpassword',
+  'accesstoken',
+  'refreshtoken',
+  'authorization',
+  'idtoken',
+  'invitecode',
+  'codehash',
+  'secret',
+]);
+
+export function sanitizeApiLogValue(value: unknown, depth = 0): unknown {
+  if (depth > 5) return '[truncated]';
+  if (Array.isArray(value)) {
+    const values = value.slice(0, 30).map((item) => sanitizeApiLogValue(item, depth + 1));
+    return value.length > 30 ? [...values, `[${value.length - 30} more items]`] : values;
+  }
+  if (!value || typeof value !== 'object') return value;
+
+  return Object.fromEntries(
+    Object.entries(value).map(([key, item]) => [
+      key,
+      sensitiveLogKeys.has(key.toLowerCase())
+        ? '[redacted]'
+        : sanitizeApiLogValue(item, depth + 1),
+    ]),
+  );
+}
+
+function sanitizeLogUrl(url: string): string {
+  const parsed = new URL(url);
+  for (const key of parsed.searchParams.keys()) {
+    if (sensitiveLogKeys.has(key.toLowerCase())) parsed.searchParams.set(key, '[redacted]');
+  }
+  return parsed.toString();
+}
+
+function shouldLogApi(): boolean {
+  return __DEV__ && process.env.NODE_ENV !== 'test';
+}
+
+function logApiRequest(trace: ApiTrace, body: unknown, authenticated: boolean): void {
+  if (!shouldLogApi()) return;
+  console.log(`[API →] ${trace.method} ${trace.url}`, {
+    authenticated,
+    ...(body === undefined ? {} : { body: sanitizeApiLogValue(body) }),
+  });
+}
+
+function logApiResponse(trace: ApiTrace, response: Response, payload: unknown): void {
+  if (!shouldLogApi()) return;
+  const requestId = response.headers?.get?.('x-request-id') ?? null;
+  console.log(
+    `[API ←] ${response.status} ${trace.method} ${trace.url} (${Date.now() - trace.startedAt}ms)`,
+    {
+      ok: response.ok,
+      requestId,
+      payload: sanitizeApiLogValue(payload),
+    },
+  );
+}
+
+function logApiNetworkError(trace: ApiTrace, code: string): void {
+  if (!shouldLogApi()) return;
+  console.log(
+    `[API ×] ${code} ${trace.method} ${trace.url} (${Date.now() - trace.startedAt}ms)`,
+  );
 }
 
 function problemFrom(payload: unknown, status: number): ApiClientError {

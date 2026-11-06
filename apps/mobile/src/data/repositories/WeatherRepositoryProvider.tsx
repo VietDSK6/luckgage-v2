@@ -1,13 +1,15 @@
-import { useSQLiteContext } from 'expo-sqlite';
 import { createContext, type PropsWithChildren, useContext, useMemo } from 'react';
 
-import { OpenMeteoWeatherRepository, type WeatherRepository } from './WeatherRepository';
+import { useApiClient } from '@/data/remote/ApiClientProvider';
+
+import { RemoteWeatherRepository } from './RemoteWeatherRepository';
+import type { WeatherRepository } from './WeatherRepository';
 
 const WeatherRepositoryContext = createContext<WeatherRepository | null>(null);
 
 export function WeatherRepositoryProvider({ children }: PropsWithChildren) {
-  const database = useSQLiteContext();
-  const repository = useMemo(() => new OpenMeteoWeatherRepository(database), [database]);
+  const apiClient = useApiClient();
+  const repository = useMemo(() => new RemoteWeatherRepository(apiClient), [apiClient]);
 
   return (
     <WeatherRepositoryContext.Provider value={repository}>

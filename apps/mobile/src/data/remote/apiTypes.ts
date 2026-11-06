@@ -42,3 +42,119 @@ export type ApiProblem = {
   requestId?: string;
   fieldErrors?: ApiFieldError[];
 };
+
+export type ApiTripType =
+  | 'LEISURE'
+  | 'BUSINESS'
+  | 'CAMPING'
+  | 'BEACH'
+  | 'HIKING'
+  | 'CITY_TRIP'
+  | 'ROAD_TRIP'
+  | 'INTERNATIONAL'
+  | 'OTHER';
+
+export type ApiDestination = {
+  label: string;
+  providerPlaceId: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  timezone: string | null;
+  countryCode: string | null;
+  adminArea: string | null;
+  country: string | null;
+};
+
+export type ApiLocation = Omit<ApiDestination, 'providerPlaceId'> & {
+  id: string;
+};
+
+export type ApiLocationsResponse = {
+  items: ApiLocation[];
+};
+
+export type ApiTrip = {
+  id: string;
+  name: string;
+  destination: ApiDestination;
+  startDate: string;
+  endDate: string;
+  tripType: ApiTripType;
+  version: number;
+  updatedAt: string;
+  note?: string | null;
+};
+
+export type ApiTripsPage = {
+  items: ApiTrip[];
+  page: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
+};
+
+export type ApiChecklistItem = {
+  id: string;
+  name: string;
+  quantity: number;
+  isPacked: boolean;
+  note: string | null;
+  position: number;
+  version: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ApiChecklistCategory = {
+  id: string;
+  name: string;
+  position: number;
+  version: number;
+  items: ApiChecklistItem[];
+};
+
+export type ApiChecklist = {
+  tripId: string;
+  categories: ApiChecklistCategory[];
+};
+
+export type ApiWeatherStatus = 'FRESH' | 'CACHED' | 'UNAVAILABLE';
+
+export type ApiWeatherResponse = {
+  status: ApiWeatherStatus;
+  fetchedAt: string | null;
+  daily: {
+    date: string;
+    weatherCode: number;
+    highTemperatureCelsius: number;
+    lowTemperatureCelsius: number;
+    rainChancePercent: number;
+  }[];
+  lowTemperatureCelsius: number | null;
+  highTemperatureCelsius: number | null;
+  rainChancePercent: number | null;
+};
+
+export type ApiPackingPreview = {
+  source: 'RULE_BASED';
+  sourceLabel: string;
+  generatedAt: string;
+  weatherStatus: ApiWeatherStatus;
+  categories: {
+    clientKey: string;
+    name: string;
+    items: {
+      clientKey: string;
+      name: string;
+      quantity: number;
+      note: string | null;
+      reason: string;
+      matchedRules: { ruleId: string; version: number }[];
+    }[];
+  }[];
+};
+
+export type ApiPackingApplyResponse = {
+  addedCategoryCount: number;
+  addedItemCount: number;
+};

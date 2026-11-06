@@ -3,7 +3,7 @@ import type {
   RefreshCredentialStore,
 } from '@/platform/security/refreshCredentialStore';
 
-import { ApiClient, resolveApiBaseUrl } from './ApiClient';
+import { ApiClient, resolveApiBaseUrl, sanitizeApiLogValue } from './ApiClient';
 import type { AuthResponsePayload } from './apiTypes';
 
 class MemoryCredentialStore implements RefreshCredentialStore {
@@ -195,5 +195,21 @@ describe('ApiClient', () => {
     await expect(client.login({ email: user.email, password: 'long-password' })).rejects.toEqual(
       expect.objectContaining({ code: 'NETWORK_UNAVAILABLE', status: 0 }),
     );
+  });
+
+  test('redacts credentials from network diagnostics without hiding useful API fields', () => {
+    expect(
+      sanitizeApiLogValue({
+        email: 'demo@luckgage.app',
+        password: 'DemoLuckgage2026!',
+        accessToken: 'access-secret',
+        nested: { refreshToken: 'refresh-secret', weatherCode: 61, code: 'UNAVAILABLE' },
+      }),
+    ).toEqual({
+      email: 'demo@luckgage.app',
+      password: '[redacted]',
+      accessToken: '[redacted]',
+      nested: { refreshToken: '[redacted]', weatherCode: 61, code: 'UNAVAILABLE' },
+    });
   });
 });
