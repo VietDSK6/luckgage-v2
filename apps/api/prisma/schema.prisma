@@ -58,21 +58,40 @@ enum TripMemberRole {
   @@map("trip_member_role")
 }
 
+enum ContentStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+
+  @@map("content_status")
+}
+
+enum QuantityMode {
+  FIXED
+  PER_DAY
+
+  @@map("quantity_mode")
+}
+
 model User {
-  id                    String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  email                 String          @unique @db.VarChar(254)
-  passwordHash          String          @map("password_hash")
-  displayName           String          @map("display_name") @db.VarChar(80)
-  role                  UserRole        @default(USER)
-  status                UserStatus      @default(ACTIVE)
-  locale                UserLocale      @default(vi)
-  createdAt             DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt             DateTime        @updatedAt @map("updated_at") @db.Timestamptz(3)
-  lastLoginAt           DateTime?       @map("last_login_at") @db.Timestamptz(3)
-  sessions              AuthSession[]
-  tripMembers           TripMember[]
-  createdInvites        TripInvite[]    @relation("InviteCreator")
-  createdChecklistItems ChecklistItem[] @relation("ChecklistItemCreator")
+  id                     String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email                  String           @unique @db.VarChar(254)
+  passwordHash           String           @map("password_hash")
+  displayName            String           @map("display_name") @db.VarChar(80)
+  role                   UserRole         @default(USER)
+  status                 UserStatus       @default(ACTIVE)
+  locale                 UserLocale       @default(vi)
+  createdAt              DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt              DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
+  lastLoginAt            DateTime?        @map("last_login_at") @db.Timestamptz(3)
+  sessions               AuthSession[]
+  tripMembers            TripMember[]
+  createdInvites         TripInvite[]     @relation("InviteCreator")
+  createdChecklistItems  ChecklistItem[]  @relation("ChecklistItemCreator")
+  createdPackingRules    PackingRule[]    @relation("PackingRuleCreator")
+  updatedPackingRules    PackingRule[]    @relation("PackingRuleUpdater")
+  createdTripSuggestions TripSuggestion[] @relation("TripSuggestionCreator")
+  updatedTripSuggestions TripSuggestion[] @relation("TripSuggestionUpdater")
 
   @@map("users")
 }
@@ -119,6 +138,7 @@ model Trip {
   members             TripMember[]
   invites             TripInvite[]
   checklistCategories ChecklistCategory[]
+  weatherCache        WeatherCache?
 
   @@index([startDate, endDate])
   @@map("trips")
@@ -188,4 +208,107 @@ model ChecklistItem {
 
   @@index([categoryId, position])
   @@map("checklist_items")
+}
+
+model WeatherCache {
+  tripId       String   @id @map("trip_id") @db.Uuid
+  startDate    DateTime @map("start_date") @db.Date
+  endDate      DateTime @map("end_date") @db.Date
+  latitude     Decimal  @db.Decimal(9, 6)
+  longitude    Decimal  @db.Decimal(9, 6)
+  payload      Json     @map("payload_json")
+  cacheVersion Int      @default(1) @map("cache_version")
+  fetchedAt    DateTime @map("fetched_at") @db.Timestamptz(3)
+  expiresAt    DateTime @map("expires_at") @db.Timestamptz(3)
+  trip         Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@index([expiresAt])
+  @@map("weather_cache")
+}
+
+model PackingRule {
+  id             String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  key            String            @db.VarChar(80)
+  name           String            @db.VarChar(120)
+  status         ContentStatus     @default(DRAFT)
+  version        Int               @default(1)
+  priority       Int               @default(100)
+  tripType       TripType?         @map("trip_type")
+  minDays        Int?              @map("min_days")
+  maxDays        Int?              @map("max_days")
+  minTempC       Decimal?          @map("min_temp_c") @db.Decimal(5, 2)
+  maxTempC       Decimal?          @map("max_temp_c") @db.Decimal(5, 2)
+  minRainPercent Int?              @map("min_rain_percent")
+  activityKey    String?           @map("activity_key") @db.VarChar(60)
+  reasonVi       String            @map("reason_vi") @db.VarChar(240)
+  reasonEn       String            @map("reason_en") @db.VarChar(240)
+  createdById    String?           @map("created_by") @db.Uuid
+  updatedById    String?           @map("updated_by") @db.Uuid
+  createdAt      DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
+  publishedAt    DateTime?         @map("published_at") @db.Timestamptz(3)
+  items          PackingRuleItem[]
+  createdBy      User?             @relation("PackingRuleCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy      User?             @relation("PackingRuleUpdater", fields: [updatedById], references: [id], onDelete: SetNull)
+
+  @@unique([key, version])
+  @@index([status, priority])
+  @@map("packing_rules")
+}
+
+model PackingRuleItem {
+  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ruleId         String       @map("rule_id") @db.Uuid
+  categoryKey    String       @map("category_key") @db.VarChar(80)
+  categoryNameVi String       @map("category_name_vi") @db.VarChar(80)
+  categoryNameEn String       @map("category_name_en") @db.VarChar(80)
+  itemKey        String       @map("item_key") @db.VarChar(100)
+  itemNameVi     String       @map("item_name_vi") @db.VarChar(120)
+  itemNameEn     String       @map("item_name_en") @db.VarChar(120)
+  quantityMode   QuantityMode @default(FIXED) @map("quantity_mode")
+  baseQuantity   Int          @default(1) @map("base_quantity")
+  noteVi         String?      @map("note_vi") @db.VarChar(500)
+  noteEn         String?      @map("note_en") @db.VarChar(500)
+  position       Int          @default(0)
+  rule           PackingRule  @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+  @@unique([ruleId, categoryKey, itemKey])
+  @@index([ruleId, position])
+  @@map("packing_rule_items")
+}
+
+model TripSuggestion {
+  id                    String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug                  String        @unique @db.VarChar(100)
+  titleVi               String        @map("title_vi") @db.VarChar(160)
+  titleEn               String        @map("title_en") @db.VarChar(160)
+  summaryVi             String        @map("summary_vi") @db.VarChar(500)
+  summaryEn             String        @map("summary_en") @db.VarChar(500)
+  destinationLabel      String        @map("destination_label") @db.VarChar(160)
+  providerPlaceId       String?       @map("provider_place_id") @db.VarChar(160)
+  latitude              Decimal?      @db.Decimal(9, 6)
+  longitude             Decimal?      @db.Decimal(9, 6)
+  destinationTimezone   String?       @map("destination_timezone") @db.VarChar(64)
+  countryCode           String?       @map("country_code") @db.Char(2)
+  adminArea             String?       @map("admin_area") @db.VarChar(100)
+  country               String?       @db.VarChar(100)
+  imageUrl              String        @map("image_url") @db.VarChar(500)
+  imageAltVi            String        @map("image_alt_vi") @db.VarChar(200)
+  imageAltEn            String        @map("image_alt_en") @db.VarChar(200)
+  tags                  String[]
+  tripType              TripType?     @map("trip_type")
+  suggestedDurationDays Int           @default(3) @map("suggested_duration_days")
+  status                ContentStatus @default(DRAFT)
+  sortOrder             Int           @default(0) @map("sort_order")
+  createdById           String?       @map("created_by") @db.Uuid
+  updatedById           String?       @map("updated_by") @db.Uuid
+  createdAt             DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt             DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
+  publishedAt           DateTime?     @map("published_at") @db.Timestamptz(3)
+  createdBy             User?         @relation("TripSuggestionCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy             User?         @relation("TripSuggestionUpdater", fields: [updatedById], references: [id], onDelete: SetNull)
+
+  @@index([status, sortOrder])
+  @@index([tags], type: Gin)
+  @@map("trip_suggestions")
 }

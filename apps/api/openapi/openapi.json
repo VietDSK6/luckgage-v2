@@ -1065,6 +1065,577 @@
         ]
       }
     },
+    "/api/v1/locations/search": {
+      "get": {
+        "operationId": "WeatherController_search",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocationsResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Search normalized Open-Meteo locations",
+        "tags": [
+          "weather"
+        ]
+      }
+    },
+    "/api/v1/trips/{tripId}/weather": {
+      "get": {
+        "operationId": "WeatherController_getTripWeather",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WeatherResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get fresh, cached, or unavailable weather without blocking trip flows",
+        "tags": [
+          "weather"
+        ]
+      }
+    },
+    "/api/v1/trips/{tripId}/packing-suggestions/preview": {
+      "post": {
+        "operationId": "PackingSuggestionsController_preview",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PackingPreviewDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Preview deterministic suggestions without writing checklist data",
+        "tags": [
+          "packing-suggestions"
+        ]
+      }
+    },
+    "/api/v1/trips/{tripId}/packing-suggestions/apply": {
+      "post": {
+        "operationId": "PackingSuggestionsController_apply",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplyPackingResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Atomically append the user-confirmed snapshot to a checklist",
+        "tags": [
+          "packing-suggestions"
+        ]
+      }
+    },
+    "/api/v1/admin/packing-rules": {
+      "get": {
+        "operationId": "AdminPackingRulesController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PackingRulesPageDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "tags": [
+          "admin-packing-rules"
+        ]
+      },
+      "post": {
+        "operationId": "AdminPackingRulesController_create",
+        "parameters": [
+          {
+            "name": "x-csrf-token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PackingRuleDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "tags": [
+          "admin-packing-rules"
+        ]
+      }
+    },
+    "/api/v1/admin/packing-rules/{ruleId}": {
+      "get": {
+        "operationId": "AdminPackingRulesController_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PackingRuleDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "tags": [
+          "admin-packing-rules"
+        ]
+      },
+      "patch": {
+        "operationId": "AdminPackingRulesController_update",
+        "parameters": [
+          {
+            "name": "x-csrf-token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PackingRuleDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "tags": [
+          "admin-packing-rules"
+        ]
+      }
+    },
+    "/api/v1/admin/packing-rules/{ruleId}/preview": {
+      "post": {
+        "operationId": "AdminPackingRulesController_preview",
+        "parameters": [
+          {
+            "name": "x-csrf-token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PackingPreviewDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "tags": [
+          "admin-packing-rules"
+        ]
+      }
+    },
+    "/api/v1/admin/packing-rules/{ruleId}/publish": {
+      "post": {
+        "operationId": "AdminPackingRulesController_publish",
+        "parameters": [
+          {
+            "name": "x-csrf-token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PackingRuleDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "tags": [
+          "admin-packing-rules"
+        ]
+      }
+    },
+    "/api/v1/admin/packing-rules/{ruleId}/archive": {
+      "post": {
+        "operationId": "AdminPackingRulesController_archive",
+        "parameters": [
+          {
+            "name": "x-csrf-token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PackingRuleDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "tags": [
+          "admin-packing-rules"
+        ]
+      }
+    },
+    "/api/v1/trip-suggestions": {
+      "get": {
+        "operationId": "TripSuggestionsController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripSuggestionsPageDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "trip-suggestions"
+        ]
+      }
+    },
+    "/api/v1/trip-suggestions/{slug}": {
+      "get": {
+        "operationId": "TripSuggestionsController_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripSuggestionDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "trip-suggestions"
+        ]
+      }
+    },
+    "/api/v1/admin/trip-suggestions": {
+      "get": {
+        "operationId": "AdminTripSuggestionsController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminTripSuggestionsPageDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "tags": [
+          "admin-trip-suggestions"
+        ]
+      },
+      "post": {
+        "operationId": "AdminTripSuggestionsController_create",
+        "parameters": [
+          {
+            "name": "x-csrf-token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminTripSuggestionDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "tags": [
+          "admin-trip-suggestions"
+        ]
+      }
+    },
+    "/api/v1/admin/trip-suggestions/{id}": {
+      "get": {
+        "operationId": "AdminTripSuggestionsController_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminTripSuggestionDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "tags": [
+          "admin-trip-suggestions"
+        ]
+      },
+      "patch": {
+        "operationId": "AdminTripSuggestionsController_update",
+        "parameters": [
+          {
+            "name": "x-csrf-token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminTripSuggestionDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "tags": [
+          "admin-trip-suggestions"
+        ]
+      }
+    },
+    "/api/v1/admin/trip-suggestions/{id}/publish": {
+      "post": {
+        "operationId": "AdminTripSuggestionsController_publish",
+        "parameters": [
+          {
+            "name": "x-csrf-token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminTripSuggestionDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "tags": [
+          "admin-trip-suggestions"
+        ]
+      }
+    },
+    "/api/v1/admin/trip-suggestions/{id}/archive": {
+      "post": {
+        "operationId": "AdminTripSuggestionsController_archive",
+        "parameters": [
+          {
+            "name": "x-csrf-token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminTripSuggestionDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "tags": [
+          "admin-trip-suggestions"
+        ]
+      }
+    },
     "/api/v1/health/live": {
       "get": {
         "operationId": "HealthController_getLiveness",
@@ -1928,6 +2499,698 @@
           "tripId",
           "progress",
           "categories"
+        ]
+      },
+      "LocationDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "latitude": {
+            "type": "number"
+          },
+          "longitude": {
+            "type": "number"
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "countryCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "adminArea": {
+            "type": "string",
+            "nullable": true
+          },
+          "country": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "latitude",
+          "longitude",
+          "timezone"
+        ]
+      },
+      "LocationsResponseDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LocationDto"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "WeatherStatus": {
+        "type": "string",
+        "enum": [
+          "FRESH",
+          "CACHED",
+          "UNAVAILABLE"
+        ]
+      },
+      "WeatherDayDto": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "weatherCode": {
+            "type": "number"
+          },
+          "highTemperatureCelsius": {
+            "type": "number"
+          },
+          "lowTemperatureCelsius": {
+            "type": "number"
+          },
+          "rainChancePercent": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "date",
+          "weatherCode",
+          "highTemperatureCelsius",
+          "lowTemperatureCelsius",
+          "rainChancePercent"
+        ]
+      },
+      "WeatherResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WeatherStatus"
+              }
+            ]
+          },
+          "fetchedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "daily": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WeatherDayDto"
+            }
+          },
+          "lowTemperatureCelsius": {
+            "type": "number",
+            "nullable": true
+          },
+          "highTemperatureCelsius": {
+            "type": "number",
+            "nullable": true
+          },
+          "rainChancePercent": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "status",
+          "daily"
+        ]
+      },
+      "MatchedRuleDto": {
+        "type": "object",
+        "properties": {
+          "ruleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "ruleId",
+          "version"
+        ]
+      },
+      "PackingPreviewItemDto": {
+        "type": "object",
+        "properties": {
+          "clientKey": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "note": {
+            "type": "string",
+            "nullable": true
+          },
+          "reason": {
+            "type": "string"
+          },
+          "matchedRules": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MatchedRuleDto"
+            }
+          }
+        },
+        "required": [
+          "clientKey",
+          "name",
+          "quantity",
+          "reason",
+          "matchedRules"
+        ]
+      },
+      "PackingPreviewCategoryDto": {
+        "type": "object",
+        "properties": {
+          "clientKey": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PackingPreviewItemDto"
+            }
+          }
+        },
+        "required": [
+          "clientKey",
+          "name",
+          "items"
+        ]
+      },
+      "PackingPreviewDto": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string",
+            "example": "RULE_BASED"
+          },
+          "sourceLabel": {
+            "type": "string"
+          },
+          "generatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "weatherStatus": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WeatherStatus"
+              }
+            ]
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PackingPreviewCategoryDto"
+            }
+          }
+        },
+        "required": [
+          "source",
+          "sourceLabel",
+          "generatedAt",
+          "weatherStatus",
+          "categories"
+        ]
+      },
+      "ApplyPackingResponseDto": {
+        "type": "object",
+        "properties": {
+          "addedCategoryCount": {
+            "type": "number"
+          },
+          "addedItemCount": {
+            "type": "number"
+          },
+          "checklistProgress": {
+            "$ref": "#/components/schemas/ChecklistProgressDto"
+          }
+        },
+        "required": [
+          "addedCategoryCount",
+          "addedItemCount",
+          "checklistProgress"
+        ]
+      },
+      "ContentStatus": {
+        "type": "string",
+        "enum": [
+          "DRAFT",
+          "PUBLISHED",
+          "ARCHIVED"
+        ]
+      },
+      "QuantityMode": {
+        "type": "string",
+        "enum": [
+          "FIXED",
+          "PER_DAY"
+        ]
+      },
+      "PackingRuleItemInputDto": {
+        "type": "object",
+        "properties": {
+          "categoryKey": {
+            "type": "string"
+          },
+          "categoryNameVi": {
+            "type": "string"
+          },
+          "categoryNameEn": {
+            "type": "string"
+          },
+          "itemKey": {
+            "type": "string"
+          },
+          "itemNameVi": {
+            "type": "string"
+          },
+          "itemNameEn": {
+            "type": "string"
+          },
+          "quantityMode": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/QuantityMode"
+              }
+            ]
+          },
+          "baseQuantity": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 99
+          },
+          "noteVi": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 500
+          },
+          "noteEn": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 500
+          },
+          "position": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "categoryKey",
+          "categoryNameVi",
+          "categoryNameEn",
+          "itemKey",
+          "itemNameVi",
+          "itemNameEn",
+          "quantityMode",
+          "baseQuantity"
+        ]
+      },
+      "PackingRuleDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "key": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ContentStatus"
+              }
+            ]
+          },
+          "version": {
+            "type": "number"
+          },
+          "priority": {
+            "type": "number"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PackingRuleItemInputDto"
+            }
+          },
+          "conditions": {
+            "type": "object"
+          },
+          "reasonVi": {
+            "type": "string"
+          },
+          "reasonEn": {
+            "type": "string"
+          },
+          "publishedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "key",
+          "name",
+          "status",
+          "version",
+          "priority",
+          "items",
+          "conditions",
+          "reasonVi",
+          "reasonEn",
+          "updatedAt"
+        ]
+      },
+      "PackingRulesPageDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PackingRuleDto"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "TripSuggestionImageDto": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "alt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "url",
+          "alt"
+        ]
+      },
+      "SuggestionDestinationDto": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "providerPlaceId": {
+            "type": "string",
+            "nullable": true
+          },
+          "latitude": {
+            "type": "number",
+            "nullable": true
+          },
+          "longitude": {
+            "type": "number",
+            "nullable": true
+          },
+          "timezone": {
+            "type": "string",
+            "nullable": true
+          },
+          "countryCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "adminArea": {
+            "type": "string",
+            "nullable": true
+          },
+          "country": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "label"
+        ]
+      },
+      "TripSuggestionPrefillDto": {
+        "type": "object",
+        "properties": {
+          "destination": {
+            "$ref": "#/components/schemas/SuggestionDestinationDto"
+          },
+          "tripType": {
+            "type": "string",
+            "enum": [
+              "LEISURE",
+              "BUSINESS",
+              "CAMPING",
+              "BEACH",
+              "HIKING",
+              "CITY_TRIP",
+              "ROAD_TRIP",
+              "INTERNATIONAL",
+              "OTHER"
+            ],
+            "nullable": true
+          },
+          "suggestedDurationDays": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "destination",
+          "suggestedDurationDays"
+        ]
+      },
+      "TripSuggestionDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "image": {
+            "$ref": "#/components/schemas/TripSuggestionImageDto"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "tripPrefill": {
+            "$ref": "#/components/schemas/TripSuggestionPrefillDto"
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "title",
+          "summary",
+          "image",
+          "tags",
+          "tripPrefill"
+        ]
+      },
+      "TripSuggestionsPageDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TripSuggestionDto"
+            }
+          },
+          "page": {
+            "type": "number"
+          },
+          "pageSize": {
+            "type": "number"
+          },
+          "total": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ]
+      },
+      "AdminTripSuggestionDto": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string"
+          },
+          "titleVi": {
+            "type": "string"
+          },
+          "titleEn": {
+            "type": "string"
+          },
+          "summaryVi": {
+            "type": "string"
+          },
+          "summaryEn": {
+            "type": "string"
+          },
+          "destinationLabel": {
+            "type": "string"
+          },
+          "providerPlaceId": {
+            "type": "string"
+          },
+          "latitude": {
+            "type": "number"
+          },
+          "longitude": {
+            "type": "number"
+          },
+          "destinationTimezone": {
+            "type": "string"
+          },
+          "countryCode": {
+            "type": "string"
+          },
+          "adminArea": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          },
+          "imageUrl": {
+            "type": "string"
+          },
+          "imageAltVi": {
+            "type": "string"
+          },
+          "imageAltEn": {
+            "type": "string"
+          },
+          "tags": {
+            "maxItems": 20,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "tripType": {
+            "type": "string",
+            "enum": [
+              "LEISURE",
+              "BUSINESS",
+              "CAMPING",
+              "BEACH",
+              "HIKING",
+              "CITY_TRIP",
+              "ROAD_TRIP",
+              "INTERNATIONAL",
+              "OTHER"
+            ],
+            "nullable": true
+          },
+          "suggestedDurationDays": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 30
+          },
+          "sortOrder": {
+            "type": "number",
+            "default": 0
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "PUBLISHED",
+              "ARCHIVED"
+            ]
+          },
+          "publishedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "slug",
+          "titleVi",
+          "titleEn",
+          "summaryVi",
+          "summaryEn",
+          "destinationLabel",
+          "imageUrl",
+          "imageAltVi",
+          "imageAltEn",
+          "tags",
+          "suggestedDurationDays",
+          "id",
+          "status",
+          "updatedAt"
+        ]
+      },
+      "AdminTripSuggestionsPageDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminTripSuggestionDto"
+            }
+          }
+        },
+        "required": [
+          "items"
         ]
       },
       "LivenessDto": {

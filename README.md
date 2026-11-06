@@ -1,8 +1,8 @@
 # luckgage v2
 
 luckgage v2 combines an Expo mobile app, a self-hosted TypeScript REST API, PostgreSQL, and a React
-admin app. **Phase 1D local mobile scope and Phase 2A–2C backend scope are complete.** Phase 2D
-Suggestions/Weather and the admin web app have not started.
+admin app. **Phase 1D local mobile scope and backend Phase 2A–2D are complete.** Mobile/backend
+integration (Phase 3) and the admin web app have not started.
 
 ## Sources of truth
 
@@ -93,5 +93,11 @@ Phase 2C adds transactional trip ownership, member-scoped trip CRUD, hashed invi
 idempotent join, member removal, shared checklist CRUD/bulk state, optimistic versioning, and
 database-level cascade and integrity constraints.
 
-Remote mobile integration, backend suggestions/weather, the admin web app, and shared packages are
-intentionally not implemented yet.
+Phase 2D adds versioned/published deterministic packing rules, read-only preview, transactional
+append-only apply, localized published trip suggestions, and a normalized Open-Meteo proxy with
+timeout/retry/cache/stale fallback. Weather remains optional: failures return `UNAVAILABLE` without
+breaking trip or checklist flows. Rule and content administration endpoints are ready for the later
+admin UI and are protected by the existing admin cookie, role, and CSRF policy.
+
+Remote mobile integration, the admin web app, and shared generated clients are intentionally not
+implemented yet.

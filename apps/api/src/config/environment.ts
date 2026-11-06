@@ -13,6 +13,10 @@ export const environmentSchema = z
     ACCESS_TOKEN_TTL_SECONDS: z.coerce.number().int().min(60).max(3_600).default(900),
     REFRESH_TOKEN_TTL_DAYS: z.coerce.number().int().min(1).max(90).default(30),
     ADMIN_SESSION_TTL_HOURS: z.coerce.number().int().min(1).max(24).default(8),
+    OPEN_METEO_BASE_URL: z.url().default('https://api.open-meteo.com'),
+    OPEN_METEO_GEOCODING_BASE_URL: z.url().default('https://geocoding-api.open-meteo.com'),
+    OPEN_METEO_TIMEOUT_MS: z.coerce.number().int().min(500).max(15_000).default(5_000),
+    WEATHER_CACHE_TTL_MINUTES: z.coerce.number().int().min(5).max(1_440).default(180),
     ALLOWED_ORIGINS: z
       .string()
       .min(1, 'ALLOWED_ORIGINS must not be empty.')

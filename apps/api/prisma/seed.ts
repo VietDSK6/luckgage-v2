@@ -3,7 +3,14 @@ import 'dotenv/config';
 import { PrismaPg } from '@prisma/adapter-pg';
 
 import { PrismaClient } from '../src/generated/prisma/client.js';
-import { UserLocale, UserRole, UserStatus } from '../src/generated/prisma/enums.js';
+import {
+  ContentStatus,
+  QuantityMode,
+  TripType,
+  UserLocale,
+  UserRole,
+  UserStatus,
+} from '../src/generated/prisma/enums.js';
 import { hashPassword } from '../src/auth/password.js';
 
 const databaseUrl = process.env.DATABASE_URL;
@@ -18,6 +25,8 @@ const prisma = new PrismaClient({
 
 try {
   await prisma.$queryRaw`SELECT 1`;
+  await seedPackingRules();
+  await seedTripSuggestions();
   const adminEmail = process.env.SEED_ADMIN_EMAIL?.trim().toLowerCase();
   const adminPassword = process.env.SEED_ADMIN_PASSWORD;
 
@@ -60,4 +69,98 @@ try {
   }
 } finally {
   await prisma.$disconnect();
+}
+
+async function seedPackingRules(): Promise<void> {
+  const baseItems = [
+    {
+      categoryKey: 'documents',
+      categoryNameVi: 'Giấy tờ',
+      categoryNameEn: 'Documents',
+      itemKey: 'identity-document',
+      itemNameVi: 'Giấy tờ tùy thân',
+      itemNameEn: 'Identity document',
+      quantityMode: QuantityMode.FIXED,
+      baseQuantity: 1,
+      position: 0,
+    },
+    {
+      categoryKey: 'clothing',
+      categoryNameVi: 'Quần áo',
+      categoryNameEn: 'Clothing',
+      itemKey: 'daily-outfit',
+      itemNameVi: 'Bộ quần áo theo ngày',
+      itemNameEn: 'Daily outfit',
+      quantityMode: QuantityMode.PER_DAY,
+      baseQuantity: 1,
+      position: 1,
+    },
+    {
+      categoryKey: 'essentials',
+      categoryNameVi: 'Đồ thiết yếu',
+      categoryNameEn: 'Essentials',
+      itemKey: 'phone-charger',
+      itemNameVi: 'Sạc điện thoại',
+      itemNameEn: 'Phone charger',
+      quantityMode: QuantityMode.FIXED,
+      baseQuantity: 1,
+      position: 2,
+    },
+  ];
+  await prisma.packingRule.upsert({
+    where: { key_version: { key: 'baseline-essentials', version: 1 } },
+    create: {
+      key: 'baseline-essentials',
+      name: 'Baseline travel essentials',
+      version: 1,
+      priority: 10,
+      status: ContentStatus.PUBLISHED,
+      reasonVi: 'Đồ thiết yếu cho mọi chuyến đi',
+      reasonEn: 'Essentials for every trip',
+      publishedAt: new Date('2026-01-01T00:00:00.000Z'),
+      items: { create: baseItems },
+    },
+    update: {
+      name: 'Baseline travel essentials',
+      priority: 10,
+      status: ContentStatus.PUBLISHED,
+      reasonVi: 'Đồ thiết yếu cho mọi chuyến đi',
+      reasonEn: 'Essentials for every trip',
+      items: { deleteMany: {}, create: baseItems },
+    },
+  });
+}
+
+async function seedTripSuggestions(): Promise<void> {
+  await prisma.tripSuggestion.upsert({
+    where: { slug: 'da-lat-cuoi-tuan' },
+    create: {
+      slug: 'da-lat-cuoi-tuan',
+      titleVi: 'Cuối tuần ở Đà Lạt',
+      titleEn: 'A weekend in Da Lat',
+      summaryVi: 'Gợi ý chuyến nghỉ ngắn giữa khí hậu cao nguyên mát mẻ.',
+      summaryEn: 'A short highland break with a cool climate.',
+      destinationLabel: 'Đà Lạt, Lâm Đồng, Việt Nam',
+      latitude: 11.9404,
+      longitude: 108.4583,
+      destinationTimezone: 'Asia/Ho_Chi_Minh',
+      countryCode: 'VN',
+      adminArea: 'Lâm Đồng',
+      country: 'Việt Nam',
+      imageUrl: 'https://images.unsplash.com/photo-1576745515893-3042060c8d83',
+      imageAltVi: 'Đồi thông trong sương ở Đà Lạt',
+      imageAltEn: 'Misty pine hills in Da Lat',
+      tags: ['weekend', 'highland', 'cool-weather'],
+      tripType: TripType.LEISURE,
+      suggestedDurationDays: 3,
+      status: ContentStatus.PUBLISHED,
+      sortOrder: 10,
+      publishedAt: new Date('2026-01-01T00:00:00.000Z'),
+    },
+    update: {
+      titleVi: 'Cuối tuần ở Đà Lạt',
+      titleEn: 'A weekend in Da Lat',
+      status: ContentStatus.PUBLISHED,
+    },
+  });
 }

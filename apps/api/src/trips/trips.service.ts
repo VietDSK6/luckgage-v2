@@ -161,30 +161,39 @@ export class TripsService {
       validateCoordinates(input.destination.latitude, input.destination.longitude);
     }
 
-    const updated = await this.prisma.trip.updateMany({
-      where: { id: tripId, version: input.version },
-      data: {
-        ...(input.name !== undefined ? { name: input.name } : {}),
-        ...(input.startDate !== undefined
-          ? { startDate: calendarDateToDate(input.startDate) }
-          : {}),
-        ...(input.endDate !== undefined ? { endDate: calendarDateToDate(input.endDate) } : {}),
-        ...(input.tripType !== undefined ? { tripType: input.tripType } : {}),
-        ...(input.note !== undefined ? { note: input.note?.trim() || null } : {}),
-        ...(input.destination
-          ? {
-              destinationLabel: input.destination.label,
-              providerPlaceId: input.destination.providerPlaceId ?? null,
-              latitude: input.destination.latitude ?? null,
-              longitude: input.destination.longitude ?? null,
-              destinationTimezone: input.destination.timezone ?? null,
-              countryCode: input.destination.countryCode ?? null,
-              adminArea: input.destination.adminArea ?? null,
-              country: input.destination.country ?? null,
-            }
-          : {}),
-        version: { increment: 1 },
-      },
+    const updated = await this.prisma.$transaction(async (transaction) => {
+      const result = await transaction.trip.updateMany({
+        where: { id: tripId, version: input.version },
+        data: {
+          ...(input.name !== undefined ? { name: input.name } : {}),
+          ...(input.startDate !== undefined
+            ? { startDate: calendarDateToDate(input.startDate) }
+            : {}),
+          ...(input.endDate !== undefined ? { endDate: calendarDateToDate(input.endDate) } : {}),
+          ...(input.tripType !== undefined ? { tripType: input.tripType } : {}),
+          ...(input.note !== undefined ? { note: input.note?.trim() || null } : {}),
+          ...(input.destination
+            ? {
+                destinationLabel: input.destination.label,
+                providerPlaceId: input.destination.providerPlaceId ?? null,
+                latitude: input.destination.latitude ?? null,
+                longitude: input.destination.longitude ?? null,
+                destinationTimezone: input.destination.timezone ?? null,
+                countryCode: input.destination.countryCode ?? null,
+                adminArea: input.destination.adminArea ?? null,
+                country: input.destination.country ?? null,
+              }
+            : {}),
+          version: { increment: 1 },
+        },
+      });
+      if (
+        result.count === 1 &&
+        (input.destination !== undefined || input.startDate !== undefined || input.endDate !== undefined)
+      ) {
+        await transaction.weatherCache.deleteMany({ where: { tripId } });
+      }
+      return result;
     });
     if (updated.count !== 1) {
       throw new ConflictException({
