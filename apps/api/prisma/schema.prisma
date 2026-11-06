@@ -37,18 +37,42 @@ enum AuthSessionKind {
   @@map("auth_session_kind")
 }
 
+enum TripType {
+  LEISURE
+  BUSINESS
+  CAMPING
+  BEACH
+  HIKING
+  CITY_TRIP
+  ROAD_TRIP
+  INTERNATIONAL
+  OTHER
+
+  @@map("trip_type")
+}
+
+enum TripMemberRole {
+  OWNER
+  MEMBER
+
+  @@map("trip_member_role")
+}
+
 model User {
-  id           String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  email        String       @unique @db.VarChar(254)
-  passwordHash String       @map("password_hash")
-  displayName  String       @map("display_name") @db.VarChar(80)
-  role         UserRole     @default(USER)
-  status       UserStatus   @default(ACTIVE)
-  locale       UserLocale   @default(vi)
-  createdAt    DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt    DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
-  lastLoginAt  DateTime?    @map("last_login_at") @db.Timestamptz(3)
-  sessions     AuthSession[]
+  id                    String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email                 String          @unique @db.VarChar(254)
+  passwordHash          String          @map("password_hash")
+  displayName           String          @map("display_name") @db.VarChar(80)
+  role                  UserRole        @default(USER)
+  status                UserStatus      @default(ACTIVE)
+  locale                UserLocale      @default(vi)
+  createdAt             DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt             DateTime        @updatedAt @map("updated_at") @db.Timestamptz(3)
+  lastLoginAt           DateTime?       @map("last_login_at") @db.Timestamptz(3)
+  sessions              AuthSession[]
+  tripMembers           TripMember[]
+  createdInvites        TripInvite[]    @relation("InviteCreator")
+  createdChecklistItems ChecklistItem[] @relation("ChecklistItemCreator")
 
   @@map("users")
 }
@@ -72,4 +96,96 @@ model AuthSession {
   @@index([userId])
   @@index([familyId])
   @@map("auth_sessions")
+}
+
+model Trip {
+  id                  String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                String              @db.VarChar(120)
+  destinationLabel    String              @map("destination_label") @db.VarChar(160)
+  startDate           DateTime            @map("start_date") @db.Date
+  endDate             DateTime            @map("end_date") @db.Date
+  tripType            TripType            @map("trip_type")
+  note                String?             @db.VarChar(1000)
+  providerPlaceId     String?             @map("provider_place_id") @db.VarChar(160)
+  latitude            Decimal?            @db.Decimal(9, 6)
+  longitude           Decimal?            @db.Decimal(9, 6)
+  destinationTimezone String?             @map("destination_timezone") @db.VarChar(64)
+  countryCode         String?             @map("country_code") @db.Char(2)
+  adminArea           String?             @map("admin_area") @db.VarChar(100)
+  country             String?             @db.VarChar(100)
+  version             Int                 @default(1)
+  createdAt           DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt           DateTime            @updatedAt @map("updated_at") @db.Timestamptz(3)
+  members             TripMember[]
+  invites             TripInvite[]
+  checklistCategories ChecklistCategory[]
+
+  @@index([startDate, endDate])
+  @@map("trips")
+}
+
+model TripMember {
+  tripId    String         @map("trip_id") @db.Uuid
+  userId    String         @map("user_id") @db.Uuid
+  role      TripMemberRole
+  joinedAt  DateTime       @default(now()) @map("joined_at") @db.Timestamptz(3)
+  removedAt DateTime?      @map("removed_at") @db.Timestamptz(3)
+  trip      Trip           @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  user      User           @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@id([tripId, userId])
+  @@index([userId, removedAt])
+  @@map("trip_members")
+}
+
+model TripInvite {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tripId          String    @map("trip_id") @db.Uuid
+  codeHash        String    @unique @map("code_hash") @db.Char(64)
+  codeHint        String    @map("code_hint") @db.Char(2)
+  createdByUserId String    @map("created_by_user_id") @db.Uuid
+  expiresAt       DateTime  @map("expires_at") @db.Timestamptz(3)
+  maxUses         Int       @map("max_uses")
+  useCount        Int       @default(0) @map("use_count")
+  revokedAt       DateTime? @map("revoked_at") @db.Timestamptz(3)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  trip            Trip      @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  createdBy       User      @relation("InviteCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
+
+  @@index([tripId, createdAt])
+  @@map("trip_invites")
+}
+
+model ChecklistCategory {
+  id        String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tripId    String          @map("trip_id") @db.Uuid
+  name      String          @db.VarChar(80)
+  position  Int             @default(0)
+  version   Int             @default(1)
+  createdAt DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime        @updatedAt @map("updated_at") @db.Timestamptz(3)
+  trip      Trip            @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  items     ChecklistItem[]
+
+  @@index([tripId, position])
+  @@map("checklist_categories")
+}
+
+model ChecklistItem {
+  id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  categoryId      String            @map("category_id") @db.Uuid
+  name            String            @db.VarChar(120)
+  quantity        Int               @default(1)
+  isPacked        Boolean           @default(false) @map("is_packed")
+  note            String?           @db.VarChar(500)
+  position        Int               @default(0)
+  version         Int               @default(1)
+  createdByUserId String?           @map("created_by_user_id") @db.Uuid
+  createdAt       DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
+  category        ChecklistCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  createdBy       User?             @relation("ChecklistItemCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  @@index([categoryId, position])
+  @@map("checklist_items")
 }

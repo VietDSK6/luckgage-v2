@@ -64,6 +64,10 @@ describe('API foundation', () => {
     expect(response.body.paths).toHaveProperty('/api/v1/health/ready');
     expect(response.body.paths).toHaveProperty('/api/v1/auth/register');
     expect(response.body.paths).toHaveProperty('/api/v1/admin/users');
+    expect(response.body.paths).toHaveProperty('/api/v1/trips');
+    expect(response.body.paths).toHaveProperty('/api/v1/trip-invites/join');
+    expect(response.body.paths).toHaveProperty('/api/v1/trips/{tripId}/checklist');
+    expect(response.body.paths).toHaveProperty('/api/v1/checklist-items/{itemId}');
 
     const docs = await request(app.getHttpServer()).get('/openapi').expect(200);
     expect(docs.headers['content-security-policy']).toContain(

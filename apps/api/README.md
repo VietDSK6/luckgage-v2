@@ -1,7 +1,7 @@
 # luckgage API
 
-NestJS modular-monolith API for luckgage. Phase 2A infrastructure and Phase 2B Auth/Users are
-implemented; Trips, Memberships, Checklists, and suggestion modules remain later Phase 2 slices.
+NestJS modular-monolith API for luckgage. Phase 2A infrastructure, Phase 2B Auth/Users, and Phase 2C
+Trips/Memberships/Checklists are implemented. Suggestions and Weather remain Phase 2D.
 
 ## Local setup
 
@@ -27,6 +27,10 @@ The API listens on `http://localhost:3000` by default:
 - `GET|PATCH /api/v1/me` reads or updates the current profile.
 - `POST /api/v1/admin/auth/login|logout` and `GET /api/v1/admin/auth/me` manage admin cookies.
 - `GET /api/v1/admin/users` and `GET|PATCH /api/v1/admin/users/:userId[/status]` manage users.
+- `/api/v1/trips` provides member-scoped trip CRUD with owner-only mutations.
+- `/api/v1/trips/:tripId/members|invites` and `/api/v1/trip-invites/*` provide collaboration.
+- `/api/v1/trips/:tripId/checklist`, `/api/v1/checklist-categories/*`, and
+  `/api/v1/checklist-items/*` provide shared checklist CRUD and category bulk state.
 - `/openapi` serves Swagger UI.
 - `/openapi.json` serves the runtime OpenAPI document.
 
@@ -43,6 +47,11 @@ only as SHA-256 hashes, rotate on use, and revoke their session family on reuse.
 an opaque HttpOnly, SameSite cookie; state-changing admin calls also require `x-csrf-token`.
 Authentication attempts are limited by both IP and a hashed identifier in the current single-process
 modular monolith. A shared limiter store is deferred until horizontal scaling is introduced.
+
+Invite codes are random, returned raw only when created, and persisted only as SHA-256 hashes. Join
+is idempotent for an existing active member and uses a serializable transaction for membership,
+usage limits, and reactivation. Trip creation atomically creates its owner membership. Trip,
+category, and item edits use optimistic versions; PostgreSQL cascades dependent trip data.
 
 ```bash
 npm run typecheck --workspace @luckgage/api

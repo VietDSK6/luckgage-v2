@@ -1,8 +1,8 @@
 # luckgage v2
 
 luckgage v2 combines an Expo mobile app, a self-hosted TypeScript REST API, PostgreSQL, and a React
-admin app. **Phase 1D local mobile scope and Phase 2A–2B backend scope are complete.** Phase 2C
-Trips/Membership/Checklist and the admin web app have not started.
+admin app. **Phase 1D local mobile scope and Phase 2A–2C backend scope are complete.** Phase 2D
+Suggestions/Weather and the admin web app have not started.
 
 ## Sources of truth
 
@@ -89,6 +89,9 @@ request IDs, structured request logs, stable problem responses, health/readiness
 a generated OpenAPI artifact. Phase 2B adds Argon2id passwords, mobile access/rotating refresh
 sessions, reuse detection and revocation, current-profile endpoints, USER/ADMIN guards, rate limits,
 secure admin cookie sessions with CSRF protection, and paginated admin user status management.
+Phase 2C adds transactional trip ownership, member-scoped trip CRUD, hashed invite lifecycle and
+idempotent join, member removal, shared checklist CRUD/bulk state, optimistic versioning, and
+database-level cascade and integrity constraints.
 
-Remote sync, trips/checklist server modules, backend weather, the admin web app, and shared packages
-are intentionally not implemented yet.
+Remote mobile integration, backend suggestions/weather, the admin web app, and shared packages are
+intentionally not implemented yet.

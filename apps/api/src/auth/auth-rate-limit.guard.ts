@@ -12,7 +12,7 @@ import { Reflector } from '@nestjs/core';
 
 import type { RequestWithContext } from '../http/request-context.js';
 
-type IdentifierField = 'email' | 'refreshToken';
+type IdentifierField = 'email' | 'refreshToken' | 'code';
 type AuthRateLimitPolicy = {
   group: string;
   windowMs: number;

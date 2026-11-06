@@ -477,6 +477,594 @@
         ]
       }
     },
+    "/api/v1/trips": {
+      "get": {
+        "operationId": "TripsController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripsPageDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List trips for the current active membership",
+        "tags": [
+          "trips"
+        ]
+      },
+      "post": {
+        "operationId": "TripsController_create",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripDetailDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a trip and its owner membership atomically",
+        "tags": [
+          "trips"
+        ]
+      }
+    },
+    "/api/v1/trips/{tripId}": {
+      "get": {
+        "operationId": "TripsController_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripDetailDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a trip visible to the current member",
+        "tags": [
+          "trips"
+        ]
+      },
+      "patch": {
+        "operationId": "TripsController_update",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripDetailDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update trip metadata as owner",
+        "tags": [
+          "trips"
+        ]
+      },
+      "delete": {
+        "operationId": "TripsController_delete",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a trip and its dependent data as owner",
+        "tags": [
+          "trips"
+        ]
+      }
+    },
+    "/api/v1/trips/{tripId}/members": {
+      "get": {
+        "operationId": "MembershipsController_listMembers",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripMembersDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List active trip members without email addresses",
+        "tags": [
+          "memberships"
+        ]
+      }
+    },
+    "/api/v1/trips/{tripId}/members/{userId}": {
+      "delete": {
+        "operationId": "MembershipsController_removeMember",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Remove an active member as trip owner",
+        "tags": [
+          "memberships"
+        ]
+      }
+    },
+    "/api/v1/trips/{tripId}/invites": {
+      "post": {
+        "operationId": "MembershipsController_createInvite",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InviteCreatedDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a one-time-visible trip invite code as owner",
+        "tags": [
+          "memberships"
+        ]
+      }
+    },
+    "/api/v1/trips/{tripId}/invites/{inviteId}": {
+      "delete": {
+        "operationId": "MembershipsController_revokeInvite",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Revoke a trip invite as owner",
+        "tags": [
+          "memberships"
+        ]
+      }
+    },
+    "/api/v1/trip-invites/preview": {
+      "post": {
+        "operationId": "MembershipsController_previewInvite",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvitePreviewDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Preview a valid trip invite without joining",
+        "tags": [
+          "memberships"
+        ]
+      }
+    },
+    "/api/v1/trip-invites/join": {
+      "post": {
+        "operationId": "MembershipsController_joinInvite",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripDetailDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Join a trip idempotently using an invite code",
+        "tags": [
+          "memberships"
+        ]
+      }
+    },
+    "/api/v1/trips/{tripId}/checklist": {
+      "get": {
+        "operationId": "ChecklistsController_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChecklistDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a trip checklist as an active member",
+        "tags": [
+          "checklist"
+        ]
+      }
+    },
+    "/api/v1/trips/{tripId}/checklist/categories": {
+      "post": {
+        "operationId": "ChecklistsController_createCategory",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChecklistCategoryDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a checklist category",
+        "tags": [
+          "checklist"
+        ]
+      }
+    },
+    "/api/v1/checklist-categories/{categoryId}": {
+      "patch": {
+        "operationId": "ChecklistsController_updateCategory",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChecklistCategoryDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update a checklist category with optimistic versioning",
+        "tags": [
+          "checklist"
+        ]
+      },
+      "delete": {
+        "operationId": "ChecklistsController_deleteCategory",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a checklist category and its items",
+        "tags": [
+          "checklist"
+        ]
+      }
+    },
+    "/api/v1/checklist-categories/{categoryId}/items": {
+      "post": {
+        "operationId": "ChecklistsController_createItem",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChecklistItemDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a checklist item",
+        "tags": [
+          "checklist"
+        ]
+      }
+    },
+    "/api/v1/checklist-items/{itemId}": {
+      "patch": {
+        "operationId": "ChecklistsController_updateItem",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChecklistItemDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update a checklist item with optimistic versioning",
+        "tags": [
+          "checklist"
+        ]
+      },
+      "delete": {
+        "operationId": "ChecklistsController_deleteItem",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a checklist item",
+        "tags": [
+          "checklist"
+        ]
+      }
+    },
+    "/api/v1/checklist-categories/{categoryId}/packed-state": {
+      "patch": {
+        "operationId": "ChecklistsController_setPackedState",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChecklistProgressDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Set packed state for every item in a category",
+        "tags": [
+          "checklist"
+        ]
+      }
+    },
     "/api/v1/health/live": {
       "get": {
         "operationId": "HealthController_getLiveness",
@@ -815,6 +1403,531 @@
           "pageSize",
           "totalItems",
           "totalPages"
+        ]
+      },
+      "DestinationDto": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "providerPlaceId": {
+            "type": "string",
+            "nullable": true
+          },
+          "latitude": {
+            "type": "number",
+            "nullable": true
+          },
+          "longitude": {
+            "type": "number",
+            "nullable": true
+          },
+          "timezone": {
+            "type": "string",
+            "nullable": true
+          },
+          "countryCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "adminArea": {
+            "type": "string",
+            "nullable": true
+          },
+          "country": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "label"
+        ]
+      },
+      "TripType": {
+        "type": "string",
+        "enum": [
+          "LEISURE",
+          "BUSINESS",
+          "CAMPING",
+          "BEACH",
+          "HIKING",
+          "CITY_TRIP",
+          "ROAD_TRIP",
+          "INTERNATIONAL",
+          "OTHER"
+        ]
+      },
+      "TimelineStatus": {
+        "type": "string",
+        "enum": [
+          "UPCOMING",
+          "ACTIVE",
+          "PAST"
+        ]
+      },
+      "ChecklistProgressDto": {
+        "type": "object",
+        "properties": {
+          "packedItems": {
+            "type": "number"
+          },
+          "totalItems": {
+            "type": "number"
+          },
+          "percentage": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          }
+        },
+        "required": [
+          "packedItems",
+          "totalItems",
+          "percentage"
+        ]
+      },
+      "TripMemberRole": {
+        "type": "string",
+        "enum": [
+          "OWNER",
+          "MEMBER"
+        ]
+      },
+      "MemberPreviewDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "role": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TripMemberRole"
+              }
+            ]
+          }
+        },
+        "required": [
+          "userId",
+          "displayName",
+          "role"
+        ]
+      },
+      "TripListItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "destination": {
+            "$ref": "#/components/schemas/DestinationDto"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "tripType": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TripType"
+              }
+            ]
+          },
+          "timelineStatus": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TimelineStatus"
+              }
+            ]
+          },
+          "daysUntilStart": {
+            "type": "number"
+          },
+          "checklistProgress": {
+            "$ref": "#/components/schemas/ChecklistProgressDto"
+          },
+          "memberPreview": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MemberPreviewDto"
+            }
+          },
+          "currentUserRole": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TripMemberRole"
+              }
+            ]
+          },
+          "version": {
+            "type": "number"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "destination",
+          "startDate",
+          "endDate",
+          "tripType",
+          "timelineStatus",
+          "daysUntilStart",
+          "checklistProgress",
+          "memberPreview",
+          "currentUserRole",
+          "version",
+          "updatedAt"
+        ]
+      },
+      "TripsPageDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TripListItemDto"
+            }
+          },
+          "page": {
+            "type": "number"
+          },
+          "pageSize": {
+            "type": "number"
+          },
+          "totalItems": {
+            "type": "number"
+          },
+          "totalPages": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "totalItems",
+          "totalPages"
+        ]
+      },
+      "TripDetailDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "destination": {
+            "$ref": "#/components/schemas/DestinationDto"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "tripType": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TripType"
+              }
+            ]
+          },
+          "timelineStatus": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TimelineStatus"
+              }
+            ]
+          },
+          "daysUntilStart": {
+            "type": "number"
+          },
+          "checklistProgress": {
+            "$ref": "#/components/schemas/ChecklistProgressDto"
+          },
+          "memberPreview": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MemberPreviewDto"
+            }
+          },
+          "currentUserRole": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TripMemberRole"
+              }
+            ]
+          },
+          "version": {
+            "type": "number"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "note": {
+            "type": "string",
+            "nullable": true
+          },
+          "weather": {
+            "type": "object",
+            "example": {
+              "status": "UNAVAILABLE"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "destination",
+          "startDate",
+          "endDate",
+          "tripType",
+          "timelineStatus",
+          "daysUntilStart",
+          "checklistProgress",
+          "memberPreview",
+          "currentUserRole",
+          "version",
+          "updatedAt",
+          "weather"
+        ]
+      },
+      "TripMemberDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "role": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TripMemberRole"
+              }
+            ]
+          },
+          "joinedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "userId",
+          "displayName",
+          "role",
+          "joinedAt"
+        ]
+      },
+      "TripMembersDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TripMemberDto"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "InviteCreatedDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "maxUses": {
+            "type": "number"
+          },
+          "useCount": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "expiresAt",
+          "maxUses",
+          "useCount"
+        ]
+      },
+      "InvitePreviewDto": {
+        "type": "object",
+        "properties": {
+          "tripId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tripName": {
+            "type": "string"
+          },
+          "destinationLabel": {
+            "type": "string"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "ownerDisplayName": {
+            "type": "string"
+          },
+          "memberCount": {
+            "type": "number"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "tripId",
+          "tripName",
+          "destinationLabel",
+          "startDate",
+          "endDate",
+          "ownerDisplayName",
+          "memberCount",
+          "expiresAt"
+        ]
+      },
+      "ChecklistItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "isPacked": {
+            "type": "boolean"
+          },
+          "note": {
+            "type": "string",
+            "nullable": true
+          },
+          "position": {
+            "type": "number"
+          },
+          "version": {
+            "type": "number"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "quantity",
+          "isPacked",
+          "position",
+          "version",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "ChecklistCategoryDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "position": {
+            "type": "number"
+          },
+          "version": {
+            "type": "number"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChecklistItemDto"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "position",
+          "version",
+          "items"
+        ]
+      },
+      "ChecklistDto": {
+        "type": "object",
+        "properties": {
+          "tripId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "progress": {
+            "$ref": "#/components/schemas/ChecklistProgressDto"
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChecklistCategoryDto"
+            }
+          }
+        },
+        "required": [
+          "tripId",
+          "progress",
+          "categories"
         ]
       },
       "LivenessDto": {

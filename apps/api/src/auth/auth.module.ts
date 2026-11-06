@@ -18,6 +18,13 @@ import { TokenService } from './token.service.js';
     AdminCsrfGuard,
     RolesGuard,
   ],
-  exports: [AuthService, JwtAuthGuard, AdminSessionGuard, AdminCsrfGuard, RolesGuard],
+  exports: [
+    AuthService,
+    AuthRateLimitGuard,
+    JwtAuthGuard,
+    AdminSessionGuard,
+    AdminCsrfGuard,
+    RolesGuard,
+  ],
 })
 export class AuthModule {}
