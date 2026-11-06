@@ -3,6 +3,8 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useAppTheme } from '@/design/theme/AppThemeProvider';
 import { useI18n } from '@/i18n/I18nProvider';
 
+import { AppIcon } from './AppIcon';
+
 type AppPageHeaderProps = {
   title: string;
   onBack: () => void;
@@ -32,7 +34,7 @@ export function AppPageHeader({
           { borderColor: theme.colors.outline },
           pressed ? styles.pressed : null,
         ]}>
-        <Text style={[styles.backText, { color: theme.colors.ink }]}>‹</Text>
+        <AppIcon color={theme.colors.ink} name="arrowLeft" size={22} />
       </Pressable>
       <View style={styles.titleBlock}>
         {eyebrow ? <Text style={[styles.eyebrow, { color: theme.colors.primary }]}>{eyebrow}</Text> : null}
@@ -70,12 +72,6 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  backText: {
-    marginTop: -3,
-    fontSize: 34,
-    lineHeight: 38,
-    fontWeight: '400',
   },
   titleBlock: { flex: 1 },
   eyebrow: { fontSize: 10, lineHeight: 14, fontWeight: '900', letterSpacing: 1.3 },

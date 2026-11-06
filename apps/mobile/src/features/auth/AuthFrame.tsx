@@ -1,6 +1,8 @@
-import type { PropsWithChildren, ReactNode } from 'react';
+import { useState, type PropsWithChildren, type ReactNode } from 'react';
 import {
   KeyboardAvoidingView,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
   Platform,
   Pressable,
   ScrollView,
@@ -11,6 +13,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useAppTheme } from '@/design/theme/AppThemeProvider';
+import { AppIcon } from '@/design/components/AppIcon';
+import { BrandMark } from '@/design/components/BrandLuki';
 import { useI18n } from '@/i18n/I18nProvider';
 
 import { AuthLanguageToggle } from './AuthLanguageToggle';
@@ -26,11 +30,47 @@ type AuthFrameProps = PropsWithChildren<{
 export function AuthFrame({ body, children, eyebrow, footer, onBack, title }: AuthFrameProps) {
   const { theme } = useAppTheme();
   const { t } = useI18n();
+  const [hasScrolled, setHasScrolled] = useState(false);
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const nextHasScrolled = event.nativeEvent.contentOffset.y > 4;
+    setHasScrolled((current) => (current === nextHasScrolled ? current : nextHasScrolled));
+  };
 
   return (
     <SafeAreaView
       edges={['top', 'right', 'bottom', 'left']}
       style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
+      <View
+        style={[
+          styles.headerShell,
+          {
+            backgroundColor: theme.colors.background,
+            borderBottomColor: hasScrolled ? theme.colors.outline : 'transparent',
+          },
+        ]}>
+        <View style={styles.topBar}>
+          {onBack ? (
+            <Pressable
+              accessibilityLabel={t('commonBack')}
+              accessibilityRole="button"
+              hitSlop={8}
+              onPress={onBack}
+              style={({ pressed }) => [
+                styles.backButton,
+                { borderColor: theme.colors.outline },
+                pressed ? styles.pressed : null,
+              ]}>
+              <AppIcon color={theme.colors.ink} name="arrowLeft" size={22} />
+            </Pressable>
+          ) : (
+            <View style={styles.backPlaceholder} />
+          )}
+          <View style={styles.brandMark}>
+            <BrandMark size={40} />
+          </View>
+          <AuthLanguageToggle />
+        </View>
+      </View>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.flex}>
@@ -38,28 +78,10 @@ export function AuthFrame({ body, children, eyebrow, footer, onBack, title }: Au
           automaticallyAdjustKeyboardInsets
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
           showsVerticalScrollIndicator={false}>
           <View style={styles.content}>
-            <View style={styles.topBar}>
-              {onBack ? (
-                <Pressable
-                  accessibilityLabel={t('commonBack')}
-                  accessibilityRole="button"
-                  hitSlop={8}
-                  onPress={onBack}
-                  style={({ pressed }) => [
-                    styles.backButton,
-                    { borderColor: theme.colors.outline },
-                    pressed ? styles.pressed : null,
-                  ]}>
-                  <Text style={[styles.backMark, { color: theme.colors.ink }]}>‹</Text>
-                </Pressable>
-              ) : (
-                <View style={styles.backPlaceholder} />
-              )}
-              <AuthLanguageToggle />
-            </View>
-
             <View accessibilityElementsHidden style={styles.routeLine}>
               <View style={[styles.routeDot, { backgroundColor: theme.colors.accent }]} />
               <View style={[styles.routeTrack, { backgroundColor: theme.colors.outline }]} />
@@ -100,15 +122,22 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     paddingHorizontal: 20,
-    paddingTop: 8,
     paddingBottom: 32,
   },
   content: { width: '100%', maxWidth: 600, alignSelf: 'center' },
+  headerShell: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 8,
+  },
   topBar: {
+    width: '100%',
+    maxWidth: 600,
+    alignSelf: 'center',
     minHeight: 48,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
   },
   backButton: {
     width: 48,
@@ -119,8 +148,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   backPlaceholder: { width: 48, height: 48 },
-  backMark: { fontSize: 32, lineHeight: 34, fontWeight: '500', marginTop: -2 },
-  routeLine: { marginTop: 32, flexDirection: 'row', alignItems: 'center', width: 112 },
+  brandMark: { flex: 1, marginLeft: 12 },
+  routeLine: { marginTop: 24, flexDirection: 'row', alignItems: 'center', width: 112 },
   routeDot: { width: 12, height: 12, borderRadius: 6 },
   routeTrack: { height: 2, flex: 1 },
   routeDotOpen: { width: 16, height: 16, borderRadius: 8, borderWidth: 4 },

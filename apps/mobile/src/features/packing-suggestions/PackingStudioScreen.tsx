@@ -18,6 +18,7 @@ import { usePackingSuggestionsRepository } from '@/data/repositories/PackingSugg
 import { useTripRepository } from '@/data/repositories/TripRepositoryProvider';
 import { useWeatherRepository } from '@/data/repositories/WeatherRepositoryProvider';
 import { AppButton } from '@/design/components/AppButton';
+import { AppIcon } from '@/design/components/AppIcon';
 import { AppPageHeader } from '@/design/components/AppPageHeader';
 import { useAppTheme } from '@/design/theme/AppThemeProvider';
 import { getTripDurationDays, type Trip } from '@/features/trips/domain/trip';
@@ -206,7 +207,7 @@ export function PackingStudioScreen({ tripId }: { tripId: string }) {
         <AppPageHeader eyebrow={t('packingEyebrow')} onBack={goBack} title={trip.name} />
         <View style={styles.successState}>
           <View style={[styles.successStamp, { backgroundColor: theme.colors.primarySoft, borderColor: theme.colors.primary }]}>
-            <Text style={[styles.successMark, { color: theme.colors.primary }]}>✓</Text>
+            <AppIcon color={theme.colors.primary} name="check" size={50} strokeWidth={2.8} />
           </View>
           <Text accessibilityRole="header" style={[styles.successTitle, { color: theme.colors.ink }]}>
             {t('packingSuccessTitle')}
@@ -289,8 +290,10 @@ export function PackingStudioScreen({ tripId }: { tripId: string }) {
                         },
                         pressed ? styles.pressed : null,
                       ]}>
+                      {selected ? (
+                        <AppIcon color={theme.colors.background} name="check" size={17} strokeWidth={2.8} />
+                      ) : null}
                       <Text style={[styles.activityLabel, { color: selected ? theme.colors.background : theme.colors.ink }]}>
-                        {selected ? '✓ ' : ''}
                         {packingActivityLabel(activity, language)}
                       </Text>
                     </Pressable>
@@ -360,9 +363,9 @@ export function PackingStudioScreen({ tripId }: { tripId: string }) {
                           },
                           pressed ? styles.pressed : null,
                         ]}>
-                        <Text style={[styles.previewCheckMark, { color: theme.colors.background }]}>
-                          {item.selected ? '✓' : ''}
-                        </Text>
+                        {item.selected ? (
+                          <AppIcon color={theme.colors.background} name="check" size={22} strokeWidth={2.8} />
+                        ) : null}
                       </Pressable>
                       <View style={styles.reasonBlock}>
                         <Text style={[styles.reason, { backgroundColor: theme.colors.primarySoft, color: theme.colors.primary }]}>
@@ -454,7 +457,7 @@ const styles = StyleSheet.create({
   weatherContext: { fontSize: 13, lineHeight: 19, fontWeight: '600' },
   sectionTitle: { marginTop: 32, fontSize: 21, lineHeight: 28, fontWeight: '900' },
   activityGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 },
-  activityChip: { minHeight: 48, borderWidth: 1, borderRadius: 24, justifyContent: 'center', paddingHorizontal: 16 },
+  activityChip: { minHeight: 48, borderWidth: 1, borderRadius: 24, flexDirection: 'row', alignItems: 'center', gap: 6, justifyContent: 'center', paddingHorizontal: 16 },
   activityLabel: { fontSize: 14, lineHeight: 20, fontWeight: '800' },
   fieldLabel: { marginTop: 28, marginBottom: 8, fontSize: 14, lineHeight: 20, fontWeight: '800' },
   notesInput: { minHeight: 100, borderWidth: 1, borderRadius: 16, paddingHorizontal: 16, paddingTop: 14, fontSize: 16, lineHeight: 23, textAlignVertical: 'top' },
@@ -467,7 +470,6 @@ const styles = StyleSheet.create({
   previewItem: { borderWidth: 1, borderRadius: 20, padding: 16, gap: 7 },
   previewHeader: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 12 },
   previewCheck: { width: 48, height: 48, borderWidth: 2, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  previewCheckMark: { fontSize: 22, lineHeight: 28, fontWeight: '900' },
   reasonBlock: { flex: 1, alignItems: 'flex-start' },
   reason: { overflow: 'hidden', borderRadius: 14, paddingHorizontal: 11, paddingVertical: 6, fontSize: 11, lineHeight: 16, fontWeight: '800' },
   compactLabel: { marginTop: 4, fontSize: 11, lineHeight: 16, fontWeight: '900', letterSpacing: 0.5 },
@@ -479,7 +481,6 @@ const styles = StyleSheet.create({
   pressed: { opacity: 0.68, transform: [{ scale: 0.985 }] },
   successState: { flex: 1, width: '100%', maxWidth: 520, alignSelf: 'center', alignItems: 'center', justifyContent: 'center', padding: 28 },
   successStamp: { width: 104, height: 104, borderRadius: 52, borderWidth: 2, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '-5deg' }] },
-  successMark: { fontSize: 50, lineHeight: 58, fontWeight: '900' },
   successTitle: { marginTop: 28, fontSize: 28, lineHeight: 35, fontWeight: '900', textAlign: 'center' },
   successBody: { marginTop: 8, fontSize: 16, lineHeight: 24, textAlign: 'center' },
   successActions: { alignSelf: 'stretch', gap: 10, marginTop: 32 },

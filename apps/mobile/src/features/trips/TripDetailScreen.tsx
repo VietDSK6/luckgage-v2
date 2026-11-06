@@ -13,6 +13,7 @@ import { useReminderRepository } from '@/data/repositories/ReminderRepositoryPro
 import { useTripRepository } from '@/data/repositories/TripRepositoryProvider';
 import { useWeatherRepository } from '@/data/repositories/WeatherRepositoryProvider';
 import { AppButton } from '@/design/components/AppButton';
+import { AppIcon } from '@/design/components/AppIcon';
 import { AppPageHeader } from '@/design/components/AppPageHeader';
 import { useAppTheme } from '@/design/theme/AppThemeProvider';
 import { useI18n } from '@/i18n/I18nProvider';
@@ -378,8 +379,10 @@ export function TripDetailScreen({ tripId }: { tripId: string }) {
                     pressed ? styles.pressed : null,
                   ]}>
                   {pendingReminder === value ? <ActivityIndicator color={theme.colors.primary} size="small" /> : null}
+                  {selected && pendingReminder !== value ? (
+                    <AppIcon color={theme.colors.primary} name="check" size={17} strokeWidth={2.8} />
+                  ) : null}
                   <Text style={[styles.reminderOptionText, { color: selected ? theme.colors.primary : theme.colors.ink }]}>
-                    {selected ? '✓ ' : ''}
                     {t(labelKey)}
                   </Text>
                 </Pressable>
@@ -387,9 +390,12 @@ export function TripDetailScreen({ tripId }: { tripId: string }) {
             })}
           </View>
           {reminder ? (
-            <Text style={[styles.reminderStatus, { color: theme.colors.success }]}>
-              ✓ {t('reminderScheduled', { date: formatReminderDate(reminder.scheduledFor, language) })}
-            </Text>
+            <View style={styles.reminderStatus}>
+              <AppIcon color={theme.colors.success} name="check" size={17} strokeWidth={2.8} />
+              <Text style={[styles.reminderStatusText, { color: theme.colors.success }]}>
+                {t('reminderScheduled', { date: formatReminderDate(reminder.scheduledFor, language) })}
+              </Text>
+            </View>
           ) : null}
           {reminderError ? (
             <Text accessibilityRole="alert" style={[styles.reminderError, { color: theme.colors.danger }]}>
@@ -475,7 +481,8 @@ const styles = StyleSheet.create({
   reminderOptions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 },
   reminderOption: { minHeight: 48, borderWidth: 1, borderRadius: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingHorizontal: 14 },
   reminderOptionText: { fontSize: 13, lineHeight: 18, fontWeight: '800' },
-  reminderStatus: { marginTop: 10, fontSize: 13, lineHeight: 19, fontWeight: '800' },
+  reminderStatus: { marginTop: 10, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  reminderStatusText: { flex: 1, fontSize: 13, lineHeight: 19, fontWeight: '800' },
   reminderError: { marginTop: 10, fontSize: 13, lineHeight: 20, fontWeight: '700' },
   pressed: { opacity: 0.68 },
   note: { marginTop: 10, fontSize: 16, lineHeight: 25 },

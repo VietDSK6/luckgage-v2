@@ -1,8 +1,8 @@
 # luckgage v2
 
 luckgage v2 combines an Expo mobile app, a self-hosted TypeScript REST API, PostgreSQL, and a React
-admin app. **Phase 1D local mobile scope, backend Phase 2A–2D, and mobile integration Phase 3A–3C
-are complete.** Migration cleanup (Phase 3D) and the admin web app have not started.
+admin app. **Phase 1D local mobile scope, backend Phase 2A–2D, and mobile integration Phase 3A–3D
+are complete.** The admin web app has not started.
 
 ## Sources of truth
 
@@ -10,6 +10,7 @@ are complete.** Migration cleanup (Phase 3D) and the admin web app have not star
 - [Classroom behavior baseline](PROJECT_SPEC_CLASSROOM_EDITION.md)
 - [Migration documentation](docs/fullstack-migration/README.md)
 - [Slink reference audit](docs/reference-slink-audit.md)
+- [Brand system, mascot và icon](docs/BRAND_SYSTEM.md)
 
 ## Requirements
 
@@ -70,12 +71,20 @@ placeholders now. Expo/native dependencies stay in `apps/mobile/package.json`.
 
 `apps/mobile` contains Expo SDK 58, Expo Router, strict TypeScript, a safe-area app shell, semantic
 light/dark tokens, system/light/dark preferences, Vietnamese/English preferences, development
-error logging, an error boundary, and focused Jest tests. Preferences use the SQLite-backed
-key-value store. Phase 3A adds localized welcome/register/login screens, authenticated route groups,
+error logging, an error boundary, and focused Jest tests. Preferences and local reminder metadata
+use the SQLite-backed key-value store. Phase 3A adds localized welcome/register/login screens,
 logout cleanup, restart recovery, and a typed API client. Refresh credentials are stored only in
 Expo SecureStore, access tokens stay in memory, and concurrent 401 responses share one refresh.
 Development builds log sanitized API request/response/error diagnostics to the Metro console;
 passwords, authorization values, and access/refresh tokens are redacted.
+
+Trips and Settings live in a nested Tabs navigator with the branded custom bottom bar, while trip
+creation, join, detail, checklist, packing, and member flows remain in the parent Stack. Tab changes
+therefore avoid Stack slide transitions and retain each tab's navigation state.
+
+The mobile brand uses the original Luki travel-tag mascot, a production app icon, and a semantic
+Lucide React Native wrapper. `docs/BRAND_SYSTEM.md` is the source of truth for asset usage, palette,
+icon rules, voice, reproducible prompts, and the checklist for future variants.
 
 The Trips slice includes calendar-date validation, timeline grouping, Trips Hub, three-step
 create/review, edit, detail, delete, destination lookup, and loading/refresh/offline states. Its
@@ -93,9 +102,12 @@ use `expo-notifications`, request permission only when enabled, and support one 
 departure. Notification behavior must be verified in a development build or on a physical device;
 denied permission and weather failure never block trip or checklist flows.
 
-The version 3 local schema remains temporarily for migration compatibility and focused legacy
-adapter tests. Production trip/checklist/weather providers are remote; Phase 3D owns final local
-schema and adapter cleanup.
+Phase 3D removes the relational mobile schema and the temporary local trip, checklist, direct
+Open-Meteo, and packing-rule implementations. `expo-sqlite` remains only behind its key-value store
+for preferences and local reminder metadata; no trip or checklist data is written locally. The v2
+app does not carry forward the legacy QR snapshot-copy bridge: REST invite preview and confirmed
+join are the only collaboration path. On the first Phase 3D launch, obsolete scheduled reminders
+from the retired relational store are cleared once; users can then schedule them again normally.
 
 `apps/api` provides the Phase 2A NestJS foundation: validated environment configuration,
 PostgreSQL 17 Compose service, Prisma 7 migration/seed flow, versioned REST prefix, CORS and Helmet,
@@ -117,4 +129,5 @@ Phase 3B replaces the production local adapters for trips, checklists, packing s
 weather with typed remote adapters and contract/component coverage. Phase 3C adds invite preview and
 confirmed join, owner invite creation/revocation, member listing/removal, refetch-on-focus and
 pull-to-refresh, plus explicit stale-version recovery for shared checklist and trip edits. Phase 3D
-migration cleanup, the admin web app, and shared generated clients are not implemented yet.
+retires the old local adapters/schema and legacy QR-copy concept, leaving server data as the sole
+source of truth. The admin web app and shared generated clients are not implemented yet.

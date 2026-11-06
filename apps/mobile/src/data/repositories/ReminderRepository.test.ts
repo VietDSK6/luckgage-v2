@@ -1,9 +1,11 @@
-import type { SQLiteDatabase } from 'expo-sqlite';
-
 import type { Trip } from '@/features/trips/domain/trip';
 import type { NotificationScheduler } from '@/platform/notifications/NotificationScheduler';
 
-import { getReminderTriggerDate, SQLiteReminderRepository } from './ReminderRepository';
+import {
+  getReminderTriggerDate,
+  StoredReminderRepository,
+  type ReminderStorage,
+} from './ReminderRepository';
 
 const trip: Trip = {
   id: 'trip-1',
@@ -19,7 +21,7 @@ const trip: Trip = {
   updatedAt: 1,
 };
 
-describe('SQLiteReminderRepository', () => {
+describe('StoredReminderRepository', () => {
   test('computes nine AM local reminder and rejects a started trip', () => {
     const trigger = getReminderTriggerDate(
       trip.startDate,
@@ -32,34 +34,46 @@ describe('SQLiteReminderRepository', () => {
     ).toBeNull();
   });
 
-  test('requests permission, schedules, and persists the native identifier', async () => {
+  test('requests permission, schedules, and persists the native identifier in key-value storage', async () => {
     const scheduler = schedulerMock();
-    const getFirstAsync = jest.fn(async () => null);
-    const runAsync = jest.fn(async () => ({ changes: 1, lastInsertRowId: 0 }));
-    const repository = new SQLiteReminderRepository(
-      { getFirstAsync, runAsync } as unknown as SQLiteDatabase,
+    const storage = storageMock();
+    const repository = new StoredReminderRepository(
+      storage,
       scheduler,
       () => new Date(2026, 10, 5, 8).getTime(),
     );
 
-    await expect(repository.schedule(trip, 3, 'vi')).resolves.toMatchObject({
+    const scheduled = await repository.schedule(trip, 3, 'vi');
+
+    expect(scheduled).toMatchObject({
       daysBefore: 3,
       notificationId: 'notification-1',
     });
     expect(scheduler.requestPermission).toHaveBeenCalledTimes(1);
+    expect(scheduler.cancelAll).toHaveBeenCalledTimes(1);
     expect(scheduler.schedule).toHaveBeenCalledWith(
       expect.objectContaining({ date: new Date(2026, 10, 7, 9) }),
     );
-    expect(runAsync).toHaveBeenCalledWith(
-      expect.stringContaining('INSERT INTO local_reminders'),
-      'trip-1',
-      3,
-      'notification-1',
-      expect.any(Number),
-      expect.any(Number),
+    expect(storage.setItem).toHaveBeenCalledWith(
+      'reminders.trip.trip-1.v1',
+      JSON.stringify(scheduled),
     );
+    await expect(repository.get(trip.id)).resolves.toEqual(scheduled);
   });
 });
+
+function storageMock(): jest.Mocked<ReminderStorage> {
+  const values = new Map<string, string>();
+  return {
+    getItem: jest.fn(async (key) => values.get(key) ?? null),
+    setItem: jest.fn(async (key, value) => {
+      values.set(key, value);
+    }),
+    removeItem: jest.fn(async (key) => {
+      values.delete(key);
+    }),
+  };
+}
 
 function schedulerMock(): jest.Mocked<NotificationScheduler> {
   return {
@@ -67,5 +81,6 @@ function schedulerMock(): jest.Mocked<NotificationScheduler> {
     requestPermission: jest.fn(async () => 'granted'),
     schedule: jest.fn(async (_request) => 'notification-1'),
     cancel: jest.fn(async (_identifier) => undefined),
+    cancelAll: jest.fn(async () => undefined),
   };
 }

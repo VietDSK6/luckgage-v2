@@ -3,6 +3,7 @@
     "name": "luckgage",
     "slug": "luckgage",
     "version": "0.1.0",
+    "icon": "./assets/brand/app-icon.png",
     "orientation": "portrait",
     "scheme": "luckgage",
     "platforms": [
@@ -10,6 +11,11 @@
       "android"
     ],
     "userInterfaceStyle": "automatic",
+    "splash": {
+      "backgroundColor": "#FFF7E8",
+      "image": "./assets/brand/luki-mascot.png",
+      "resizeMode": "contain"
+    },
     "android": {
       "predictiveBackGestureEnabled": true
     },

@@ -1,8 +1,10 @@
 import { useRouter } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppButton } from '@/design/components/AppButton';
+import { AppIcon, type AppIconName } from '@/design/components/AppIcon';
+import { BrandLuki, BrandMark } from '@/design/components/BrandLuki';
 import { useAppTheme } from '@/design/theme/AppThemeProvider';
 import { useI18n } from '@/i18n/I18nProvider';
 
@@ -10,9 +12,12 @@ import { AuthLanguageToggle } from './AuthLanguageToggle';
 
 export function WelcomeScreen() {
   const router = useRouter();
+  const { width } = useWindowDimensions();
   const { theme } = useAppTheme();
   const { t } = useI18n();
   const benefits = [t('authBenefitTrips'), t('authBenefitChecklist'), t('authBenefitTogether')];
+  const benefitIcons: AppIconName[] = ['calendar', 'checklist', 'group'];
+  const compact = width < 390;
 
   return (
     <SafeAreaView
@@ -20,9 +25,7 @@ export function WelcomeScreen() {
       style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
       <View style={styles.content}>
         <View style={styles.topBar}>
-          <View style={[styles.brandMark, { backgroundColor: theme.colors.primary }]}>
-            <View style={[styles.brandHole, { backgroundColor: theme.colors.background }]} />
-          </View>
+          <BrandMark />
           <AuthLanguageToggle />
         </View>
 
@@ -30,9 +33,17 @@ export function WelcomeScreen() {
           <Text style={[styles.eyebrow, { color: theme.colors.primary }]}>
             {t('authWelcomeEyebrow')}
           </Text>
-          <Text accessibilityRole="header" style={[styles.title, { color: theme.colors.ink }]}>
-            {t('authWelcomeTitle')}
-          </Text>
+          <View style={styles.titleRow}>
+            <Text
+              accessibilityRole="header"
+              style={[styles.title, compact ? styles.titleCompact : null, { color: theme.colors.ink }]}>
+              {t('authWelcomeTitle')}
+            </Text>
+            <View style={[styles.mascotStage, { backgroundColor: theme.colors.primarySoft }]}>
+              <View style={[styles.mascotSun, { backgroundColor: theme.colors.sun }]} />
+              <BrandLuki width={compact ? 104 : 118} />
+            </View>
+          </View>
           <Text style={[styles.body, { color: theme.colors.inkMuted }]}>{t('authWelcomeBody')}</Text>
 
           <View
@@ -45,18 +56,16 @@ export function WelcomeScreen() {
               <View key={benefit} style={styles.benefitRow}>
                 <View
                   style={[
-                    styles.benefitNumber,
+                    styles.benefitIcon,
                     {
                       backgroundColor: index === benefits.length - 1 ? theme.colors.accent : theme.colors.primarySoft,
                     },
                   ]}>
-                  <Text
-                    style={[
-                      styles.benefitNumberText,
-                      { color: index === benefits.length - 1 ? theme.colors.onWarm : theme.colors.primary },
-                    ]}>
-                    {index + 1}
-                  </Text>
+                  <AppIcon
+                    color={index === benefits.length - 1 ? theme.colors.onWarm : theme.colors.primary}
+                    name={benefitIcons[index]}
+                    size={18}
+                  />
                 </View>
                 <Text style={[styles.benefitText, { color: theme.colors.ink }]}>{benefit}</Text>
               </View>
@@ -65,8 +74,9 @@ export function WelcomeScreen() {
         </View>
 
         <View style={styles.actions}>
-          <AppButton label={t('authStart')} onPress={() => router.push('/sign-up')} />
+          <AppButton icon="luggage" label={t('authStart')} onPress={() => router.push('/sign-up')} />
           <AppButton
+            icon="login"
             label={`${t('authHaveAccount')} ${t('authSignIn')}`}
             onPress={() => router.push('/sign-in')}
             variant="ghost"
@@ -89,11 +99,27 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
   },
   topBar: { minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  brandMark: { width: 46, height: 46, borderRadius: 14, transform: [{ rotate: '-7deg' }] },
-  brandHole: { position: 'absolute', top: 8, right: 8, width: 10, height: 10, borderRadius: 5 },
   hero: { flex: 1, justifyContent: 'center', paddingVertical: 28 },
   eyebrow: { fontSize: 13, lineHeight: 18, fontWeight: '700', letterSpacing: 1.4 },
-  title: { marginTop: 10, maxWidth: 520, fontSize: 42, lineHeight: 48, fontWeight: '700' },
+  titleRow: { marginTop: 10, flexDirection: 'row', alignItems: 'center', gap: 4 },
+  title: { flex: 1, maxWidth: 520, fontSize: 40, lineHeight: 46, fontWeight: '800', letterSpacing: -1 },
+  titleCompact: { fontSize: 36, lineHeight: 42 },
+  mascotStage: {
+    width: 126,
+    height: 126,
+    borderRadius: 63,
+    alignItems: 'center',
+    justifyContent: 'center',
+    transform: [{ rotate: '3deg' }],
+  },
+  mascotSun: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+  },
   body: { marginTop: 14, maxWidth: 500, fontSize: 18, lineHeight: 27 },
   routeCard: {
     position: 'relative',
@@ -107,8 +133,7 @@ const styles = StyleSheet.create({
   },
   routeTrack: { position: 'absolute', top: 34, bottom: 34, left: 39, width: 2 },
   benefitRow: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 14 },
-  benefitNumber: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center' },
-  benefitNumberText: { fontSize: 14, lineHeight: 18, fontWeight: '800' },
+  benefitIcon: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center' },
   benefitText: { flex: 1, fontSize: 16, lineHeight: 23, fontWeight: '600' },
   actions: { gap: 12 },
 });

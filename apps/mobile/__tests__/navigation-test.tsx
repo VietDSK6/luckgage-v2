@@ -3,8 +3,9 @@ import { renderRouter } from 'expo-router/testing-library';
 import { Alert } from 'react-native';
 
 import RootLayout from '../app/_layout';
-import IndexRoute from '../app/(app)/index';
-import SettingsRoute from '../app/(app)/settings';
+import MainTabsLayout from '../app/(app)/(tabs)/_layout';
+import IndexRoute from '../app/(app)/(tabs)/index';
+import SettingsRoute from '../app/(app)/(tabs)/settings';
 import TripDetailRoute from '../app/(app)/trip/[tripId]/index';
 import ChecklistRoute from '../app/(app)/trip/[tripId]/checklist';
 import MembersRoute from '../app/(app)/trip/[tripId]/members';
@@ -17,16 +18,6 @@ import type {
   ApiChecklistItem,
   ApiTrip,
 } from '../src/data/remote/apiTypes';
-
-type SQLiteMock = {
-  getAllAsync: jest.Mock;
-  getFirstAsync: jest.Mock;
-  runAsync: jest.Mock;
-};
-
-const { __mockDatabase: database } = jest.requireMock('expo-sqlite') as {
-  __mockDatabase: SQLiteMock;
-};
 
 const persistedTrip: ApiTrip = {
   id: 'trip-1',
@@ -248,9 +239,6 @@ function apiProblem(status: number) {
 
 beforeEach(() => {
   jest.clearAllMocks();
-  database.getAllAsync.mockResolvedValue([]);
-  database.getFirstAsync.mockResolvedValue(null);
-  database.runAsync.mockResolvedValue({ changes: 1, lastInsertRowId: 1 });
   serverTrip = null;
   serverCategories = [];
   serverMembers = [
@@ -271,8 +259,9 @@ describe('app navigation', () => {
 
     await renderRouter({
       _layout: RootLayout,
-      index: IndexRoute,
-      settings: SettingsRoute,
+      '(tabs)/_layout': MainTabsLayout,
+      '(tabs)/index': IndexRoute,
+      '(tabs)/settings': SettingsRoute,
       'trip/new': NewTripRoute,
     });
 
@@ -315,7 +304,6 @@ describe('app navigation', () => {
     await user.press(screen.getByRole('button', { name: 'Xem lại chuyến đi' }));
     expect(await screen.findByText('Kiểm tra thẻ hành trình')).toBeTruthy();
     expect(screen.getAllByText('Hội An').length).toBeGreaterThan(0);
-    expect(database.runAsync).not.toHaveBeenCalled();
   });
 
   test('creates a trip and opens its persisted detail', async () => {
@@ -342,7 +330,6 @@ describe('app navigation', () => {
       expect.stringMatching(/\/api\/v1\/trips$/),
       expect.objectContaining({ method: 'POST' }),
     );
-    expect(database.runAsync).not.toHaveBeenCalled();
   });
 
   test('loads the edit flow and persists an update before returning to detail', async () => {
@@ -429,7 +416,6 @@ describe('app navigation', () => {
 
     expect(await screen.findByRole('checkbox', { name: 'Hộ chiếu, số lượng 1, đã xếp' })).toBeTruthy();
     expect(serverCategories[0].items[0].isPacked).toBe(true);
-    expect(database.runAsync).not.toHaveBeenCalled();
   });
 
   test('keeps packing suggestions as an editable preview until confirmation, then appends them', async () => {
@@ -450,13 +436,11 @@ describe('app navigation', () => {
 
     await user.press(await screen.findByRole('button', { name: 'Tạo bản gợi ý' }));
     expect(await screen.findByText('Kiểm tra từng món')).toBeTruthy();
-    expect(database.runAsync).not.toHaveBeenCalled();
 
     const idInput = screen.getByDisplayValue('Giấy tờ tùy thân');
     await user.clear(idInput);
     await user.type(idInput, 'CCCD');
     await user.press(screen.getByRole('button', { name: /Thêm \d+ món vào checklist/ }));
-    expect(database.runAsync).not.toHaveBeenCalled();
 
     const buttons = alertSpy.mock.calls[0]?.[2];
     const confirm = buttons?.find((button) => button.style !== 'cancel');
@@ -474,7 +458,6 @@ describe('app navigation', () => {
         },
       ],
     });
-    expect(database.runAsync).not.toHaveBeenCalled();
     alertSpy.mockRestore();
   });
 

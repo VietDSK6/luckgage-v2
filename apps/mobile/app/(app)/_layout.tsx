@@ -11,5 +11,9 @@ export default function AuthenticatedLayout() {
   if (status === 'restoreError') return <AuthRecoveryScreen />;
   if (status === 'unauthenticated') return <Redirect href="/welcome" />;
 
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="(tabs)" options={{ animation: 'none' }} />
+    </Stack>
+  );
 }

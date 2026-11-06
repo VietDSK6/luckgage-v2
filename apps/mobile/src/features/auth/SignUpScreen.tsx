@@ -65,6 +65,7 @@ export function SignUpScreen() {
       footer={
         <AppButton
           disabled={submitting}
+          icon="login"
           label={t('authSwitchToSignIn')}
           onPress={() => router.replace('/sign-in')}
           variant="ghost"
@@ -123,6 +124,7 @@ export function SignUpScreen() {
       />
       <AuthFormError message={formError} />
       <AppButton
+        icon="signUp"
         label={submitting ? t('authCreatingAccount') : t('authSignUp')}
         loading={submitting}
         onPress={() => void submit()}

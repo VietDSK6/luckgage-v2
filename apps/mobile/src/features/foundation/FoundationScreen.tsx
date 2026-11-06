@@ -3,8 +3,8 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import type { AppTheme } from '@/design/tokens';
-import { AppBottomNavigation } from '@/design/components/AppBottomNavigation';
 import { AppButton } from '@/design/components/AppButton';
+import { AppIcon } from '@/design/components/AppIcon';
 import { useAppTheme } from '@/design/theme/AppThemeProvider';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { useI18n } from '@/i18n/I18nProvider';
@@ -57,7 +57,7 @@ export function FoundationScreen() {
   return (
     <SafeAreaView
       style={[styles.safeArea, { backgroundColor: theme.colors.background }]}
-      edges={['top', 'right', 'bottom', 'left']}>
+      edges={['top', 'right', 'left']}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         contentInsetAdjustmentBehavior="automatic"
@@ -94,11 +94,13 @@ export function FoundationScreen() {
 
             <View style={[styles.divider, { backgroundColor: theme.colors.outline }]} />
 
-            <View>
-              <Text style={[styles.status, { color: theme.colors.ink }]}>✓ {t('routerReady')}</Text>
-              <Text style={[styles.status, { color: theme.colors.ink }]}>✓ {t('typescriptReady')}</Text>
-              <Text style={[styles.status, { color: theme.colors.ink }]}>✓ {t('databaseReady')}</Text>
-              <Text style={[styles.status, { color: theme.colors.ink }]}>✓ {t('authReady')}</Text>
+            <View style={styles.statusList}>
+              {(['routerReady', 'typescriptReady', 'dataReady', 'authReady'] as const).map((key) => (
+                <View key={key} style={styles.status}>
+                  <AppIcon color={theme.colors.primary} name="check" size={18} strokeWidth={2.8} />
+                  <Text style={[styles.statusText, { color: theme.colors.ink }]}>{t(key)}</Text>
+                </View>
+              ))}
             </View>
 
             <View style={[styles.divider, { backgroundColor: theme.colors.outline }]} />
@@ -165,7 +167,6 @@ export function FoundationScreen() {
           </Text>
         </View>
       </ScrollView>
-      <AppBottomNavigation active="settings" />
     </SafeAreaView>
   );
 }
@@ -212,12 +213,14 @@ function PreferenceSelector<Value extends string>({
                 },
                 pressed ? styles.optionPressed : null,
               ]}>
+              {isSelected ? (
+                <AppIcon color={theme.colors.primary} name="check" size={17} strokeWidth={2.8} />
+              ) : null}
               <Text
                 style={[
                   styles.optionText,
                   { color: isSelected ? theme.colors.primary : theme.colors.ink },
                 ]}>
-                {isSelected ? '✓ ' : ''}
                 {option.label}
               </Text>
             </Pressable>
@@ -293,11 +296,9 @@ const styles = StyleSheet.create({
     height: 1,
     marginVertical: 24,
   },
-  status: {
-    minHeight: 32,
-    fontSize: 16,
-    lineHeight: 24,
-  },
+  statusList: { gap: 4 },
+  status: { minHeight: 32, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  statusText: { flex: 1, fontSize: 16, lineHeight: 24 },
   settingsTitle: {
     fontSize: 20,
     lineHeight: 28,
@@ -339,6 +340,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 12,
     paddingHorizontal: 16,
+    flexDirection: 'row',
+    gap: 6,
     alignItems: 'center',
     justifyContent: 'center',
   },

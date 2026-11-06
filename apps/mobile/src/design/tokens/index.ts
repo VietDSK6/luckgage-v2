@@ -17,15 +17,15 @@ export const radius = {
 } as const;
 
 const lightColors = {
-  background: '#FFF8ED',
+  background: '#FFF7E8',
   surface: '#FFFFFF',
-  ink: '#15272A',
+  ink: '#12312F',
   inkMuted: '#607174',
   primary: '#0F766E',
   primarySoft: '#DDF4EF',
-  accent: '#F26B5E',
-  sun: '#F7C65D',
-  onWarm: '#15272A',
+  accent: '#FF665C',
+  sun: '#F6C84C',
+  onWarm: '#12312F',
   success: '#2F855A',
   warning: '#B7791F',
   danger: '#C2413A',

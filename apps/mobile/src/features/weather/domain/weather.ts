@@ -12,9 +12,6 @@ export type WeatherDay = {
 export type WeatherForecast = {
   tripId: string;
   destination: string;
-  latitude: number;
-  longitude: number;
-  timezone: string;
   lowTemperatureCelsius: number;
   highTemperatureCelsius: number;
   rainChancePercent: number;
@@ -22,7 +19,6 @@ export type WeatherForecast = {
   days: WeatherDay[];
   fetchedAt: number;
   source: 'fresh' | 'cached';
-  isStale: boolean;
 };
 
 export function celsiusToFahrenheit(value: number): number {

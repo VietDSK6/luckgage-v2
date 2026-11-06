@@ -1,16 +1,14 @@
-import type { SQLiteDatabase } from 'expo-sqlite';
-
 import {
   calendarDateFromLocalDate,
   compareCalendarDates,
   type CalendarDate,
 } from '@/features/trips/domain/calendarDate';
 import type { Trip } from '@/features/trips/domain/trip';
-import type { AppLanguage } from '@/platform/preferences/preferences';
 import type {
   NotificationPermission,
   NotificationScheduler,
 } from '@/platform/notifications/NotificationScheduler';
+import type { AppLanguage } from '@/platform/preferences/preferences';
 
 export type ReminderDaysBefore = 1 | 3;
 
@@ -42,39 +40,34 @@ export interface ReminderRepository {
   cancel(tripId: string): Promise<void>;
 }
 
-type ReminderRow = {
-  trip_id: string;
-  days_before: number;
-  notification_id: string;
-  scheduled_for: number;
-  updated_at: number;
-};
+export interface ReminderStorage {
+  getItem(key: string): Promise<string | null>;
+  setItem(key: string, value: string): Promise<void>;
+  removeItem(key: string): Promise<void>;
+}
 
-export class SQLiteReminderRepository implements ReminderRepository {
+const reminderStorageKey = (tripId: string) => `reminders.trip.${tripId}.v1`;
+const reminderStorageReadyKey = 'reminders.storage.v1.ready';
+
+export class StoredReminderRepository implements ReminderRepository {
+  private cleanupPromise: Promise<void> | null = null;
+
   constructor(
-    private readonly database: SQLiteDatabase,
+    private readonly storage: ReminderStorage,
     private readonly scheduler: NotificationScheduler,
     private readonly now: () => number = Date.now,
   ) {}
 
   async get(tripId: string): Promise<LocalReminder | null> {
     try {
-      const row = await this.database.getFirstAsync<ReminderRow>(
-        `SELECT trip_id, days_before, notification_id, scheduled_for, updated_at
-         FROM local_reminders WHERE trip_id = ?`,
-        tripId,
-      );
-      if (!row) return null;
-      if (row.days_before !== 1 && row.days_before !== 3) {
+      await this.ensureLegacyCleanup();
+      const value = await this.storage.getItem(reminderStorageKey(tripId));
+      if (!value) return null;
+      const reminder = JSON.parse(value) as LocalReminder;
+      if (!isReminder(reminder, tripId)) {
         throw new ReminderRepositoryError('STORAGE', 'Reminder contains invalid data');
       }
-      return {
-        tripId: row.trip_id,
-        daysBefore: row.days_before,
-        notificationId: row.notification_id,
-        scheduledFor: row.scheduled_for,
-        updatedAt: row.updated_at,
-      };
+      return reminder;
     } catch (error) {
       if (error instanceof ReminderRepositoryError) throw error;
       throw storageError('Could not load reminder', error);
@@ -90,6 +83,7 @@ export class SQLiteReminderRepository implements ReminderRepository {
     daysBefore: ReminderDaysBefore,
     language: AppLanguage,
   ): Promise<LocalReminder> {
+    await this.ensureLegacyCleanup();
     const triggerDate = getReminderTriggerDate(trip.startDate, daysBefore, this.now());
     if (!triggerDate) {
       throw new ReminderRepositoryError('INVALID_DATE', 'Trip has already started');
@@ -119,21 +113,7 @@ export class SQLiteReminderRepository implements ReminderRepository {
     };
 
     try {
-      await this.database.runAsync(
-        `INSERT INTO local_reminders
-          (trip_id, days_before, notification_id, scheduled_for, updated_at)
-         VALUES (?, ?, ?, ?, ?)
-         ON CONFLICT(trip_id) DO UPDATE SET
-          days_before = excluded.days_before,
-          notification_id = excluded.notification_id,
-          scheduled_for = excluded.scheduled_for,
-          updated_at = excluded.updated_at`,
-        reminder.tripId,
-        reminder.daysBefore,
-        reminder.notificationId,
-        reminder.scheduledFor,
-        reminder.updatedAt,
-      );
+      await this.storage.setItem(reminderStorageKey(trip.id), JSON.stringify(reminder));
       return reminder;
     } catch (error) {
       await this.scheduler.cancel(notificationId).catch(() => undefined);
@@ -145,10 +125,25 @@ export class SQLiteReminderRepository implements ReminderRepository {
     const existing = await this.get(tripId);
     if (existing) await this.scheduler.cancel(existing.notificationId);
     try {
-      await this.database.runAsync('DELETE FROM local_reminders WHERE trip_id = ?', tripId);
+      await this.storage.removeItem(reminderStorageKey(tripId));
     } catch (error) {
       throw storageError('Could not remove reminder', error);
     }
+  }
+
+  private ensureLegacyCleanup(): Promise<void> {
+    this.cleanupPromise ??= this.performLegacyCleanup().catch((error: unknown) => {
+      this.cleanupPromise = null;
+      throw error;
+    });
+    return this.cleanupPromise;
+  }
+
+  private async performLegacyCleanup(): Promise<void> {
+    const isReady = await this.storage.getItem(reminderStorageReadyKey);
+    if (isReady === 'true') return;
+    await this.scheduler.cancelAll();
+    await this.storage.setItem(reminderStorageReadyKey, 'true');
   }
 }
 
@@ -163,6 +158,17 @@ export function getReminderTriggerDate(
   const [year, month, day] = startDate.split('-').map(Number);
   const trigger = new Date(year, month - 1, day - daysBefore, 9, 0, 0, 0);
   return trigger.getTime() <= now ? new Date(now + 1_000) : trigger;
+}
+
+function isReminder(value: LocalReminder, tripId: string): boolean {
+  return (
+    value?.tripId === tripId &&
+    (value.daysBefore === 1 || value.daysBefore === 3) &&
+    typeof value.notificationId === 'string' &&
+    value.notificationId.length > 0 &&
+    Number.isFinite(value.scheduledFor) &&
+    Number.isFinite(value.updatedAt)
+  );
 }
 
 function storageError(message: string, error: unknown): ReminderRepositoryError {

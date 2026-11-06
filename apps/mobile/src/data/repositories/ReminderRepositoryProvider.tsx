@@ -1,17 +1,16 @@
-import { useSQLiteContext } from 'expo-sqlite';
+import Storage from 'expo-sqlite/kv-store';
 import { createContext, type PropsWithChildren, useContext, useMemo } from 'react';
 
 import { ExpoNotificationScheduler } from '@/platform/notifications/NotificationScheduler';
 
-import { SQLiteReminderRepository, type ReminderRepository } from './ReminderRepository';
+import { StoredReminderRepository, type ReminderRepository } from './ReminderRepository';
 
 const ReminderRepositoryContext = createContext<ReminderRepository | null>(null);
 
 export function ReminderRepositoryProvider({ children }: PropsWithChildren) {
-  const database = useSQLiteContext();
   const repository = useMemo(
-    () => new SQLiteReminderRepository(database, new ExpoNotificationScheduler()),
-    [database],
+    () => new StoredReminderRepository(Storage, new ExpoNotificationScheduler()),
+    [],
   );
 
   return (

@@ -68,9 +68,6 @@ export function mapWeatherResponse(
   return {
     tripId: trip.id,
     destination: trip.destination,
-    latitude: 0,
-    longitude: 0,
-    timezone: '',
     lowTemperatureCelsius: payload.lowTemperatureCelsius,
     highTemperatureCelsius: payload.highTemperatureCelsius,
     rainChancePercent: payload.rainChancePercent,
@@ -78,7 +75,6 @@ export function mapWeatherResponse(
     days,
     fetchedAt,
     source: payload.status === 'FRESH' ? 'fresh' : 'cached',
-    isStale: false,
   };
 }
 

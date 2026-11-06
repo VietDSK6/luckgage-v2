@@ -2,12 +2,15 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, type ViewStyle } from '
 
 import { useAppTheme } from '@/design/theme/AppThemeProvider';
 
+import { AppIcon, type AppIconName } from './AppIcon';
+
 type AppButtonProps = {
   label: string;
   onPress: () => void;
   variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
   disabled?: boolean;
   loading?: boolean;
+  icon?: AppIconName;
   accessibilityHint?: string;
   style?: ViewStyle;
 };
@@ -15,6 +18,7 @@ type AppButtonProps = {
 export function AppButton({
   accessibilityHint,
   disabled = false,
+  icon,
   label,
   loading = false,
   onPress,
@@ -45,6 +49,7 @@ export function AppButton({
         style,
       ]}>
       {loading ? <ActivityIndicator color={colors.text} size="small" /> : null}
+      {!loading && icon ? <AppIcon color={colors.text} name={icon} size={19} /> : null}
       <Text style={[styles.label, { color: colors.text }]}>{label}</Text>
     </Pressable>
   );

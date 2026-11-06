@@ -126,8 +126,9 @@ mobile phải có thêm tab.
   sign-up
 
 (app)/
-  trips
-  settings
+  (tabs)/
+    trips (index)
+    settings
   trip/new
   trip/join
   trip/[tripId]
@@ -136,6 +137,11 @@ mobile phải có thêm tab.
   trip/[tripId]/packing-studio
   trip/[tripId]/members
 ~~~
+
+`Trips` và `Settings` thuộc một Expo Router Tabs navigator để đổi destination không dùng Stack
+transition và giữ state của từng tab. Chuyển tab dùng crossfade 160 ms; icon, label và indicator
+active chuyển trạng thái trong 180 ms, không slide ngang. Bottom bar custom thuộc tabs layout, bao
+gồm cả bottom safe area. Các route `trip/*` vẫn thuộc Stack cha để giữ transition theo chiều sâu.
 
 Route chỉ nhận ID hoặc mode ngắn. Không truyền full trip/checklist object trong route params.
 

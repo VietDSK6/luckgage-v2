@@ -19,6 +19,7 @@ import { ChecklistRepositoryError } from '@/data/repositories/ChecklistRepositor
 import { useChecklistRepository } from '@/data/repositories/ChecklistRepositoryProvider';
 import { useTripRepository } from '@/data/repositories/TripRepositoryProvider';
 import { AppButton } from '@/design/components/AppButton';
+import { AppIcon } from '@/design/components/AppIcon';
 import { AppPageHeader } from '@/design/components/AppPageHeader';
 import { useAppTheme } from '@/design/theme/AppThemeProvider';
 import { useI18n } from '@/i18n/I18nProvider';
@@ -404,7 +405,9 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
           showsVerticalScrollIndicator={false}>
           {progress.total > 0 && progress.percentage === 100 ? (
             <View style={[styles.readyBanner, { backgroundColor: theme.colors.primarySoft }]}>
-              <Text style={[styles.readyStamp, { color: theme.colors.primary }]}>✓</Text>
+              <View style={styles.readyStamp}>
+                <AppIcon color={theme.colors.primary} name="check" size={36} strokeWidth={2.8} />
+              </View>
               <View style={styles.readyCopy}>
                 <Text accessibilityRole="header" style={[styles.readyTitle, { color: theme.colors.primary }]}>
                   {t('checklistReadyTitle')}
@@ -417,7 +420,9 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
           {categories.length > 0 ? (
             <>
               <View style={[styles.searchBox, { backgroundColor: theme.colors.surface, borderColor: theme.colors.outline }]}>
-                <Text style={[styles.searchMark, { color: theme.colors.primary }]}>⌕</Text>
+                <View style={styles.searchMark}>
+                  <AppIcon color={theme.colors.primary} name="search" size={21} />
+                </View>
                 <TextInput
                   accessibilityLabel={t('checklistSearchPlaceholder')}
                   onChangeText={setQuery}
@@ -539,16 +544,18 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
                             }
                           }}
                           style={({ pressed }) => [styles.iconAction, pressed ? styles.pressed : null]}>
-                          <Text style={[styles.iconActionText, { color: theme.colors.primary }]}>
-                            {editingCategory ? '×' : '✎'}
-                          </Text>
+                          <AppIcon
+                            color={theme.colors.primary}
+                            name={editingCategory ? 'close' : 'edit'}
+                            size={21}
+                          />
                         </Pressable>
                         <Pressable
                           accessibilityLabel={t('checklistCategoryDeleteLabel', { name: category.name })}
                           accessibilityRole="button"
                           onPress={() => requestCategoryDelete(category)}
                           style={({ pressed }) => [styles.iconAction, pressed ? styles.pressed : null]}>
-                          <Text style={[styles.iconActionText, { color: theme.colors.danger }]}>−</Text>
+                          <AppIcon color={theme.colors.danger} name="minus" size={22} />
                         </Pressable>
                       </View>
                     </View>
@@ -602,9 +609,9 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
                                 },
                                 pressed ? styles.pressed : null,
                               ]}>
-                              <Text style={[styles.checkboxMark, { color: theme.colors.background }]}>
-                                {item.isPacked ? '✓' : ''}
-                              </Text>
+                              {item.isPacked ? (
+                                <AppIcon color={theme.colors.background} name="check" size={22} strokeWidth={2.8} />
+                              ) : null}
                             </Pressable>
                             <Pressable
                               accessibilityLabel={t('checklistItemEditLabel', { name: item.name })}
@@ -630,7 +637,9 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
                                 </Text>
                               ) : null}
                             </Pressable>
-                            <Text style={[styles.disclosure, { color: theme.colors.inkMuted }]}>›</Text>
+                            <View style={styles.disclosure}>
+                              <AppIcon color={theme.colors.inkMuted} name="chevronRight" size={20} />
+                            </View>
                           </View>
 
                           {itemEditor?.item.id === item.id ? (
@@ -708,7 +717,7 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
                         {pendingOperation === `item:new:${category.id}` ? (
                           <ActivityIndicator color={theme.colors.background} size="small" />
                         ) : (
-                          <Text style={[styles.quickAddMark, { color: theme.colors.background }]}>+</Text>
+                          <AppIcon color={theme.colors.background} name="create" size={24} />
                         )}
                       </Pressable>
                     </View>
@@ -810,12 +819,12 @@ const styles = StyleSheet.create({
   progressFill: { height: 7, borderRadius: 4 },
   content: { width: '100%', maxWidth: 640, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 20, paddingBottom: 120 },
   readyBanner: { flexDirection: 'row', alignItems: 'center', gap: 16, borderRadius: 20, padding: 18, marginBottom: 20 },
-  readyStamp: { width: 48, fontSize: 34, lineHeight: 42, fontWeight: '900', textAlign: 'center' },
+  readyStamp: { width: 48, alignItems: 'center', justifyContent: 'center' },
   readyCopy: { flex: 1, gap: 2 },
   readyTitle: { fontSize: 18, lineHeight: 24, fontWeight: '900' },
   readyBody: { fontSize: 14, lineHeight: 20 },
   searchBox: { minHeight: 52, borderWidth: 1, borderRadius: 16, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16 },
-  searchMark: { width: 30, fontSize: 24, lineHeight: 28, fontWeight: '800' },
+  searchMark: { width: 30 },
   searchInput: { flex: 1, minHeight: 50, fontSize: 16, lineHeight: 22 },
   filterRow: { flexDirection: 'row', gap: 8, marginTop: 12, marginBottom: 24 },
   filterChip: { minHeight: 48, flex: 1, borderWidth: 1, borderRadius: 24, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 10 },
@@ -839,7 +848,6 @@ const styles = StyleSheet.create({
   categoryCount: { fontSize: 12, lineHeight: 17, fontWeight: '700', fontVariant: ['tabular-nums'] },
   categoryActions: { flexDirection: 'row' },
   iconAction: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
-  iconActionText: { fontSize: 23, lineHeight: 28, fontWeight: '800' },
   inlineActions: { flexDirection: 'row', gap: 8, paddingHorizontal: 20, paddingTop: 12 },
   flexButton: { flex: 1 },
   bulkAction: { minHeight: 48, alignSelf: 'flex-start', justifyContent: 'center', paddingHorizontal: 20 },
@@ -847,14 +855,13 @@ const styles = StyleSheet.create({
   itemList: { marginTop: 4, borderTopWidth: 1 },
   itemRow: { minHeight: 68, flexDirection: 'row', alignItems: 'center', gap: 12, paddingLeft: 20, paddingRight: 12, paddingVertical: 8, borderBottomWidth: 1 },
   checkbox: { width: 48, height: 48, borderWidth: 2, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  checkboxMark: { fontSize: 22, lineHeight: 28, fontWeight: '900' },
   itemCopy: { flex: 1, minHeight: 52, justifyContent: 'center', paddingVertical: 5 },
   itemNameRow: { flexDirection: 'row', alignItems: 'baseline', gap: 8 },
   itemName: { flexShrink: 1, fontSize: 16, lineHeight: 22, fontWeight: '700' },
   itemPacked: { textDecorationLine: 'line-through' },
   quantity: { fontSize: 13, lineHeight: 18, fontWeight: '900', fontVariant: ['tabular-nums'] },
   itemNote: { marginTop: 2, fontSize: 13, lineHeight: 18 },
-  disclosure: { width: 20, fontSize: 26, lineHeight: 30, textAlign: 'center' },
+  disclosure: { width: 20, alignItems: 'center', justifyContent: 'center' },
   itemEditor: { gap: 8, padding: 18 },
   fieldLabel: { marginTop: 4, fontSize: 13, lineHeight: 18, fontWeight: '800' },
   input: { minHeight: 48, borderWidth: 1, borderRadius: 12, paddingHorizontal: 14, fontSize: 16, lineHeight: 22 },
@@ -866,7 +873,6 @@ const styles = StyleSheet.create({
   quickAddRow: { minHeight: 64, flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, paddingVertical: 8 },
   quickAddInput: { flex: 1, minHeight: 48, fontSize: 15, lineHeight: 21 },
   quickAddButton: { width: 48, height: 48, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  quickAddMark: { fontSize: 28, lineHeight: 31, fontWeight: '500' },
   disabled: { opacity: 0.4 },
   pressed: { opacity: 0.66, transform: [{ scale: 0.985 }] },
   newCategory: { marginTop: 32, paddingTop: 24, borderTopWidth: 1 },

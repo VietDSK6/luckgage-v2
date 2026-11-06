@@ -11,8 +11,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useTripRepository } from '@/data/repositories/TripRepositoryProvider';
-import { AppBottomNavigation } from '@/design/components/AppBottomNavigation';
 import { AppButton } from '@/design/components/AppButton';
+import { AppIcon } from '@/design/components/AppIcon';
+import { BrandLuki, BrandMark } from '@/design/components/BrandLuki';
 import { useAppTheme } from '@/design/theme/AppThemeProvider';
 import type { AppTheme } from '@/design/tokens';
 import { useI18n } from '@/i18n/I18nProvider';
@@ -112,7 +113,7 @@ export function TripsHubScreen() {
 
   return (
     <SafeAreaView
-      edges={['top', 'right', 'bottom', 'left']}
+      edges={['top', 'right', 'left']}
       style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
       <SectionList
         contentContainerStyle={styles.listContent}
@@ -140,20 +141,19 @@ export function TripsHubScreen() {
                   {t('tripsSubtitle')}
                 </Text>
               </View>
-              <View style={[styles.routeStamp, { borderColor: theme.colors.accent }]}>
-                <Text style={[styles.routeStampText, { color: theme.colors.danger }]}>LKG</Text>
-                <Text style={[styles.routeStampArrow, { color: theme.colors.danger }]}>↗</Text>
-              </View>
+              <BrandMark size={58} />
             </View>
 
             {trips.length > 0 ? (
               <View style={styles.tripActions}>
                 <AppButton
+                  icon="create"
                   label={t('tripsCreate')}
                   onPress={() => router.push('/trip/new')}
                   style={styles.tripAction}
                 />
                 <AppButton
+                  icon="join"
                   label={t('tripsJoin')}
                   onPress={() => router.push('/trip/join')}
                   style={styles.tripAction}
@@ -212,7 +212,6 @@ export function TripsHubScreen() {
         stickySectionHeadersEnabled={false}
         style={styles.list}
       />
-      <AppBottomNavigation active="trips" />
     </SafeAreaView>
   );
 }
@@ -279,7 +278,7 @@ function TripHeroCard({
       </View>
       <View style={styles.heroActionRow}>
         <Text style={[styles.heroAction, { color: theme.colors.background }]}>{t('tripsHeroAction')}</Text>
-        <Text style={[styles.heroArrow, { color: theme.colors.background }]}>→</Text>
+        <AppIcon color={theme.colors.background} name="arrowRight" size={21} />
       </View>
     </Pressable>
   );
@@ -352,20 +351,18 @@ function EmptyJourney({
 
   return (
     <View style={[styles.empty, { borderColor: theme.colors.outline }]}>
-      <View style={[styles.emptyTag, { backgroundColor: theme.colors.sun }]}>
-        <View style={[styles.emptyTagHole, { backgroundColor: theme.colors.background }]} />
-        <Text style={[styles.emptyTagText, { color: theme.colors.onWarm }]}>
-          {t('tripDestinationLabel').toUpperCase()}
-        </Text>
-        <View style={[styles.emptyTagLine, { backgroundColor: theme.colors.onWarm }]} />
+      <View style={[styles.emptyMascot, { backgroundColor: theme.colors.primarySoft }]}>
+        <View style={[styles.emptySun, { backgroundColor: theme.colors.sun }]} />
+        <BrandLuki width={150} />
       </View>
       <Text accessibilityRole="header" style={[styles.emptyTitle, { color: theme.colors.ink }]}>
         {t('tripsEmptyTitle')}
       </Text>
       <Text style={[styles.emptyBody, { color: theme.colors.inkMuted }]}>{t('tripsEmptyBody')}</Text>
       <View style={styles.emptyActions}>
-        <AppButton label={t('tripsCreate')} onPress={onCreate} style={styles.emptyButton} />
+        <AppButton icon="create" label={t('tripsCreate')} onPress={onCreate} style={styles.emptyButton} />
         <AppButton
+          icon="join"
           label={t('tripsJoin')}
           onPress={onJoin}
           style={styles.emptyButton}
@@ -399,7 +396,7 @@ function ErrorState({ onRetry, theme }: { onRetry: () => void; theme: AppTheme }
       <Text style={[styles.errorBody, { color: theme.colors.inkMuted }]}>
         {t('tripsLoadErrorBody')}
       </Text>
-      <AppButton label={t('commonRetry')} onPress={onRetry} variant="danger" />
+      <AppButton icon="retry" label={t('commonRetry')} onPress={onRetry} variant="danger" />
     </View>
   );
 }
@@ -420,17 +417,6 @@ const styles = StyleSheet.create({
   eyebrow: { fontSize: 12, lineHeight: 16, fontWeight: '800', letterSpacing: 1.5 },
   title: { marginTop: 8, fontSize: 38, lineHeight: 44, fontWeight: '800', letterSpacing: -1 },
   subtitle: { marginTop: 8, fontSize: 16, lineHeight: 24, maxWidth: 440 },
-  routeStamp: {
-    width: 58,
-    height: 58,
-    borderWidth: 2,
-    borderRadius: 29,
-    alignItems: 'center',
-    justifyContent: 'center',
-    transform: [{ rotate: '8deg' }],
-  },
-  routeStampText: { fontSize: 11, lineHeight: 13, fontWeight: '900', letterSpacing: 1 },
-  routeStampArrow: { fontSize: 18, lineHeight: 20, fontWeight: '800' },
   tripActions: { marginTop: 24, flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   tripAction: { minWidth: 160 },
   hero: {
@@ -461,7 +447,6 @@ const styles = StyleSheet.create({
   heroMetaValue: { fontSize: 14, lineHeight: 20, fontWeight: '700' },
   heroActionRow: { marginTop: 28, flexDirection: 'row', alignItems: 'center', gap: 8 },
   heroAction: { fontSize: 16, lineHeight: 22, fontWeight: '800' },
-  heroArrow: { fontSize: 22, lineHeight: 24, fontWeight: '800' },
   sectionTitle: { marginTop: 32, marginBottom: 8, fontSize: 22, lineHeight: 28, fontWeight: '800' },
   tripRow: { minHeight: 116, flexDirection: 'row', borderBottomWidth: 1, paddingVertical: 16 },
   timelineRail: { width: 2, marginRight: 16, alignItems: 'center' },
@@ -474,10 +459,22 @@ const styles = StyleSheet.create({
   tripType: { fontSize: 12, lineHeight: 16, fontWeight: '800', textAlign: 'right' },
   tripTimeline: { fontSize: 12, lineHeight: 17, textAlign: 'right' },
   empty: { marginTop: 32, paddingVertical: 32, borderTopWidth: 1, alignItems: 'flex-start' },
-  emptyTag: { width: 138, height: 84, padding: 16, borderRadius: 16, transform: [{ rotate: '-3deg' }] },
-  emptyTagHole: { position: 'absolute', top: 12, right: 12, width: 14, height: 14, borderRadius: 7 },
-  emptyTagText: { marginTop: 12, fontSize: 10, lineHeight: 14, fontWeight: '900', letterSpacing: 1.2 },
-  emptyTagLine: { marginTop: 8, height: 2, width: 76, opacity: 0.5 },
+  emptyMascot: {
+    width: 176,
+    height: 154,
+    borderRadius: 77,
+    alignItems: 'center',
+    justifyContent: 'center',
+    transform: [{ rotate: '-2deg' }],
+  },
+  emptySun: {
+    position: 'absolute',
+    top: 16,
+    right: 18,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+  },
   emptyTitle: { marginTop: 28, fontSize: 24, lineHeight: 31, fontWeight: '800', maxWidth: 360 },
   emptyBody: { marginTop: 8, fontSize: 16, lineHeight: 24, maxWidth: 460 },
   emptyActions: { marginTop: 24, flexDirection: 'row', flexWrap: 'wrap', gap: 10 },

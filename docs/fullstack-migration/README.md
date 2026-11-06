@@ -95,6 +95,7 @@ integration test cho auth, permission, join và transaction checklist.
 |---|---|
 | Mobile | Expo, React Native, TypeScript, Expo Router |
 | Mobile persistence giai đoạn local | Expo SQLite; preferences dùng key-value storage |
+| Mobile persistence sau tích hợp | REST API là source of truth; SQLite key-value chỉ giữ preference và metadata reminder cục bộ |
 | Mobile credential | Expo SecureStore |
 | Backend | Node.js, TypeScript, NestJS theo modular monolith |
 | API | REST, JSON, OpenAPI, version prefix v1 |
@@ -105,6 +106,10 @@ integration test cho auth, permission, join và transaction checklist.
 
 Không khóa version package trong tài liệu quy hoạch. Khi bootstrap từng app, dùng phiên bản
 stable tương thích tại thời điểm đó và commit lockfile.
+
+Sau Phase 3D, mobile không còn relational schema hoặc local adapter cho trip/checklist/weather.
+QR snapshot copy của bản cũ không được đưa sang v2; join code có preview và xác nhận là luồng cộng
+tác duy nhất. Đây là quyết định retire, không phải một cơ chế import dữ liệu hai chiều.
 
 ## Nguyên tắc triển khai
 

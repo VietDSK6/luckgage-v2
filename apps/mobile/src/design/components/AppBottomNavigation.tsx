@@ -1,33 +1,50 @@
-import { useRouter } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Animated, Easing, Pressable, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAppTheme } from '@/design/theme/AppThemeProvider';
 import { useI18n } from '@/i18n/I18nProvider';
 
+import { AppIcon, type AppIconName } from './AppIcon';
+
+export type AppTab = 'trips' | 'settings';
+
 type AppBottomNavigationProps = {
-  active: 'trips' | 'settings';
+  active: AppTab;
+  onSelect: (tab: AppTab) => void;
 };
 
-export function AppBottomNavigation({ active }: AppBottomNavigationProps) {
-  const router = useRouter();
+export function AppBottomNavigation({ active, onSelect }: AppBottomNavigationProps) {
+  const insets = useSafeAreaInsets();
   const { theme } = useAppTheme();
   const { t } = useI18n();
 
   return (
     <View
       accessibilityRole="tablist"
-      style={[styles.navigation, { backgroundColor: theme.colors.surface, borderColor: theme.colors.outline }]}>
+      style={[
+        styles.navigation,
+        {
+          backgroundColor: theme.colors.surface,
+          borderColor: theme.colors.outline,
+          paddingBottom: insets.bottom,
+        },
+      ]}>
       <NavigationItem
         active={active === 'trips'}
         label={t('navTrips')}
-        marker="↗"
-        onPress={() => router.replace('/')}
+        icon="luggage"
+        onPress={() => {
+          if (active !== 'trips') onSelect('trips');
+        }}
       />
       <NavigationItem
         active={active === 'settings'}
         label={t('navSettings')}
-        marker="◌"
-        onPress={() => router.replace('/settings')}
+        icon="settings"
+        onPress={() => {
+          if (active !== 'settings') onSelect('settings');
+        }}
       />
     </View>
   );
@@ -36,15 +53,38 @@ export function AppBottomNavigation({ active }: AppBottomNavigationProps) {
 function NavigationItem({
   active,
   label,
-  marker,
+  icon,
   onPress,
 }: {
   active: boolean;
   label: string;
-  marker: string;
+  icon: AppIconName;
   onPress: () => void;
 }) {
   const { theme } = useAppTheme();
+  const [progress] = useState(() => new Animated.Value(active ? 1 : 0));
+
+  useEffect(() => {
+    Animated.timing(progress, {
+      duration: 180,
+      easing: Easing.out(Easing.cubic),
+      toValue: active ? 1 : 0,
+      useNativeDriver: true,
+    }).start();
+  }, [active, progress]);
+
+  const inactiveOpacity = progress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 0],
+  });
+  const activeScale = progress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.94, 1.04],
+  });
+  const indicatorScale = progress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.45, 1],
+  });
 
   return (
     <Pressable
@@ -53,13 +93,33 @@ function NavigationItem({
       accessibilityState={{ selected: active }}
       onPress={onPress}
       style={({ pressed }) => [styles.item, pressed ? styles.pressed : null]}>
-      <Text style={[styles.marker, { color: active ? theme.colors.accent : theme.colors.inkMuted }]}>
-        {marker}
-      </Text>
-      <Text style={[styles.label, { color: active ? theme.colors.primary : theme.colors.inkMuted }]}>
-        {label}
-      </Text>
-      {active ? <View style={[styles.activeLine, { backgroundColor: theme.colors.primary }]} /> : null}
+      <Animated.View style={[styles.icon, { transform: [{ scale: activeScale }] }]}>
+        <Animated.View style={{ opacity: inactiveOpacity }}>
+          <AppIcon color={theme.colors.inkMuted} name={icon} size={20} />
+        </Animated.View>
+        <Animated.View style={[styles.iconLayer, { opacity: progress }]}>
+          <AppIcon color={theme.colors.accent} name={icon} size={20} />
+        </Animated.View>
+      </Animated.View>
+      <View style={styles.labelFrame}>
+        <Animated.Text style={[styles.label, { color: theme.colors.inkMuted, opacity: inactiveOpacity }]}>
+          {label}
+        </Animated.Text>
+        <Animated.Text
+          style={[styles.label, styles.labelLayer, { color: theme.colors.primary, opacity: progress }]}>
+          {label}
+        </Animated.Text>
+      </View>
+      <Animated.View
+        style={[
+          styles.activeLine,
+          {
+            backgroundColor: theme.colors.primary,
+            opacity: progress,
+            transform: [{ scaleX: indicatorScale }],
+          },
+        ]}
+      />
     </Pressable>
   );
 }
@@ -78,16 +138,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 2,
   },
-  marker: {
-    fontSize: 18,
-    lineHeight: 20,
-    fontWeight: '700',
-  },
+  icon: { width: 20, height: 20 },
+  iconLayer: { position: 'absolute', inset: 0 },
+  labelFrame: { position: 'relative' },
   label: {
     fontSize: 12,
     lineHeight: 16,
     fontWeight: '700',
   },
+  labelLayer: { position: 'absolute', inset: 0 },
   activeLine: {
     position: 'absolute',
     bottom: 4,

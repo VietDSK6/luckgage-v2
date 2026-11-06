@@ -55,11 +55,7 @@ export function WeatherStrip({
   }
 
   const { forecast } = state;
-  const source = forecast.isStale
-    ? t('weatherStale')
-    : forecast.source === 'cached'
-      ? t('weatherCached')
-      : t('weatherFresh');
+  const source = forecast.source === 'cached' ? t('weatherCached') : t('weatherFresh');
   return (
     <View style={[styles.strip, { backgroundColor: theme.colors.surface, borderColor: theme.colors.outline }]}>
       <Pressable
@@ -67,7 +63,7 @@ export function WeatherStrip({
         onPress={onRefresh}
         style={({ pressed }) => [styles.readyContent, pressed ? styles.pressed : null]}>
         <View style={styles.weatherMain}>
-          <Text style={[styles.source, { color: forecast.isStale ? theme.colors.warning : theme.colors.primary }]}>
+          <Text style={[styles.source, { color: theme.colors.primary }]}>
             {source}
           </Text>
           <Text style={[styles.condition, { color: theme.colors.ink }]}>

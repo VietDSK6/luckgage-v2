@@ -2,8 +2,9 @@ import { screen, userEvent } from '@testing-library/react-native';
 import { renderRouter } from 'expo-router/testing-library';
 
 import AppLayout from '../app/(app)/_layout';
-import IndexRoute from '../app/(app)/index';
-import SettingsRoute from '../app/(app)/settings';
+import MainTabsLayout from '../app/(app)/(tabs)/_layout';
+import IndexRoute from '../app/(app)/(tabs)/index';
+import SettingsRoute from '../app/(app)/(tabs)/settings';
 import AuthLayout from '../app/(auth)/_layout';
 import SignInRoute from '../app/(auth)/sign-in';
 import SignUpRoute from '../app/(auth)/sign-up';
@@ -13,8 +14,9 @@ import RootLayout from '../app/_layout';
 const routes = {
   _layout: RootLayout,
   '(app)/_layout': AppLayout,
-  '(app)/index': IndexRoute,
-  '(app)/settings': SettingsRoute,
+  '(app)/(tabs)/_layout': MainTabsLayout,
+  '(app)/(tabs)/index': IndexRoute,
+  '(app)/(tabs)/settings': SettingsRoute,
   '(auth)/_layout': AuthLayout,
   '(auth)/welcome': WelcomeRoute,
   '(auth)/sign-in': SignInRoute,

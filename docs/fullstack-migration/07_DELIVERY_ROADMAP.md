@@ -189,6 +189,11 @@ Gate: hai thiết bị/user cùng sửa checklist và nhìn thấy kết quả s
 - Xóa mock/temporary adapter.
 - Update docs.
 
+Trạng thái triển khai: hoàn thành. Mobile chỉ còn dùng SQLite key-value cho preference và metadata
+reminder cục bộ; trip, checklist, packing suggestions và weather dùng REST API làm source of truth.
+Relational schema/adapters local và pure-local packing generator đã được xóa. QR snapshot copy được
+retire; invite preview/confirm qua API là luồng cộng tác duy nhất.
+
 ## 6. Phase 4 — Admin web
 
 ### 4A. Foundation

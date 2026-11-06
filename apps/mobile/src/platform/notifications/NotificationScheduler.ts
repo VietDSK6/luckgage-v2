@@ -16,6 +16,7 @@ export interface NotificationScheduler {
   requestPermission(): Promise<NotificationPermission>;
   schedule(request: LocalNotificationRequest): Promise<string>;
   cancel(identifier: string): Promise<void>;
+  cancelAll(): Promise<void>;
 }
 
 const CHANNEL_ID = 'packing-reminders';
@@ -58,6 +59,10 @@ export class ExpoNotificationScheduler implements NotificationScheduler {
 
   cancel(identifier: string): Promise<void> {
     return Notifications.cancelScheduledNotificationAsync(identifier);
+  }
+
+  cancelAll(): Promise<void> {
+    return Notifications.cancelAllScheduledNotificationsAsync();
   }
 }
 

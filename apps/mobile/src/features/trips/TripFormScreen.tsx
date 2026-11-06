@@ -16,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { TripRepositoryError } from '@/data/repositories/TripRepository';
 import { useTripRepository } from '@/data/repositories/TripRepositoryProvider';
 import { AppButton } from '@/design/components/AppButton';
+import { AppIcon } from '@/design/components/AppIcon';
 import { AppPageHeader } from '@/design/components/AppPageHeader';
 import { useAppTheme } from '@/design/theme/AppThemeProvider';
 import type { AppTheme } from '@/design/tokens';
@@ -463,8 +464,10 @@ function StyleStep({
                 },
                 pressed ? styles.pressed : null,
               ]}>
+              {selected ? (
+                <AppIcon color={theme.colors.primary} name="check" size={17} strokeWidth={2.8} />
+              ) : null}
               <Text style={[styles.chipText, { color: selected ? theme.colors.primary : theme.colors.ink }]}>
-                {selected ? '✓ ' : ''}
                 {t(tripTypeMessageKeys[tripType])}
               </Text>
             </Pressable>
@@ -626,7 +629,7 @@ const styles = StyleSheet.create({
   dateField: { flex: 1 },
   fieldError: { fontSize: 13, lineHeight: 19, fontWeight: '600' },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10 },
-  chip: { minHeight: 48, borderWidth: 1, borderRadius: 24, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' },
+  chip: { minHeight: 48, borderWidth: 1, borderRadius: 24, paddingHorizontal: 16, flexDirection: 'row', gap: 6, alignItems: 'center', justifyContent: 'center' },
   chipText: { fontSize: 14, lineHeight: 20, fontWeight: '700' },
   reviewTag: { position: 'relative', overflow: 'hidden', marginTop: 28, borderWidth: 1, borderRadius: 28, padding: 24 },
   reviewHole: { position: 'absolute', top: 20, right: 20, width: 18, height: 18, borderRadius: 9, borderWidth: 5 },
