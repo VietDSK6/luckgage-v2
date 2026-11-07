@@ -1,9 +1,8 @@
 import * as Clipboard from 'expo-clipboard';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -22,6 +21,7 @@ import { useMembershipRepository } from '@/data/repositories/MembershipRepositor
 import { useTripRepository } from '@/data/repositories/TripRepositoryProvider';
 import { AppButton } from '@/design/components/AppButton';
 import { AppPageHeader } from '@/design/components/AppPageHeader';
+import { useAppFeedback } from '@/design/feedback/AppFeedbackProvider';
 import { useAppTheme } from '@/design/theme/AppThemeProvider';
 import type { AppTheme } from '@/design/tokens';
 import type { Trip } from '@/features/trips/domain/trip';
@@ -37,6 +37,7 @@ export function MembersScreen({ tripId }: { tripId: string }) {
   const { theme } = useAppTheme();
   const { t } = useI18n();
   const { language } = usePreferences();
+  const { confirm, showToast } = useAppFeedback();
   const [trip, setTrip] = useState<Trip | null>(null);
   const [members, setMembers] = useState<TripMember[]>([]);
   const [screenState, setScreenState] = useState<ScreenState>('loading');
@@ -45,7 +46,6 @@ export function MembersScreen({ tripId }: { tripId: string }) {
   const [actionError, setActionError] = useState(false);
   const [invite, setInvite] = useState<TripInvite | null>(null);
   const [expiresInHours, setExpiresInHours] = useState(24);
-  const [copied, setCopied] = useState(false);
   const requestSequence = useRef(0);
 
   const load = useCallback(
@@ -91,12 +91,6 @@ export function MembersScreen({ tripId }: { tripId: string }) {
     }, [load]),
   );
 
-  useEffect(() => {
-    if (!copied) return;
-    const timer = setTimeout(() => setCopied(false), 2500);
-    return () => clearTimeout(timer);
-  }, [copied]);
-
   const goBack = () => {
     if (router.canGoBack()) router.back();
     else router.replace(`/trip/${tripId}`);
@@ -127,7 +121,6 @@ export function MembersScreen({ tripId }: { tripId: string }) {
     try {
       await membershipRepository.revokeInvite(tripId, invite.id);
       setInvite(null);
-      setCopied(false);
     } catch {
       setActionError(true);
     } finally {
@@ -140,7 +133,7 @@ export function MembersScreen({ tripId }: { tripId: string }) {
     setActionError(false);
     try {
       await Clipboard.setStringAsync(invite.code);
-      setCopied(true);
+      showToast({ message: t('membersCopied'), tone: 'success' });
     } catch {
       setActionError(true);
     }
@@ -172,19 +165,15 @@ export function MembersScreen({ tripId }: { tripId: string }) {
     }
   };
 
-  const confirmRemove = (member: TripMember) => {
-    Alert.alert(
-      t('membersRemoveTitle'),
-      t('membersRemoveBody', { name: member.displayName }),
-      [
-        { text: t('membersKeepMember'), style: 'cancel' },
-        {
-          text: t('membersRemoveAction'),
-          style: 'destructive',
-          onPress: () => void removeMember(member),
-        },
-      ],
-    );
+  const confirmRemove = async (member: TripMember) => {
+    const approved = await confirm({
+      body: t('membersRemoveBody', { name: member.displayName }),
+      cancelLabel: t('membersKeepMember'),
+      confirmLabel: t('membersRemoveAction'),
+      title: t('membersRemoveTitle'),
+      tone: 'danger',
+    });
+    if (approved) await removeMember(member);
   };
 
   if (screenState !== 'content' || !trip) {
@@ -257,7 +246,7 @@ export function MembersScreen({ tripId }: { tripId: string }) {
               canRemove={isOwner && member.role !== 'owner'}
               key={member.userId}
               member={member}
-              onRemove={() => confirmRemove(member)}
+              onRemove={() => void confirmRemove(member)}
               pending={pendingAction === `remove:${member.userId}`}
               theme={theme}
             />
@@ -289,7 +278,7 @@ export function MembersScreen({ tripId }: { tripId: string }) {
                 </Text>
                 <View style={styles.inviteActions}>
                   <AppButton
-                    label={copied ? t('membersCopied') : t('membersCopy')}
+                    label={t('membersCopy')}
                     onPress={() => void copyInvite()}
                     style={styles.inviteAction}
                     variant="ghost"
@@ -329,7 +318,7 @@ export function MembersScreen({ tripId }: { tripId: string }) {
                           styles.expiryOption,
                           {
                             backgroundColor: selected ? theme.colors.primary : theme.colors.surface,
-                            borderColor: selected ? theme.colors.primary : theme.colors.outline,
+                            borderColor: selected ? theme.colors.primary : theme.colors.outlineStrong,
                           },
                           pressed ? styles.pressed : null,
                         ]}>

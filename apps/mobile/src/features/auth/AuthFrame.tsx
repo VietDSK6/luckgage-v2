@@ -57,7 +57,7 @@ export function AuthFrame({ body, children, eyebrow, footer, onBack, title }: Au
               onPress={onBack}
               style={({ pressed }) => [
                 styles.backButton,
-                { borderColor: theme.colors.outline },
+                { borderColor: theme.colors.outlineStrong },
                 pressed ? styles.pressed : null,
               ]}>
               <AppIcon color={theme.colors.ink} name="arrowLeft" size={22} />

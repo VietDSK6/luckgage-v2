@@ -2,7 +2,6 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -19,8 +18,11 @@ import { ChecklistRepositoryError } from '@/data/repositories/ChecklistRepositor
 import { useChecklistRepository } from '@/data/repositories/ChecklistRepositoryProvider';
 import { useTripRepository } from '@/data/repositories/TripRepositoryProvider';
 import { AppButton } from '@/design/components/AppButton';
+import { AppBottomSheet } from '@/design/components/AppBottomSheet';
 import { AppIcon } from '@/design/components/AppIcon';
+import { AppIconButton } from '@/design/components/AppIconButton';
 import { AppPageHeader } from '@/design/components/AppPageHeader';
+import { useAppFeedback } from '@/design/feedback/AppFeedbackProvider';
 import { useAppTheme } from '@/design/theme/AppThemeProvider';
 import { useI18n } from '@/i18n/I18nProvider';
 import type { MessageKey } from '@/i18n/messages';
@@ -49,6 +51,7 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
   const router = useRouter();
   const { theme } = useAppTheme();
   const { t } = useI18n();
+  const { choose, confirm } = useAppFeedback();
   const [screenState, setScreenState] = useState<ScreenState>('loading');
   const [trip, setTrip] = useState<Trip | null>(null);
   const [categories, setCategories] = useState<ChecklistCategory[]>([]);
@@ -190,23 +193,54 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
     }
   };
 
-  const requestCategoryDelete = (category: ChecklistCategory) => {
+  const requestCategoryDelete = async (category: ChecklistCategory) => {
     if (category.items.length === 0) {
-      void deleteCategory(category);
+      await deleteCategory(category);
       return;
     }
-    Alert.alert(
-      t('checklistCategoryDeleteTitle'),
-      t('checklistCategoryDeleteBody', { name: category.name, count: category.items.length }),
-      [
-        { text: t('checklistCategoryKeep'), style: 'cancel' },
+    const approved = await confirm({
+      body: t('checklistCategoryDeleteBody', { name: category.name, count: category.items.length }),
+      cancelLabel: t('checklistCategoryKeep'),
+      confirmLabel: t('checklistCategoryDelete'),
+      title: t('checklistCategoryDeleteTitle'),
+      tone: 'danger',
+    });
+    if (approved) await deleteCategory(category);
+  };
+
+  const openCategoryActions = async (category: ChecklistCategory) => {
+    const categoryProgress = getChecklistProgress([category]);
+    const allPacked = categoryProgress.total > 0 && categoryProgress.packed === categoryProgress.total;
+    const action = await choose({
+      actions: [
+        ...(category.items.length > 0
+          ? [
+              {
+                icon: 'checklist' as const,
+                id: 'toggle',
+                label: t(allPacked ? 'checklistCategoryUnpackAll' : 'checklistCategoryPackAll'),
+                tone: 'primary' as const,
+              },
+            ]
+          : []),
+        { icon: 'edit', id: 'edit', label: t('commonEdit') },
         {
-          text: t('checklistCategoryDelete'),
-          style: 'destructive',
-          onPress: () => void deleteCategory(category),
+          icon: 'minus',
+          id: 'delete',
+          label: t('checklistCategoryDelete'),
+          tone: 'danger',
         },
       ],
-    );
+      cancelLabel: t('commonCancel'),
+      message: t('checklistCategoryProgress', categoryProgress),
+      title: category.name,
+    });
+    if (action === 'toggle') await toggleCategory(category);
+    if (action === 'edit') {
+      setEditingCategoryId(category.id);
+      setEditingCategoryName(category.name);
+    }
+    if (action === 'delete') await requestCategoryDelete(category);
   };
 
   const quickAdd = async (category: ChecklistCategory) => {
@@ -419,7 +453,7 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
 
           {categories.length > 0 ? (
             <>
-              <View style={[styles.searchBox, { backgroundColor: theme.colors.surface, borderColor: theme.colors.outline }]}>
+              <View style={[styles.searchBox, { backgroundColor: theme.colors.surface, borderColor: theme.colors.outlineStrong }]}>
                 <View style={styles.searchMark}>
                   <AppIcon color={theme.colors.primary} name="search" size={21} />
                 </View>
@@ -445,7 +479,7 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
                         styles.filterChip,
                         {
                           backgroundColor: selected ? theme.colors.primary : theme.colors.surface,
-                          borderColor: selected ? theme.colors.primary : theme.colors.outline,
+                          borderColor: selected ? theme.colors.primary : theme.colors.outlineStrong,
                         },
                         pressed ? styles.pressed : null,
                       ]}>
@@ -497,7 +531,6 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
               {visibleCategories.map((visibleCategory) => {
                 const category = categories.find((candidate) => candidate.id === visibleCategory.id) ?? visibleCategory;
                 const categoryProgress = getChecklistProgress([category]);
-                const allPacked = categoryProgress.total > 0 && categoryProgress.packed === categoryProgress.total;
                 const editingCategory = editingCategoryId === category.id;
 
                 return (
@@ -531,33 +564,16 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
                           })}
                         </Text>
                       </View>
-                      <View style={styles.categoryActions}>
-                        <Pressable
-                          accessibilityLabel={t('checklistCategoryEditLabel', { name: category.name })}
-                          accessibilityRole="button"
-                          onPress={() => {
-                            if (editingCategory) {
-                              setEditingCategoryId(null);
-                            } else {
-                              setEditingCategoryId(category.id);
-                              setEditingCategoryName(category.name);
-                            }
-                          }}
-                          style={({ pressed }) => [styles.iconAction, pressed ? styles.pressed : null]}>
-                          <AppIcon
-                            color={theme.colors.primary}
-                            name={editingCategory ? 'close' : 'edit'}
-                            size={21}
-                          />
-                        </Pressable>
-                        <Pressable
-                          accessibilityLabel={t('checklistCategoryDeleteLabel', { name: category.name })}
-                          accessibilityRole="button"
-                          onPress={() => requestCategoryDelete(category)}
-                          style={({ pressed }) => [styles.iconAction, pressed ? styles.pressed : null]}>
-                          <AppIcon color={theme.colors.danger} name="minus" size={22} />
-                        </Pressable>
-                      </View>
+                      <AppIconButton
+                        accessibilityLabel={editingCategory ? t('commonCancel') : t('commonMore')}
+                        icon={editingCategory ? 'close' : 'more'}
+                        onPress={() =>
+                          editingCategory
+                            ? setEditingCategoryId(null)
+                            : void openCategoryActions(category)
+                        }
+                        tone="primary"
+                      />
                     </View>
 
                     {editingCategory ? (
@@ -578,17 +594,6 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
                       </View>
                     ) : null}
 
-                    {category.items.length > 0 ? (
-                      <Pressable
-                        accessibilityRole="button"
-                        onPress={() => void toggleCategory(category)}
-                        style={({ pressed }) => [styles.bulkAction, pressed ? styles.pressed : null]}>
-                        <Text style={[styles.bulkActionText, { color: theme.colors.primary }]}>
-                          {allPacked ? t('checklistCategoryUnpackAll') : t('checklistCategoryPackAll')}
-                        </Text>
-                      </Pressable>
-                    ) : null}
-
                     <View style={[styles.itemList, { borderTopColor: theme.colors.outline }]}>
                       {visibleCategory.items.map((item) => (
                         <View key={item.id}>
@@ -601,17 +606,19 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
                               accessibilityRole="checkbox"
                               accessibilityState={{ checked: item.isPacked }}
                               onPress={() => void toggleItem(item)}
-                              style={({ pressed }) => [
-                                styles.checkbox,
-                                {
-                                  backgroundColor: item.isPacked ? theme.colors.primary : theme.colors.surface,
-                                  borderColor: item.isPacked ? theme.colors.primary : theme.colors.outline,
-                                },
-                                pressed ? styles.pressed : null,
-                              ]}>
-                              {item.isPacked ? (
-                                <AppIcon color={theme.colors.background} name="check" size={22} strokeWidth={2.8} />
-                              ) : null}
+                              style={({ pressed }) => [styles.checkboxHit, pressed ? styles.pressed : null]}>
+                              <View
+                                style={[
+                                  styles.checkboxVisual,
+                                  {
+                                    backgroundColor: item.isPacked ? theme.colors.primary : theme.colors.surface,
+                                    borderColor: item.isPacked ? theme.colors.primary : theme.colors.outlineStrong,
+                                  },
+                                ]}>
+                                {item.isPacked ? (
+                                  <AppIcon color={theme.colors.background} name="check" size={18} strokeWidth={2.8} />
+                                ) : null}
+                              </View>
                             </Pressable>
                             <Pressable
                               accessibilityLabel={t('checklistItemEditLabel', { name: item.name })}
@@ -641,53 +648,6 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
                               <AppIcon color={theme.colors.inkMuted} name="chevronRight" size={20} />
                             </View>
                           </View>
-
-                          {itemEditor?.item.id === item.id ? (
-                            <View style={[styles.itemEditor, { backgroundColor: theme.colors.primarySoft }]}>
-                              <FieldLabel label={t('checklistItemNameLabel')} />
-                              <TextInput
-                                onChangeText={(name) => setItemEditor((current) => (current ? { ...current, name } : null))}
-                                style={[styles.input, { backgroundColor: theme.colors.surface, borderColor: theme.colors.outline, color: theme.colors.ink }]}
-                                value={itemEditor.name}
-                              />
-                              <FieldLabel label={t('checklistItemQuantityLabel')} />
-                              <TextInput
-                                keyboardType="number-pad"
-                                onChangeText={(quantity) => setItemEditor((current) => (current ? { ...current, quantity } : null))}
-                                style={[styles.input, styles.quantityInput, { backgroundColor: theme.colors.surface, borderColor: theme.colors.outline, color: theme.colors.ink }]}
-                                value={itemEditor.quantity}
-                              />
-                              <FieldLabel label={t('checklistItemNoteLabel')} />
-                              <TextInput
-                                multiline
-                                onChangeText={(note) => setItemEditor((current) => (current ? { ...current, note } : null))}
-                                placeholder={t('checklistItemNotePlaceholder')}
-                                placeholderTextColor={theme.colors.inkMuted}
-                                style={[styles.input, styles.noteInput, { backgroundColor: theme.colors.surface, borderColor: theme.colors.outline, color: theme.colors.ink }]}
-                                value={itemEditor.note}
-                              />
-                              <View style={styles.editorActions}>
-                                <AppButton
-                                  disabled={!itemEditor.name.trim() || Number(itemEditor.quantity) < 1}
-                                  label={t('checklistItemSave')}
-                                  loading={pendingOperation === `item:edit:${item.id}`}
-                                  onPress={() => void saveItem()}
-                                  style={styles.editorSave}
-                                />
-                                <AppButton
-                                  label={t('commonCancel')}
-                                  onPress={() => setItemEditor(null)}
-                                  style={styles.editorCancel}
-                                  variant="ghost"
-                                />
-                              </View>
-                              <AppButton
-                                label={t('checklistItemDelete')}
-                                onPress={() => void deleteItem(item)}
-                                variant="danger"
-                              />
-                            </View>
-                          ) : null}
                         </View>
                       ))}
                     </View>
@@ -737,7 +697,7 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
                 onSubmitEditing={() => void createCategory()}
                 placeholder={t('checklistCategoryNamePlaceholder')}
                 placeholderTextColor={theme.colors.inkMuted}
-                style={[styles.newCategoryInput, { backgroundColor: theme.colors.surface, borderColor: theme.colors.outline, color: theme.colors.ink }]}
+                style={[styles.newCategoryInput, { backgroundColor: theme.colors.surface, borderColor: theme.colors.outlineStrong, color: theme.colors.ink }]}
                 value={newCategoryName}
               />
               <AppButton
@@ -750,6 +710,56 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
             </View>
           </View>
         </ScrollView>
+
+        <AppBottomSheet
+          closeLabel={t('commonClose')}
+          onClose={() => setItemEditor(null)}
+          title={itemEditor?.item.name ?? t('checklistTitle')}
+          visible={Boolean(itemEditor)}>
+          {itemEditor ? (
+            <View style={styles.sheetForm}>
+              <FieldLabel label={t('checklistItemNameLabel')} />
+              <TextInput
+                autoFocus
+                onChangeText={(name) => setItemEditor((current) => (current ? { ...current, name } : null))}
+                style={[styles.input, { backgroundColor: theme.colors.background, borderColor: theme.colors.outlineStrong, color: theme.colors.ink }]}
+                value={itemEditor.name}
+              />
+              <FieldLabel label={t('checklistItemQuantityLabel')} />
+              <TextInput
+                keyboardType="number-pad"
+                onChangeText={(quantity) => setItemEditor((current) => (current ? { ...current, quantity } : null))}
+                style={[styles.input, styles.quantityInput, { backgroundColor: theme.colors.background, borderColor: theme.colors.outlineStrong, color: theme.colors.ink }]}
+                value={itemEditor.quantity}
+              />
+              <FieldLabel label={t('checklistItemNoteLabel')} />
+              <TextInput
+                multiline
+                onChangeText={(note) => setItemEditor((current) => (current ? { ...current, note } : null))}
+                placeholder={t('checklistItemNotePlaceholder')}
+                placeholderTextColor={theme.colors.inkMuted}
+                style={[styles.input, styles.noteInput, { backgroundColor: theme.colors.background, borderColor: theme.colors.outlineStrong, color: theme.colors.ink }]}
+                value={itemEditor.note}
+              />
+              <View style={styles.editorActions}>
+                <AppButton
+                  disabled={!itemEditor.name.trim() || Number(itemEditor.quantity) < 1}
+                  label={t('checklistItemSave')}
+                  loading={pendingOperation === `item:edit:${itemEditor.item.id}`}
+                  onPress={() => void saveItem()}
+                  style={styles.editorSave}
+                />
+                <AppButton
+                  label={t('commonCancel')}
+                  onPress={() => setItemEditor(null)}
+                  style={styles.editorCancel}
+                  variant="ghost"
+                />
+              </View>
+              <AppButton label={t('checklistItemDelete')} onPress={() => void deleteItem(itemEditor.item)} variant="danger" />
+            </View>
+          ) : null}
+        </AppBottomSheet>
 
         {undoItem ? (
           <View style={[styles.undoBar, { backgroundColor: theme.colors.ink }]}>
@@ -811,22 +821,22 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1 },
   centerState: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 20, padding: 24 },
   stateTitle: { maxWidth: 420, fontSize: 20, lineHeight: 28, fontWeight: '800', textAlign: 'center' },
-  progressPanel: { marginHorizontal: 20, borderRadius: 20, paddingHorizontal: 20, paddingVertical: 16, gap: 12 },
+  progressPanel: { marginHorizontal: 20, borderRadius: 16, paddingHorizontal: 16, paddingVertical: 12, gap: 8 },
   progressCopy: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 16 },
-  progressValue: { fontSize: 28, lineHeight: 34, fontWeight: '900', fontVariant: ['tabular-nums'] },
+  progressValue: { fontSize: 24, lineHeight: 30, fontWeight: '900', fontVariant: ['tabular-nums'] },
   progressLabel: { flex: 1, fontSize: 13, lineHeight: 18, fontWeight: '700', textAlign: 'right' },
   progressTrack: { height: 7, overflow: 'hidden', borderRadius: 4 },
   progressFill: { height: 7, borderRadius: 4 },
-  content: { width: '100%', maxWidth: 640, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 20, paddingBottom: 120 },
+  content: { width: '100%', maxWidth: 640, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 16, paddingBottom: 120 },
   readyBanner: { flexDirection: 'row', alignItems: 'center', gap: 16, borderRadius: 20, padding: 18, marginBottom: 20 },
   readyStamp: { width: 48, alignItems: 'center', justifyContent: 'center' },
   readyCopy: { flex: 1, gap: 2 },
   readyTitle: { fontSize: 18, lineHeight: 24, fontWeight: '900' },
   readyBody: { fontSize: 14, lineHeight: 20 },
-  searchBox: { minHeight: 52, borderWidth: 1, borderRadius: 16, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16 },
+  searchBox: { minHeight: 52, borderWidth: 1, borderRadius: 12, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14 },
   searchMark: { width: 30 },
   searchInput: { flex: 1, minHeight: 50, fontSize: 16, lineHeight: 22 },
-  filterRow: { flexDirection: 'row', gap: 8, marginTop: 12, marginBottom: 24 },
+  filterRow: { flexDirection: 'row', gap: 8, marginTop: 8, marginBottom: 16 },
   filterChip: { minHeight: 48, flex: 1, borderWidth: 1, borderRadius: 24, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 10 },
   filterLabel: { fontSize: 13, lineHeight: 18, fontWeight: '800' },
   errorBanner: { borderWidth: 1, borderRadius: 12, padding: 14, marginBottom: 16 },
@@ -839,30 +849,27 @@ const styles = StyleSheet.create({
   emptyTitle: { marginTop: 28, fontSize: 24, lineHeight: 31, fontWeight: '900', textAlign: 'center' },
   emptyBody: { maxWidth: 410, marginTop: 8, fontSize: 16, lineHeight: 24, textAlign: 'center' },
   noMatches: { paddingVertical: 40, fontSize: 16, lineHeight: 24, textAlign: 'center' },
-  categoryList: { gap: 24 },
-  category: { overflow: 'hidden', borderWidth: 1, borderRadius: 24 },
-  categoryHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingHorizontal: 20, paddingTop: 20 },
+  categoryList: { gap: 16 },
+  category: { overflow: 'hidden', borderWidth: 1, borderRadius: 16 },
+  categoryHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingLeft: 16, paddingRight: 8, paddingTop: 10 },
   categoryHeading: { flex: 1, gap: 3 },
-  categoryName: { fontSize: 21, lineHeight: 28, fontWeight: '900' },
+  categoryName: { fontSize: 18, lineHeight: 24, fontWeight: '900' },
   categoryNameInput: { minHeight: 44, borderBottomWidth: 2, fontSize: 19, lineHeight: 26, fontWeight: '800', paddingVertical: 6 },
   categoryCount: { fontSize: 12, lineHeight: 17, fontWeight: '700', fontVariant: ['tabular-nums'] },
-  categoryActions: { flexDirection: 'row' },
-  iconAction: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
-  inlineActions: { flexDirection: 'row', gap: 8, paddingHorizontal: 20, paddingTop: 12 },
+  inlineActions: { flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingTop: 8 },
   flexButton: { flex: 1 },
-  bulkAction: { minHeight: 48, alignSelf: 'flex-start', justifyContent: 'center', paddingHorizontal: 20 },
-  bulkActionText: { fontSize: 13, lineHeight: 18, fontWeight: '900' },
   itemList: { marginTop: 4, borderTopWidth: 1 },
-  itemRow: { minHeight: 68, flexDirection: 'row', alignItems: 'center', gap: 12, paddingLeft: 20, paddingRight: 12, paddingVertical: 8, borderBottomWidth: 1 },
-  checkbox: { width: 48, height: 48, borderWidth: 2, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  itemCopy: { flex: 1, minHeight: 52, justifyContent: 'center', paddingVertical: 5 },
+  itemRow: { minHeight: 60, flexDirection: 'row', alignItems: 'center', gap: 8, paddingLeft: 8, paddingRight: 12, paddingVertical: 4, borderBottomWidth: 1 },
+  checkboxHit: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
+  checkboxVisual: { width: 30, height: 30, borderWidth: 2, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  itemCopy: { flex: 1, minHeight: 48, justifyContent: 'center', paddingVertical: 4 },
   itemNameRow: { flexDirection: 'row', alignItems: 'baseline', gap: 8 },
   itemName: { flexShrink: 1, fontSize: 16, lineHeight: 22, fontWeight: '700' },
   itemPacked: { textDecorationLine: 'line-through' },
   quantity: { fontSize: 13, lineHeight: 18, fontWeight: '900', fontVariant: ['tabular-nums'] },
   itemNote: { marginTop: 2, fontSize: 13, lineHeight: 18 },
   disclosure: { width: 20, alignItems: 'center', justifyContent: 'center' },
-  itemEditor: { gap: 8, padding: 18 },
+  sheetForm: { gap: 8, paddingBottom: 8 },
   fieldLabel: { marginTop: 4, fontSize: 13, lineHeight: 18, fontWeight: '800' },
   input: { minHeight: 48, borderWidth: 1, borderRadius: 12, paddingHorizontal: 14, fontSize: 16, lineHeight: 22 },
   quantityInput: { width: 100 },
@@ -870,12 +877,12 @@ const styles = StyleSheet.create({
   editorActions: { flexDirection: 'row', gap: 8, marginTop: 6 },
   editorSave: { flex: 1 },
   editorCancel: { flex: 1 },
-  quickAddRow: { minHeight: 64, flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, paddingVertical: 8 },
+  quickAddRow: { minHeight: 60, flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 12, paddingVertical: 6 },
   quickAddInput: { flex: 1, minHeight: 48, fontSize: 15, lineHeight: 21 },
   quickAddButton: { width: 48, height: 48, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   disabled: { opacity: 0.4 },
   pressed: { opacity: 0.66, transform: [{ scale: 0.985 }] },
-  newCategory: { marginTop: 32, paddingTop: 24, borderTopWidth: 1 },
+  newCategory: { marginTop: 24, paddingTop: 20, borderTopWidth: 1 },
   newCategoryTitle: { fontSize: 20, lineHeight: 27, fontWeight: '900' },
   newCategoryRow: { gap: 10, marginTop: 12 },
   newCategoryInput: { minHeight: 52, borderWidth: 1, borderRadius: 14, paddingHorizontal: 16, fontSize: 16, lineHeight: 22 },

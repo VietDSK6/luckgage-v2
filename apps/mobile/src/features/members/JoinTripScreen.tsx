@@ -109,7 +109,7 @@ export function JoinTripScreen() {
                 styles.codeInput,
                 {
                   backgroundColor: theme.colors.background,
-                  borderColor: error ? theme.colors.danger : theme.colors.outline,
+                  borderColor: error ? theme.colors.danger : theme.colors.outlineStrong,
                   color: theme.colors.ink,
                 },
               ]}

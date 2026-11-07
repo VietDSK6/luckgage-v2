@@ -11,7 +11,7 @@ export function AuthLanguageToggle() {
     <View
       accessibilityLabel="Language / Ngôn ngữ"
       accessibilityRole="tablist"
-      style={[styles.container, { backgroundColor: theme.colors.surface, borderColor: theme.colors.outline }]}>
+      style={[styles.container, { backgroundColor: theme.colors.surface, borderColor: theme.colors.outlineStrong }]}>
       {(['vi', 'en'] as const).map((option) => {
         const selected = option === language;
         return (
@@ -42,7 +42,7 @@ export function AuthLanguageToggle() {
 
 const styles = StyleSheet.create({
   container: {
-    minHeight: 44,
+    minHeight: 54,
     padding: 3,
     borderWidth: 1,
     borderRadius: 12,
@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
   },
   option: {
     minWidth: 44,
-    minHeight: 36,
+    minHeight: 48,
     paddingHorizontal: 10,
     borderRadius: 9,
     alignItems: 'center',

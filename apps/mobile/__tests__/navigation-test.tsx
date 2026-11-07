@@ -1,6 +1,5 @@
-import { act, screen, userEvent, waitFor } from '@testing-library/react-native';
+import { screen, userEvent, waitFor } from '@testing-library/react-native';
 import { renderRouter } from 'expo-router/testing-library';
-import { Alert } from 'react-native';
 
 import RootLayout from '../app/_layout';
 import MainTabsLayout from '../app/(app)/(tabs)/_layout';
@@ -269,15 +268,15 @@ describe('app navigation', () => {
     expect(screen.getByText('Chiếc thẻ đầu tiên vẫn đang để trống')).toBeTruthy();
 
     await user.press(screen.getByRole('tab', { name: 'Cài đặt' }));
-    expect(await screen.findByText('Cài đặt ứng dụng')).toBeTruthy();
+    expect(await screen.findByRole('header', { name: 'Cài đặt' })).toBeTruthy();
 
-    await user.press(screen.getByRole('button', { name: 'Tối' }));
+    await user.press(screen.getByRole('radio', { name: 'Tối' }));
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Tối', selected: true })).toBeTruthy();
+      expect(screen.getByRole('radio', { name: 'Tối', checked: true })).toBeTruthy();
     });
 
-    await user.press(screen.getByRole('button', { name: 'English' }));
-    expect(await screen.findByText('App settings')).toBeTruthy();
+    await user.press(screen.getByRole('radio', { name: 'English' }));
+    expect(await screen.findByRole('header', { name: 'Settings' })).toBeTruthy();
   });
 
   test('validates create-trip input and reaches review without writing early', async () => {
@@ -361,7 +360,6 @@ describe('app navigation', () => {
   test('confirms and deletes a persisted trip', async () => {
     const user = userEvent.setup();
     serverTrip = { ...persistedTrip };
-    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
 
     await renderRouter(
       {
@@ -372,19 +370,15 @@ describe('app navigation', () => {
       { initialUrl: '/trip/trip-1' },
     );
 
+    await user.press(await screen.findByRole('button', { name: 'Thêm tùy chọn' }));
     await user.press(await screen.findByRole('button', { name: 'Xóa chuyến đi' }));
-    const buttons = alertSpy.mock.calls[0]?.[2];
-    const destructiveAction = buttons?.find((button) => button.style === 'destructive');
-    await act(async () => {
-      destructiveAction?.onPress?.();
-      await Promise.resolve();
-    });
+    expect(await screen.findByRole('header', { name: 'Xóa chuyến đi này?' })).toBeTruthy();
+    await user.press(screen.getByRole('button', { name: 'Xóa chuyến đi' }));
 
     await waitFor(() => {
       expect(serverTrip).toBeNull();
     });
     expect(await screen.findByText('Đi đâu tiếp?')).toBeTruthy();
-    alertSpy.mockRestore();
   });
 
   test('creates a checklist category, quick-adds an item, and packs it', async () => {
@@ -421,7 +415,6 @@ describe('app navigation', () => {
   test('keeps packing suggestions as an editable preview until confirmation, then appends them', async () => {
     const user = userEvent.setup();
     serverTrip = { ...persistedTrip };
-    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
 
     await renderRouter(
       {
@@ -441,13 +434,8 @@ describe('app navigation', () => {
     await user.clear(idInput);
     await user.type(idInput, 'CCCD');
     await user.press(screen.getByRole('button', { name: /Thêm \d+ món vào checklist/ }));
-
-    const buttons = alertSpy.mock.calls[0]?.[2];
-    const confirm = buttons?.find((button) => button.style !== 'cancel');
-    await act(async () => {
-      confirm?.onPress?.();
-      await Promise.resolve();
-    });
+    expect(await screen.findByRole('header', { name: 'Xác nhận thêm vào checklist?' })).toBeTruthy();
+    await user.press(screen.getByRole('button', { name: /Xác nhận thêm \d+ món/ }));
 
     expect(await screen.findByText('Đã nối thêm vào checklist')).toBeTruthy();
     expect(appliedPackingRequest).toEqual({
@@ -458,7 +446,6 @@ describe('app navigation', () => {
         },
       ],
     });
-    alertSpy.mockRestore();
   });
 
   test('previews an invite before joining and opens the shared trip', async () => {

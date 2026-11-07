@@ -65,7 +65,53 @@ screen mới.
 Tỷ lệ gợi ý: background/surface chiếm phần lớn, teal cho cấu trúc và CTA, coral/yellow chỉ làm điểm
 nhấn. Dark mode dùng semantic token hiện có, không đảo màu PNG hoặc tự tạo filter.
 
-## 5. Hệ icon
+### Semantic contrast
+
+- `accent` là màu trang trí cho sticker, route dot và peak moment; không dùng cho text/icon chức năng
+  trên nền sáng.
+- `accentStrong` là coral có contrast đủ cho trạng thái chức năng như active icon.
+- `outline` chỉ dùng cho divider và biên surface không cần thiết để nhận diện control.
+- `outlineStrong` dùng cho input, segmented option, checkbox và control chưa selected.
+- Test contrast nằm tại `apps/mobile/src/design/tokens/index.test.ts`; đổi token phải cập nhật và chạy
+  test này.
+
+## 5. Design foundation
+
+Nguồn sự thật là `apps/mobile/src/design/tokens/index.ts`. Feature mới không tự tạo scale song song.
+
+### Typography
+
+| Token | Vai trò |
+|---|---|
+| `display` | Một tiêu đề thương hiệu chính trên màn hub/welcome/settings |
+| `screenTitle` | Tiêu đề nội dung cấp màn |
+| `sectionTitle` | Tên section chính |
+| `cardTitle` | Tên card/category |
+| `body`, `bodyStrong` | Nội dung và nội dung nhấn |
+| `bodySmall`, `label`, `caption` | Metadata, control label và trợ giúp |
+| `eyebrow` | Nhãn editorial ngắn, uppercase |
+| `nav` | Bottom navigation |
+
+Không tạo font size mới chỉ để sửa một màn. Một màn chỉ có tối đa một `display`; checklist ưu tiên
+`screenTitle`/`sectionTitle` để giữ mật độ thao tác.
+
+### Spacing và radius
+
+- Spacing dùng scale `x1`–`x16`: 4, 8, 12, 16, 20, 24, 32, 40, 48, 64.
+- Page padding mặc định là `x5` (20), section gap thường là `x6` (24), gap control thường là `x2`
+  hoặc `x3`.
+- `small` cho chi tiết nhỏ, `control` cho input/button, `panel` cho group, `card` cho card nội dung,
+  `hero` chỉ dành cho hero thật sự và `pill` cho chip tròn.
+- Không dùng card bo tròn quanh mọi section. Ưu tiên divider/list row ở màn thao tác thường xuyên.
+
+### Control và motion
+
+- `control.minTouchTarget` là 48 dp; `fieldHeight` là 52 dp; page max width là 640 dp.
+- Motion dùng `fast`, `normal`, `slow`; component phải đọc Reduce Motion và đưa duration về 0 khi
+  user yêu cầu.
+- Stack route thể hiện depth; đổi bottom tab chỉ crossfade, không slide ngang.
+
+## 6. Hệ icon
 
 App dùng **Lucide React Native** qua `AppIcon`, cùng `react-native-svg` tương thích Expo SDK. Mọi
 screen import `AppIcon`; không import icon library trực tiếp. Cách này giữ một vocabulary semantic,
@@ -97,7 +143,7 @@ Quy tắc:
 Lucide React Native được phát hành dưới giấy phép ISC. Khi nâng version, chạy typecheck, Jest và
 bundle smoke test vì tên export có thể thay đổi.
 
-## 6. Motif giao diện
+## 7. Motif giao diện
 
 - **Luggage tag:** hero/card có một lỗ thẻ hoặc crop rõ ràng, không thêm notch giả vào mọi card.
 - **Route line:** đường mảnh nối các bước hoặc mốc, luôn đi cùng label/icon.
@@ -105,7 +151,7 @@ bundle smoke test vì tên export có thể thay đổi.
 - **Editorial hierarchy:** một display title, body dễ đọc, eyebrow uppercase ngắn.
 - **Screen-print texture:** chỉ có trong minh hoạ Luki; component UI vẫn phẳng và sắc nét.
 
-## 7. Giọng điệu
+## 8. Giọng điệu
 
 Copy ngắn, cụ thể, đồng hành và không đổ lỗi. Ưu tiên nói điều người dùng có thể làm tiếp theo.
 
@@ -116,7 +162,38 @@ Copy ngắn, cụ thể, đồng hành và không đổ lỗi. Ưu tiên nói đ
 | “Bạn chưa nhập đủ dữ liệu” | “Thêm ngày về để tiếp tục” |
 | “Success!” | “Đã thêm 6 món vào checklist” |
 
-## 8. Checklist khi mở rộng
+## 9. Component contract
+
+Feature phải dùng primitive trong `src/design/components` trước khi tự dựng lại:
+
+- `AppText`: typography semantic.
+- `AppButton`, `AppIconButton`: CTA và icon-only control.
+- `AppPageHeader`, `AppSectionHeader`: hierarchy cấp màn/section.
+- `AppSegmentedControl`: lựa chọn đơn trong một nhóm nhỏ.
+- `AppBottomSheet`: chỉnh sửa phụ mà không làm mất context của list.
+- `AppDialog`: xác nhận cần chủ ý, đặc biệt với thao tác phá hủy.
+- `AppFeedbackProvider`: API typed `confirm`, `choose`, `showToast` cho feedback dùng chung.
+- `AppToast`: phản hồi thụ động, tự đóng; có info/success/warning/danger và live announcement.
+- `AppBottomNavigation`: chỉ hai destination MVP.
+
+Product component chỉ extract khi có ít nhất hai use case thật. Checklist item editor dùng bottom sheet;
+không bung form nhiều field giữa danh sách. Settings dùng group/list, không hiển thị phase, stack kỹ
+thuật hoặc trạng thái implementation cho end user.
+
+### Chọn đúng loại feedback
+
+- Dialog dùng khi cần người dùng xác nhận một hệ quả hoặc thao tác không thể hoàn tác.
+- Action sheet dùng để chọn trong nhóm hành động theo context; destructive action luôn đứng sau và
+  dùng danger tone.
+- Toast dùng cho kết quả thụ động không cần quyết định tiếp theo, ví dụ đã sao chép mã; lỗi chặn flow
+  phải có inline error hoặc error state, không chỉ biến mất trong toast.
+- Validation thuộc ngay cạnh field. Undo có thể là snackbar/toast có action nếu hành động vẫn phục
+  hồi được.
+- Feature không gọi `Alert.alert` hoặc action sheet native. React Native `Modal` được phép làm portal
+  cho component custom, nhưng visual, copy, theme, focus và action phải thuộc design system.
+- Feedback phải dùng message vi/en, safe area, touch target 48 dp và tôn trọng Reduce Motion.
+
+## 10. Checklist khi mở rộng
 
 1. Dùng semantic token và `AppIcon` hiện có trước khi thêm giá trị mới.
 2. Chọn đúng vai trò: Luki cho cảm xúc, Lucide cho thao tác, `BrandMark` cho nhận diện nhỏ.
@@ -128,7 +205,7 @@ Copy ngắn, cụ thể, đồng hành và không đổ lỗi. Ưu tiên nói đ
 Backlog có chủ đích, chưa được coi là asset production: Luki celebration, Luki weather, Luki error,
 notification icon đơn sắc và adaptive Android icon foreground/background.
 
-## 9. Prompt tái tạo asset
+## 11. Prompt tái tạo asset
 
 Prompt gốc được lưu để có thể tạo biến thể nhất quán. Không coi lần generate mới là thay thế tự
 động; phải review silhouette, palette, transparency và khả năng đọc ở kích thước mục tiêu.
@@ -162,7 +239,7 @@ Constraints: preserve Luki's identity, face, proportions, tag-hole motif, palett
 Avoid: redesigning the mascot, glossy 3D, photorealism, extra characters, tiny decorative detail
 ```
 
-## 10. QA acceptance
+## 12. QA acceptance
 
 ### Trong Expo Go
 
@@ -194,7 +271,7 @@ Avoid: redesigning the mascot, glossy 3D, photorealism, extra characters, tiny d
 - Tạo/join trip, mở checklist, toggle packed và mở Settings vẫn điều hướng đúng.
 - Không có màn hình nào mất label vì icon được thêm vào button.
 
-## 11. Tài liệu dependency
+## 13. Tài liệu dependency
 
 - [Lucide packages và React Native package](https://lucide.dev/packages)
 - [Lucide React Native guide](https://lucide.dev/guide/packages/lucide-react-native)

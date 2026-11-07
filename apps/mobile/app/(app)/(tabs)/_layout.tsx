@@ -1,10 +1,12 @@
 import { Tabs } from 'expo-router';
 
 import { AppBottomNavigation, type AppTab } from '@/design/components/AppBottomNavigation';
+import { useReducedMotion } from '@/design/hooks/useReducedMotion';
 import { useAppTheme } from '@/design/theme/AppThemeProvider';
 
 export default function MainTabsLayout() {
   const { theme } = useAppTheme();
+  const reducedMotion = useReducedMotion();
 
   return (
     <Tabs
@@ -15,7 +17,7 @@ export default function MainTabsLayout() {
         sceneStyle: { backgroundColor: theme.colors.background },
         transitionSpec: {
           animation: 'timing',
-          config: { duration: 160 },
+          config: { duration: reducedMotion ? 0 : theme.motion.normal },
         },
       }}
       tabBar={({ navigateToTab, state }) => {

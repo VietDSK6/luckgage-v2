@@ -30,7 +30,7 @@ export function AppButton({
   const colors = {
     primary: { background: theme.colors.primary, border: theme.colors.primary, text: theme.colors.background },
     secondary: { background: theme.colors.primarySoft, border: theme.colors.primary, text: theme.colors.primary },
-    ghost: { background: theme.colors.background, border: theme.colors.outline, text: theme.colors.ink },
+    ghost: { background: theme.colors.background, border: theme.colors.outlineStrong, text: theme.colors.ink },
     danger: { background: theme.colors.background, border: theme.colors.danger, text: theme.colors.danger },
   }[variant];
 
@@ -43,23 +43,26 @@ export function AppButton({
       onPress={onPress}
       style={({ pressed }) => [
         styles.button,
-        { backgroundColor: colors.background, borderColor: colors.border },
+        {
+          backgroundColor: colors.background,
+          borderColor: colors.border,
+          borderRadius: theme.radius.control,
+          minHeight: theme.control.minTouchTarget,
+          paddingHorizontal: theme.spacing.x5,
+        },
         isDisabled ? styles.disabled : null,
         pressed ? styles.pressed : null,
         style,
       ]}>
       {loading ? <ActivityIndicator color={colors.text} size="small" /> : null}
       {!loading && icon ? <AppIcon color={colors.text} name={icon} size={19} /> : null}
-      <Text style={[styles.label, { color: colors.text }]}>{label}</Text>
+      <Text style={[theme.typography.bodyStrong, styles.label, { color: colors.text }]}>{label}</Text>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   button: {
-    minHeight: 48,
-    paddingHorizontal: 20,
-    borderRadius: 12,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
@@ -67,9 +70,6 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   label: {
-    fontSize: 16,
-    lineHeight: 22,
-    fontWeight: '700',
     textAlign: 'center',
   },
   disabled: {

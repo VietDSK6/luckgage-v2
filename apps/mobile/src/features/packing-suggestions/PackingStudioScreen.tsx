@@ -2,7 +2,6 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -20,6 +19,7 @@ import { useWeatherRepository } from '@/data/repositories/WeatherRepositoryProvi
 import { AppButton } from '@/design/components/AppButton';
 import { AppIcon } from '@/design/components/AppIcon';
 import { AppPageHeader } from '@/design/components/AppPageHeader';
+import { useAppFeedback } from '@/design/feedback/AppFeedbackProvider';
 import { useAppTheme } from '@/design/theme/AppThemeProvider';
 import { getTripDurationDays, type Trip } from '@/features/trips/domain/trip';
 import { formatTemperature, type WeatherForecast } from '@/features/weather/domain/weather';
@@ -44,6 +44,7 @@ export function PackingStudioScreen({ tripId }: { tripId: string }) {
   const { theme } = useAppTheme();
   const { language, t } = useI18n();
   const { temperatureUnit } = usePreferences();
+  const { confirm } = useAppFeedback();
   const [state, setState] = useState<ScreenState>('loading');
   const [trip, setTrip] = useState<Trip | null>(null);
   const [weather, setWeather] = useState<WeatherForecast | null>(null);
@@ -165,16 +166,16 @@ export function PackingStudioScreen({ tripId }: { tripId: string }) {
     }
   };
 
-  const confirmApply = () => {
+  const confirmApply = async () => {
     const count = selectedItems.length;
     if (count === 0) return;
-    Alert.alert(t('packingConfirmTitle'), t('packingConfirmBody', { count }), [
-      { text: t('packingKeepEditing'), style: 'cancel' },
-      {
-        text: t('packingConfirmAction', { count }),
-        onPress: () => void applyPreview(),
-      },
-    ]);
+    const approved = await confirm({
+      body: t('packingConfirmBody', { count }),
+      cancelLabel: t('packingKeepEditing'),
+      confirmLabel: t('packingConfirmAction', { count }),
+      title: t('packingConfirmTitle'),
+    });
+    if (approved) await applyPreview();
   };
 
   if (!trip || state === 'loading' || state === 'notFound' || state === 'error') {
@@ -286,7 +287,7 @@ export function PackingStudioScreen({ tripId }: { tripId: string }) {
                         styles.activityChip,
                         {
                           backgroundColor: selected ? theme.colors.primary : theme.colors.surface,
-                          borderColor: selected ? theme.colors.primary : theme.colors.outline,
+                          borderColor: selected ? theme.colors.primary : theme.colors.outlineStrong,
                         },
                         pressed ? styles.pressed : null,
                       ]}>
@@ -307,7 +308,7 @@ export function PackingStudioScreen({ tripId }: { tripId: string }) {
                 onChangeText={setExtraNotes}
                 placeholder={t('packingExtraNotesPlaceholder')}
                 placeholderTextColor={theme.colors.inkMuted}
-                style={[styles.notesInput, { backgroundColor: theme.colors.surface, borderColor: theme.colors.outline, color: theme.colors.ink }]}
+                style={[styles.notesInput, { backgroundColor: theme.colors.surface, borderColor: theme.colors.outlineStrong, color: theme.colors.ink }]}
                 value={extraNotes}
               />
               {previewError ? (
@@ -359,7 +360,7 @@ export function PackingStudioScreen({ tripId }: { tripId: string }) {
                           styles.previewCheck,
                           {
                             backgroundColor: item.selected ? theme.colors.primary : theme.colors.surface,
-                            borderColor: item.selected ? theme.colors.primary : theme.colors.outline,
+                            borderColor: item.selected ? theme.colors.primary : theme.colors.outlineStrong,
                           },
                           pressed ? styles.pressed : null,
                         ]}>
@@ -378,7 +379,7 @@ export function PackingStudioScreen({ tripId }: { tripId: string }) {
                     <TextInput
                       editable={item.selected}
                       onChangeText={(name) => updatePreviewItem(item.id, (current) => ({ ...current, name }))}
-                      style={[styles.previewInput, { borderColor: theme.colors.outline, color: theme.colors.ink }]}
+                      style={[styles.previewInput, { borderColor: theme.colors.outlineStrong, color: theme.colors.ink }]}
                       value={item.name}
                     />
                     <View style={styles.previewFieldRow}>
@@ -394,7 +395,7 @@ export function PackingStudioScreen({ tripId }: { tripId: string }) {
                               quantity: Number.isInteger(quantity) && quantity > 0 ? quantity : 1,
                             }));
                           }}
-                          style={[styles.previewInput, { borderColor: theme.colors.outline, color: theme.colors.ink }]}
+                          style={[styles.previewInput, { borderColor: theme.colors.outlineStrong, color: theme.colors.ink }]}
                           value={String(item.quantity)}
                         />
                       </View>
@@ -403,7 +404,7 @@ export function PackingStudioScreen({ tripId }: { tripId: string }) {
                         <TextInput
                           editable={item.selected}
                           onChangeText={(categoryName) => updatePreviewItem(item.id, (current) => ({ ...current, categoryName }))}
-                          style={[styles.previewInput, { borderColor: theme.colors.outline, color: theme.colors.ink }]}
+                          style={[styles.previewInput, { borderColor: theme.colors.outlineStrong, color: theme.colors.ink }]}
                           value={item.categoryName}
                         />
                       </View>
@@ -414,7 +415,7 @@ export function PackingStudioScreen({ tripId }: { tripId: string }) {
                       onChangeText={(note) => updatePreviewItem(item.id, (current) => ({ ...current, note: note || null }))}
                       placeholder="—"
                       placeholderTextColor={theme.colors.inkMuted}
-                      style={[styles.previewInput, { borderColor: theme.colors.outline, color: theme.colors.ink }]}
+                      style={[styles.previewInput, { borderColor: theme.colors.outlineStrong, color: theme.colors.ink }]}
                       value={item.note ?? ''}
                     />
                   </View>
@@ -426,17 +427,26 @@ export function PackingStudioScreen({ tripId }: { tripId: string }) {
                   {t('packingApplyError')}
                 </Text>
               ) : null}
-              <AppButton
-                disabled={selectedItems.length === 0 || selectedItems.some((item) => !item.name.trim() || !item.categoryName.trim())}
-                label={t('packingApply', { count: selectedItems.length })}
-                loading={isApplying}
-                onPress={confirmApply}
-                style={styles.primaryAction}
-              />
-              <AppButton label={t('packingKeepEditing')} onPress={() => setState('setup')} variant="ghost" />
             </>
           ) : null}
         </ScrollView>
+        {state === 'preview' && preview ? (
+          <View style={[styles.stickyFooter, { backgroundColor: theme.colors.background, borderTopColor: theme.colors.outline }]}>
+            <AppButton
+              label={t('packingKeepEditing')}
+              onPress={() => setState('setup')}
+              style={styles.footerButton}
+              variant="ghost"
+            />
+            <AppButton
+              disabled={selectedItems.length === 0 || selectedItems.some((item) => !item.name.trim() || !item.categoryName.trim())}
+              label={t('packingApply', { count: selectedItems.length })}
+              loading={isApplying}
+              onPress={confirmApply}
+              style={styles.footerButton}
+            />
+          </View>
+        ) : null}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -462,6 +472,8 @@ const styles = StyleSheet.create({
   fieldLabel: { marginTop: 28, marginBottom: 8, fontSize: 14, lineHeight: 20, fontWeight: '800' },
   notesInput: { minHeight: 100, borderWidth: 1, borderRadius: 16, paddingHorizontal: 16, paddingTop: 14, fontSize: 16, lineHeight: 23, textAlignVertical: 'top' },
   primaryAction: { marginTop: 24 },
+  stickyFooter: { borderTopWidth: 1, paddingHorizontal: 20, paddingTop: 10, paddingBottom: 8, flexDirection: 'row', gap: 8 },
+  footerButton: { flex: 1, minWidth: 0, paddingHorizontal: 10 },
   sourceLabel: { fontSize: 11, lineHeight: 16, fontWeight: '900', letterSpacing: 1.1 },
   sourceNote: { marginTop: 18, borderRadius: 16, padding: 14 },
   sourceNoteText: { fontSize: 13, lineHeight: 19, fontWeight: '800' },

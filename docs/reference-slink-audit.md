@@ -116,3 +116,27 @@ vi/en typed messages, SQLite-backed preferences, SQLite provider, error boundary
 Jest 30 theo hướng dẫn Expo. Phase 1B chỉ thêm repository seam cần cho việc chuyển ownership từ
 SQLite sang REST, giữ form state tại screen và không thêm DI/global state library. API, auth và
 generic use-case layer vẫn được hoãn đến phase cần chúng.
+
+## Audit feedback layer (2026-11-07)
+
+Slink mount popup, bottom sheet, loading và toast ở `src/navigation/MainStack.tsx`; feature gửi sự
+kiện qua singleton `DomainServiceUtils`, còn component thật nằm dưới
+`src/presentation/components/{popup,toast,bottom-sheet}`. Pattern root host và phân loại feedback
+hữu ích, nhưng implementation phụ thuộc RxJS, imperative refs, `react-native-modal`, Gorhom Bottom
+Sheet, Reanimated, gesture handler và keyboard controller. Slink vẫn còn một số `Alert.alert` nằm
+ngoài layer này, nên không được xem là migration hoàn chỉnh.
+
+| Pattern feedback từ slink | Quyết định | Cách áp dụng cho luckgage |
+|---|---|---|
+| Một host feedback được mount một lần ở root | ADOPT | `AppFeedbackProvider` nằm trong theme/i18n provider và sở hữu dialog, action sheet, toast |
+| Popup confirm, toast có tone và bottom sheet cho action/context | ADOPT | API typed `confirm`, `choose`, `showToast`; destructive action dùng danger tone, passive success dùng toast |
+| Safe area, backdrop, keyboard handling và Reduce Motion | ADOPT | Dùng token overlay, safe-area-context, `KeyboardAvoidingView` và motion token hiện có |
+| Singleton `DomainServiceUtils` phát RxJS Subject | REJECT | Context/hook giữ dependency và vòng đời rõ; không thêm event bus toàn cục |
+| Imperative ref để show/hide feedback | REJECT | Feature await Promise từ `confirm`/`choose`; toast là declarative state ở provider |
+| Gorhom/Reanimated/gesture dependency cho mọi sheet | REJECT | Tái dùng `AppBottomSheet` dựa trên React Native `Modal`; chưa có nhu cầu gesture/snap point đủ để thêm native dependency |
+| Visual style/copy của slink | REJECT | Giữ token, typography, Lucide vocabulary và copy vi/en của luckgage |
+| Một số feature tiếp tục gọi `Alert.alert` | REJECT | Inventory mobile phải không còn `Alert`; confirm/action đều qua feedback layer |
+
+React Native `Modal` chỉ là primitive render portal; UI, action, tone và accessibility đều do
+luckgage sở hữu. Điều bị loại là alert/action sheet do hệ điều hành tự dựng, vì chúng không theo
+brand, theme, i18n và component contract của app.

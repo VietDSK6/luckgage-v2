@@ -3,6 +3,7 @@ import { Animated, Easing, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAppTheme } from '@/design/theme/AppThemeProvider';
+import { useReducedMotion } from '@/design/hooks/useReducedMotion';
 import { useI18n } from '@/i18n/I18nProvider';
 
 import { AppIcon, type AppIconName } from './AppIcon';
@@ -27,6 +28,8 @@ export function AppBottomNavigation({ active, onSelect }: AppBottomNavigationPro
         {
           backgroundColor: theme.colors.surface,
           borderColor: theme.colors.outline,
+          minHeight: theme.control.bottomNavigationHeight,
+          paddingHorizontal: theme.spacing.x3,
           paddingBottom: insets.bottom,
         },
       ]}>
@@ -62,16 +65,17 @@ function NavigationItem({
   onPress: () => void;
 }) {
   const { theme } = useAppTheme();
+  const reducedMotion = useReducedMotion();
   const [progress] = useState(() => new Animated.Value(active ? 1 : 0));
 
   useEffect(() => {
     Animated.timing(progress, {
-      duration: 180,
+      duration: reducedMotion ? 0 : theme.motion.normal,
       easing: Easing.out(Easing.cubic),
       toValue: active ? 1 : 0,
       useNativeDriver: true,
     }).start();
-  }, [active, progress]);
+  }, [active, progress, reducedMotion, theme.motion.normal]);
 
   const inactiveOpacity = progress.interpolate({
     inputRange: [0, 1],
@@ -98,7 +102,7 @@ function NavigationItem({
           <AppIcon color={theme.colors.inkMuted} name={icon} size={20} />
         </Animated.View>
         <Animated.View style={[styles.iconLayer, { opacity: progress }]}>
-          <AppIcon color={theme.colors.accent} name={icon} size={20} />
+          <AppIcon color={theme.colors.accentStrong} name={icon} size={20} />
         </Animated.View>
       </Animated.View>
       <View style={styles.labelFrame}>
@@ -126,10 +130,8 @@ function NavigationItem({
 
 const styles = StyleSheet.create({
   navigation: {
-    minHeight: 68,
     borderTopWidth: 1,
     flexDirection: 'row',
-    paddingHorizontal: 12,
   },
   item: {
     minHeight: 60,

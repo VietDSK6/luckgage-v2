@@ -16,6 +16,7 @@ import { AppIcon } from '@/design/components/AppIcon';
 import { BrandLuki, BrandMark } from '@/design/components/BrandLuki';
 import { useAppTheme } from '@/design/theme/AppThemeProvider';
 import type { AppTheme } from '@/design/tokens';
+import { useAuth } from '@/features/auth/AuthProvider';
 import { useI18n } from '@/i18n/I18nProvider';
 import { usePreferences } from '@/platform/preferences/PreferencesProvider';
 
@@ -38,6 +39,7 @@ export function TripsHubScreen() {
   const repository = useTripRepository();
   const router = useRouter();
   const { theme } = useAppTheme();
+  const { user } = useAuth();
   const { t } = useI18n();
   const { language } = usePreferences();
   const [trips, setTrips] = useState<Trip[]>([]);
@@ -131,8 +133,9 @@ export function TripsHubScreen() {
           <View>
             <View style={styles.topRow}>
               <View style={styles.headingBlock}>
-                <Text style={[styles.eyebrow, { color: theme.colors.primary }]}>
-                  {t('tripsEyebrow')}
+                <Text style={[styles.eyebrow, { color: theme.colors.primary }]}>{t('tripsEyebrow')}</Text>
+                <Text style={[styles.greeting, { color: theme.colors.inkMuted }]}>
+                  {t('tripsGreeting', { name: user?.displayName.split(/\s+/)[0] ?? 'traveler' })}
                 </Text>
                 <Text accessibilityRole="header" style={[styles.title, { color: theme.colors.ink }]}>
                   {t('tripsTitle')}
@@ -141,9 +144,21 @@ export function TripsHubScreen() {
                   {t('tripsSubtitle')}
                 </Text>
               </View>
-              <BrandMark size={58} />
+              <BrandMark size={48} />
             </View>
 
+            {isLoading ? <LoadingTrips theme={theme} /> : null}
+            {hasError && trips.length === 0 ? (
+              <ErrorState onRetry={() => void loadTrips('initial')} theme={theme} />
+            ) : null}
+            {heroTrip ? (
+              <TripHeroCard
+                language={language}
+                onPress={() => router.push(`/trip/${heroTrip.id}`)}
+                theme={theme}
+                trip={heroTrip}
+              />
+            ) : null}
             {trips.length > 0 ? (
               <View style={styles.tripActions}>
                 <AppButton
@@ -160,19 +175,6 @@ export function TripsHubScreen() {
                   variant="secondary"
                 />
               </View>
-            ) : null}
-
-            {isLoading ? <LoadingTrips theme={theme} /> : null}
-            {hasError && trips.length === 0 ? (
-              <ErrorState onRetry={() => void loadTrips('initial')} theme={theme} />
-            ) : null}
-            {heroTrip ? (
-              <TripHeroCard
-                language={language}
-                onPress={() => router.push(`/trip/${heroTrip.id}`)}
-                theme={theme}
-                trip={heroTrip}
-              />
             ) : null}
             {hasError && trips.length > 0 ? (
               <Pressable
@@ -409,23 +411,24 @@ const styles = StyleSheet.create({
     maxWidth: 640,
     alignSelf: 'center',
     paddingHorizontal: 20,
-    paddingTop: 24,
+    paddingTop: 20,
     paddingBottom: 40,
   },
-  topRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 16 },
+  topRow: { flexDirection: 'row', alignItems: 'center', gap: 16 },
   headingBlock: { flex: 1 },
   eyebrow: { fontSize: 12, lineHeight: 16, fontWeight: '800', letterSpacing: 1.5 },
-  title: { marginTop: 8, fontSize: 38, lineHeight: 44, fontWeight: '800', letterSpacing: -1 },
-  subtitle: { marginTop: 8, fontSize: 16, lineHeight: 24, maxWidth: 440 },
-  tripActions: { marginTop: 24, flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  tripAction: { minWidth: 160 },
+  greeting: { marginTop: 4, fontSize: 14, lineHeight: 20, fontWeight: '700' },
+  title: { marginTop: 2, fontSize: 32, lineHeight: 38, fontWeight: '900', letterSpacing: -0.5 },
+  subtitle: { marginTop: 4, fontSize: 14, lineHeight: 20, maxWidth: 440 },
+  tripActions: { marginTop: 12, flexDirection: 'row', gap: 8 },
+  tripAction: { minWidth: 0, flex: 1, paddingHorizontal: 10 },
   hero: {
     position: 'relative',
     overflow: 'hidden',
-    minHeight: 310,
-    marginTop: 32,
-    padding: 24,
-    borderRadius: 28,
+    minHeight: 226,
+    marginTop: 20,
+    padding: 20,
+    borderRadius: 20,
     borderWidth: 1,
   },
   heroHole: {
@@ -438,16 +441,16 @@ const styles = StyleSheet.create({
     borderWidth: 4,
   },
   heroStatus: { fontSize: 12, lineHeight: 16, fontWeight: '900', letterSpacing: 1.4 },
-  heroDestination: { marginTop: 34, fontSize: 36, lineHeight: 42, fontWeight: '800' },
+  heroDestination: { marginTop: 20, fontSize: 30, lineHeight: 36, fontWeight: '900' },
   heroName: { marginTop: 6, fontSize: 17, lineHeight: 24, fontWeight: '600' },
-  heroDivider: { height: 1, marginVertical: 24, opacity: 0.42 },
+  heroDivider: { height: 1, marginVertical: 16, opacity: 0.42 },
   heroMetaRow: { flexDirection: 'row', gap: 28 },
   heroMetaBlock: { flex: 1, gap: 4 },
   heroMetaLabel: { fontSize: 10, lineHeight: 14, fontWeight: '800', letterSpacing: 1.3 },
   heroMetaValue: { fontSize: 14, lineHeight: 20, fontWeight: '700' },
-  heroActionRow: { marginTop: 28, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  heroActionRow: { marginTop: 16, flexDirection: 'row', alignItems: 'center', gap: 8 },
   heroAction: { fontSize: 16, lineHeight: 22, fontWeight: '800' },
-  sectionTitle: { marginTop: 32, marginBottom: 8, fontSize: 22, lineHeight: 28, fontWeight: '800' },
+  sectionTitle: { marginTop: 24, marginBottom: 4, fontSize: 21, lineHeight: 28, fontWeight: '900' },
   tripRow: { minHeight: 116, flexDirection: 'row', borderBottomWidth: 1, paddingVertical: 16 },
   timelineRail: { width: 2, marginRight: 16, alignItems: 'center' },
   timelineDot: { position: 'absolute', top: 4, width: 10, height: 10, borderRadius: 5 },

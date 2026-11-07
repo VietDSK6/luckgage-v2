@@ -37,51 +37,45 @@ dùng nhìn ra trạng thái hoặc hành động quan trọng.
 - Không để toàn bộ text cùng weight hoặc cùng kích thước.
 - Không bê nguyên Material 3 component styling từ Compose.
 
-## 3. Design tokens bản nháp
+## 3. Design system production
 
-Các màu dưới đây là hướng thiết kế, chưa phải token production. Trước khi chốt cần kiểm tra
-contrast trên light/dark và trạng thái disabled.
+Nguồn sự thật là `apps/mobile/src/design/tokens/index.ts` và `docs/BRAND_SYSTEM.md`. Không tạo
+typography, spacing, radius hoặc màu song song trong feature. Token contrast có Jest regression test.
 
 ### Color
 
 | Token | Light draft | Vai trò |
 |---|---:|---|
-| color.background | #FFF8ED | Nền sand chính, khoảng 60% diện tích |
+| color.background | #FFF7E8 | Nền sand chính, khoảng 60% diện tích |
 | color.surface | #FFFFFF | Card/input chính |
-| color.ink | #15272A | Heading và body chính |
+| color.ink | #12312F | Heading và body chính |
 | color.inkMuted | #607174 | Nội dung phụ |
 | color.primary | #0F766E | CTA và trạng thái active |
 | color.primarySoft | #DDF4EF | Chip/card nhấn nhẹ |
-| color.accent | #F26B5E | Peak moment, notification dot, highlight |
-| color.sun | #F7C65D | Trip tag và optimistic moment |
+| color.accent | #FF665C | Accent trang trí, không dùng cho functional text trên nền sáng |
+| color.accentStrong | #C9473E | Active icon/functional coral đạt contrast |
+| color.sun | #F6C84C | Trip tag và optimistic moment |
 | color.success | #2F855A | Hoàn tất |
 | color.warning | #B7791F | Cảnh báo |
 | color.danger | #C2413A | Destructive/error |
 | color.outline | #D8DFDD | Divider và input border |
+| color.outlineStrong | #7F918F | Boundary cần thiết để nhận diện control |
 
 Dark mode dùng nền ink sâu, surface nâng nhẹ và giảm độ bão hòa accent. Không đảo màu máy móc.
 
 ### Typography
 
-Giữ Be Vietnam Pro để nhận diện tiếng Việt tốt và tránh thêm font không cần thiết.
-
-| Style | Size | Weight | Dùng cho |
-|---|---:|---|---|
-| Display | 28 | SemiBold | Hero trip/readiness |
-| Title | 22 | SemiBold | Screen/section title |
-| Body | 16 | Regular | Nội dung và control |
-| Meta | 13 | Regular hoặc SemiBold | Date, tag, reason |
-
-Tối đa hai weight chính: Regular và SemiBold. Số phần trăm/progress dùng tabular numeral nếu font
-và platform hỗ trợ.
+Scale semantic gồm `display`, `screenTitle`, `sectionTitle`, `cardTitle`, `body`, `bodyStrong`,
+`bodySmall`, `label`, `caption`, `eyebrow` và `nav`. Chỉ một display title trên mỗi màn; checklist
+và list thao tác ưu tiên title nhỏ để tăng mật độ. Số phần trăm/progress dùng tabular numeral.
 
 ### Spacing
 
-Scale: 4, 8, 12, 16, 24, 32, 48, 64.
+Scale: 4, 8, 12, 16, 20, 24, 32, 40, 48, 64.
 
 - Screen horizontal padding: 20 hoặc 24.
-- Khoảng section: 32.
-- Card padding: 20 hoặc 24.
+- Khoảng section mặc định: 24; chỉ hero/editorial section mới dùng 32.
+- Card padding: 16 hoặc 20; hero thật sự mới dùng 24.
 - Khoảng item liên quan: 8 hoặc 12.
 - Touch target: tối thiểu 48.
 
@@ -97,6 +91,17 @@ Scale: 4, 8, 12, 16, 24, 32, 48, 64.
 - Ưu tiên border và surface contrast.
 - Shadow mềm, tinted theo nền.
 - Chỉ hero, floating action hoặc bottom action bar cần elevation rõ.
+
+### Shared primitives
+
+- `AppText`, `AppButton`, `AppIconButton`.
+- `AppPageHeader`, `AppSectionHeader`.
+- `AppSegmentedControl`, `AppBottomSheet`.
+- `AppBottomNavigation` và `AppIcon`.
+
+Input/control dùng `outlineStrong`; `outline` chỉ dùng cho divider/card decoration. Component có
+motion phải đọc Reduce Motion. Feature không hiển thị phase, framework, data-source hoặc trạng thái
+implementation cho end user.
 
 ## 4. Information architecture
 
@@ -354,6 +359,11 @@ Quy tắc:
 - Checkbox dùng scale/fill nhẹ.
 - Progress thay đổi animate nhưng không chậm thao tác.
 - Bottom sheet giữ transition platform-consistent.
+- Root mount một `AppFeedbackProvider`; feature gọi API typed thay vì dựng feedback ad-hoc.
+- Dialog dành cho confirm có hệ quả, action sheet dành cho menu theo context, toast dành cho phản
+  hồi thụ động tự đóng và inline state dành cho validation/lỗi cần xử lý.
+- Không dùng `Alert.alert` hoặc action sheet native. React Native `Modal` chỉ là portal cho component
+  custom có token, i18n, safe area và accessibility của luckgage.
 - Haptic chỉ cho apply thành công, join thành công và 100%; không rung mọi tap.
 - Reduce motion tắt stagger, confetti và large transforms.
 

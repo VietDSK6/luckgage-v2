@@ -460,7 +460,7 @@ function StyleStep({
                 styles.chip,
                 {
                   backgroundColor: selected ? theme.colors.primarySoft : theme.colors.surface,
-                  borderColor: selected ? theme.colors.primary : theme.colors.outline,
+                  borderColor: selected ? theme.colors.primary : theme.colors.outlineStrong,
                 },
                 pressed ? styles.pressed : null,
               ]}>
@@ -592,7 +592,7 @@ function LabeledInput({
           multiline ? styles.inputMultiline : null,
           {
             backgroundColor: theme.colors.surface,
-            borderColor: error ? theme.colors.danger : theme.colors.outline,
+            borderColor: error ? theme.colors.danger : theme.colors.outlineStrong,
             color: theme.colors.ink,
           },
         ]}

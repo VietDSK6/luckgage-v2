@@ -1,6 +1,6 @@
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useChecklistRepository } from '@/data/repositories/ChecklistRepositoryProvider';
@@ -15,6 +15,7 @@ import { useWeatherRepository } from '@/data/repositories/WeatherRepositoryProvi
 import { AppButton } from '@/design/components/AppButton';
 import { AppIcon } from '@/design/components/AppIcon';
 import { AppPageHeader } from '@/design/components/AppPageHeader';
+import { useAppFeedback } from '@/design/feedback/AppFeedbackProvider';
 import { useAppTheme } from '@/design/theme/AppThemeProvider';
 import { useI18n } from '@/i18n/I18nProvider';
 import { usePreferences } from '@/platform/preferences/PreferencesProvider';
@@ -34,6 +35,7 @@ export function TripDetailScreen({ tripId }: { tripId: string }) {
   const { theme } = useAppTheme();
   const { t } = useI18n();
   const { language } = usePreferences();
+  const { choose, confirm } = useAppFeedback();
   const [trip, setTrip] = useState<Trip | null>(null);
   const [checklistProgress, setChecklistProgress] = useState<ChecklistProgress>({
     packed: 0,
@@ -47,6 +49,7 @@ export function TripDetailScreen({ tripId }: { tripId: string }) {
   const [pendingReminder, setPendingReminder] = useState<ReminderDaysBefore | 0 | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState(false);
+  const [showSecondaryDetails, setShowSecondaryDetails] = useState(false);
   const requestSequence = useRef(0);
 
   const loadTrip = useCallback(async () => {
@@ -129,11 +132,29 @@ export function TripDetailScreen({ tripId }: { tripId: string }) {
     }
   };
 
-  const confirmDelete = () => {
-    Alert.alert(t('tripDeleteTitle'), t('tripDeleteBody'), [
-      { text: t('commonKeep'), style: 'cancel' },
-      { text: t('commonDelete'), style: 'destructive', onPress: () => void deleteTrip() },
-    ]);
+  const confirmDelete = async () => {
+    const approved = await confirm({
+      body: t('tripDeleteBody'),
+      cancelLabel: t('commonKeep'),
+      confirmLabel: t('commonDelete'),
+      title: t('tripDeleteTitle'),
+      tone: 'danger',
+    });
+    if (approved) await deleteTrip();
+  };
+
+  const openTripActions = async () => {
+    if (!trip || trip.currentUserRole !== 'owner') return;
+    const action = await choose({
+      actions: [
+        { icon: 'edit', id: 'edit', label: t('commonEdit') },
+        { icon: 'minus', id: 'delete', label: t('commonDelete'), tone: 'danger' },
+      ],
+      cancelLabel: t('commonCancel'),
+      title: trip.name,
+    });
+    if (action === 'edit') router.push(`/trip/${trip.id}/edit`);
+    if (action === 'delete') await confirmDelete();
   };
 
   const refreshWeather = async () => {
@@ -213,9 +234,10 @@ export function TripDetailScreen({ tripId }: { tripId: string }) {
       edges={['top', 'right', 'bottom', 'left']}
       style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
       <AppPageHeader
-        actionLabel={trip.currentUserRole === 'owner' ? t('commonEdit') : undefined}
+        actionIcon={trip.currentUserRole === 'owner' ? 'more' : undefined}
+        actionLabel={trip.currentUserRole === 'owner' ? t('commonMore') : undefined}
         eyebrow={t('tripDetailLabel')}
-        onAction={trip.currentUserRole === 'owner' ? () => router.push(`/trip/${trip.id}/edit`) : undefined}
+        onAction={trip.currentUserRole === 'owner' ? () => void openTripActions() : undefined}
         onBack={goBack}
         title={trip.name}
       />
@@ -297,27 +319,33 @@ export function TripDetailScreen({ tripId }: { tripId: string }) {
           </View>
         </View>
 
-        <View style={styles.section}>
-          <Text accessibilityRole="header" style={[styles.sectionTitle, { color: theme.colors.ink }]}>
-            {t('tripPackingTitle')}
-          </Text>
-          <View style={[styles.packingCallout, { borderColor: theme.colors.outline }]}>
-            <View style={[styles.ruleStamp, { backgroundColor: theme.colors.sun }]}>
-              <Text style={[styles.ruleStampText, { color: theme.colors.onWarm }]}>RULE</Text>
+        <View style={styles.actionList}>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => router.push(`/trip/${trip.id}/packing-studio`)}
+            style={({ pressed }) => [
+              styles.actionRow,
+              { backgroundColor: theme.colors.surface, borderColor: theme.colors.outlineStrong },
+              pressed ? styles.pressed : null,
+            ]}>
+            <View style={[styles.actionIcon, { backgroundColor: theme.colors.sun }]}>
+              <AppIcon color={theme.colors.onWarm} name="luggage" size={22} />
             </View>
-            <Text style={[styles.packingBody, { color: theme.colors.inkMuted }]}>{t('tripPackingBody')}</Text>
-            <AppButton
-              label={t('tripPackingAction')}
-              onPress={() => router.push(`/trip/${trip.id}/packing-studio`)}
-            />
-          </View>
-        </View>
+            <View style={styles.actionCopy}>
+              <Text style={[styles.actionTitle, { color: theme.colors.ink }]}>{t('tripPackingTitle')}</Text>
+              <Text numberOfLines={2} style={[styles.actionBody, { color: theme.colors.inkMuted }]}>{t('tripPackingBody')}</Text>
+            </View>
+            <AppIcon color={theme.colors.inkMuted} name="chevronRight" size={21} />
+          </Pressable>
 
-        <View style={styles.section}>
-          <Text accessibilityRole="header" style={[styles.sectionTitle, { color: theme.colors.ink }]}>
-            {t('tripMembersTitle')}
-          </Text>
-          <View style={[styles.membersPanel, { borderColor: theme.colors.outline }]}>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => router.push(`/trip/${trip.id}/members`)}
+            style={({ pressed }) => [
+              styles.actionRow,
+              { backgroundColor: theme.colors.surface, borderColor: theme.colors.outlineStrong },
+              pressed ? styles.pressed : null,
+            ]}>
             <View style={styles.memberStack}>
               {trip.memberPreview.slice(0, 3).map((member, index) => (
                 <View
@@ -326,30 +354,47 @@ export function TripDetailScreen({ tripId }: { tripId: string }) {
                     styles.memberAvatar,
                     {
                       backgroundColor: member.role === 'owner' ? theme.colors.sun : theme.colors.primarySoft,
-                      borderColor: theme.colors.background,
-                      marginLeft: index === 0 ? 0 : -10,
+                      borderColor: theme.colors.surface,
+                      marginLeft: index === 0 ? 0 : -12,
                     },
                   ]}>
-                  <Text
-                    style={[
-                      styles.memberAvatarText,
-                      { color: member.role === 'owner' ? theme.colors.onWarm : theme.colors.primary },
-                    ]}>
+                  <Text style={[styles.memberAvatarText, { color: member.role === 'owner' ? theme.colors.onWarm : theme.colors.primary }]}>
                     {memberInitials(member.displayName)}
                   </Text>
                 </View>
               ))}
             </View>
-            <Text style={[styles.membersBody, { color: theme.colors.inkMuted }]}>{t('tripMembersBody')}</Text>
-            <AppButton
-              label={t('tripMembersAction')}
-              onPress={() => router.push(`/trip/${trip.id}/members`)}
-              variant="secondary"
-            />
-          </View>
+            <View style={styles.actionCopy}>
+              <Text style={[styles.actionTitle, { color: theme.colors.ink }]}>{t('tripMembersTitle')}</Text>
+              <Text numberOfLines={1} style={[styles.actionBody, { color: theme.colors.inkMuted }]}>{t('tripMembersBody')}</Text>
+            </View>
+            <AppIcon color={theme.colors.inkMuted} name="chevronRight" size={21} />
+          </Pressable>
         </View>
 
-        <View style={styles.section}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityState={{ expanded: showSecondaryDetails }}
+          onPress={() => setShowSecondaryDetails((current) => !current)}
+          style={({ pressed }) => [
+            styles.detailsToggle,
+            { borderColor: theme.colors.outlineStrong },
+            pressed ? styles.pressed : null,
+          ]}>
+          <View style={styles.actionCopy}>
+            <Text style={[styles.actionTitle, { color: theme.colors.ink }]}>
+              {showSecondaryDetails ? t('tripHideDetails') : t('tripMoreDetails')}
+            </Text>
+            {!showSecondaryDetails ? (
+              <Text style={[styles.actionBody, { color: theme.colors.inkMuted }]}>{t('tripMoreDetailsBody')}</Text>
+            ) : null}
+          </View>
+          <AppIcon color={theme.colors.primary} name={showSecondaryDetails ? 'close' : 'sliders'} size={21} />
+        </Pressable>
+
+        {showSecondaryDetails ? (
+          <>
+            <View style={styles.section}>
           <Text accessibilityRole="header" style={[styles.sectionTitle, { color: theme.colors.ink }]}>
             {t('reminderTitle')}
           </Text>
@@ -374,7 +419,7 @@ export function TripDetailScreen({ tripId }: { tripId: string }) {
                     styles.reminderOption,
                     {
                       backgroundColor: selected ? theme.colors.primarySoft : theme.colors.surface,
-                      borderColor: selected ? theme.colors.primary : theme.colors.outline,
+                      borderColor: selected ? theme.colors.primary : theme.colors.outlineStrong,
                     },
                     pressed ? styles.pressed : null,
                   ]}>
@@ -408,31 +453,25 @@ export function TripDetailScreen({ tripId }: { tripId: string }) {
               )}
             </Text>
           ) : null}
-        </View>
+            </View>
 
-        <View style={styles.section}>
-          <Text accessibilityRole="header" style={[styles.sectionTitle, { color: theme.colors.ink }]}>
-            {t('tripNotesTitle')}
-          </Text>
-          <Text style={[styles.note, { color: trip.note ? theme.colors.ink : theme.colors.inkMuted }]}>
-            {trip.note || t('tripNotesEmpty')}
-          </Text>
-        </View>
+            <View style={styles.section}>
+              <Text accessibilityRole="header" style={[styles.sectionTitle, { color: theme.colors.ink }]}>
+                {t('tripNotesTitle')}
+              </Text>
+              <Text style={[styles.note, { color: trip.note ? theme.colors.ink : theme.colors.inkMuted }]}>
+                {trip.note || t('tripNotesEmpty')}
+              </Text>
+            </View>
+          </>
+        ) : null}
 
         {deleteError ? (
           <Text accessibilityRole="alert" style={[styles.deleteError, { color: theme.colors.danger }]}>
             {t('tripDeleteError')}
           </Text>
         ) : null}
-        {trip.currentUserRole === 'owner' ? (
-          <AppButton
-            label={isDeleting ? t('tripDeleting') : t('commonDelete')}
-            loading={isDeleting}
-            onPress={confirmDelete}
-            style={styles.deleteButton}
-            variant="danger"
-          />
-        ) : null}
+        {isDeleting ? <ActivityIndicator color={theme.colors.danger} style={styles.deleting} /> : null}
       </ScrollView>
     </SafeAreaView>
   );
@@ -443,40 +482,41 @@ const styles = StyleSheet.create({
   content: { width: '100%', maxWidth: 640, alignSelf: 'center', paddingHorizontal: 20, paddingBottom: 48 },
   centerState: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 20, padding: 24 },
   stateTitle: { fontSize: 20, lineHeight: 28, fontWeight: '800', textAlign: 'center' },
-  hero: { position: 'relative', overflow: 'hidden', marginTop: 12, borderWidth: 1, borderRadius: 28, padding: 24 },
+  hero: { position: 'relative', overflow: 'hidden', marginTop: 8, borderWidth: 1, borderRadius: 20, padding: 20 },
   heroNotch: { position: 'absolute', top: -14, right: 54, width: 28, height: 28, borderRadius: 14 },
   status: { fontSize: 12, lineHeight: 17, fontWeight: '900', letterSpacing: 1.3 },
-  destination: { marginTop: 26, fontSize: 38, lineHeight: 45, fontWeight: '800', letterSpacing: -0.8 },
-  routeLine: { position: 'relative', height: 2, marginTop: 28, marginHorizontal: 5 },
+  destination: { marginTop: 14, fontSize: 30, lineHeight: 37, fontWeight: '900', letterSpacing: -0.5 },
+  routeLine: { position: 'relative', height: 2, marginTop: 20, marginHorizontal: 5 },
   routeDotStart: { position: 'absolute', left: -5, top: -5, width: 12, height: 12, borderRadius: 6 },
   routeDotEnd: { position: 'absolute', right: -5, top: -5, width: 12, height: 12, borderRadius: 6 },
-  dateRow: { marginTop: 22, flexDirection: 'row', gap: 20 },
+  dateRow: { marginTop: 16, flexDirection: 'row', gap: 20 },
   dateBlock: { flex: 1, gap: 4 },
   metaLabel: { fontSize: 11, lineHeight: 15, fontWeight: '800', letterSpacing: 0.7 },
   metaValue: { fontSize: 15, lineHeight: 21, fontWeight: '700' },
-  tagRow: { marginTop: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+  tagRow: { marginTop: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
   tripTags: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8 },
-  typeTag: { overflow: 'hidden', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 18, fontSize: 13, lineHeight: 18, fontWeight: '800' },
-  roleTag: { overflow: 'hidden', borderWidth: 1, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 18, fontSize: 12, lineHeight: 17, fontWeight: '800' },
+  typeTag: { overflow: 'hidden', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 14, fontSize: 12, lineHeight: 17, fontWeight: '800' },
+  roleTag: { overflow: 'hidden', borderWidth: 1, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 14, fontSize: 12, lineHeight: 17, fontWeight: '800' },
   duration: { fontSize: 13, lineHeight: 18, fontWeight: '700' },
-  section: { marginTop: 32 },
-  sectionContent: { marginTop: 12 },
-  sectionTitle: { fontSize: 22, lineHeight: 29, fontWeight: '800' },
-  readiness: { marginTop: 12, padding: 20, borderRadius: 20, flexDirection: 'row', alignItems: 'center', gap: 16 },
+  section: { marginTop: 24 },
+  sectionContent: { marginTop: 8 },
+  sectionTitle: { fontSize: 21, lineHeight: 28, fontWeight: '900' },
+  readiness: { marginTop: 8, padding: 16, borderRadius: 16, flexDirection: 'row', alignItems: 'center', gap: 12 },
   readinessMark: { width: 48, height: 48, borderRadius: 24, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
   readinessMarkText: { fontSize: 12, lineHeight: 17, fontWeight: '900', fontVariant: ['tabular-nums'] },
-  readinessCopy: { flex: 1, gap: 12 },
+  readinessCopy: { flex: 1, gap: 8 },
   readinessBody: { fontSize: 15, lineHeight: 22, fontWeight: '700' },
   checklistButton: { alignSelf: 'flex-start' },
-  packingCallout: { marginTop: 12, borderTopWidth: 1, borderBottomWidth: 1, paddingVertical: 20, gap: 14 },
-  ruleStamp: { alignSelf: 'flex-start', transform: [{ rotate: '-3deg' }], paddingHorizontal: 12, paddingVertical: 7 },
-  ruleStampText: { fontSize: 11, lineHeight: 15, fontWeight: '900', letterSpacing: 1.2 },
-  packingBody: { fontSize: 15, lineHeight: 23 },
-  membersPanel: { marginTop: 12, borderTopWidth: 1, borderBottomWidth: 1, paddingVertical: 18, gap: 14 },
-  memberStack: { minHeight: 48, flexDirection: 'row', alignItems: 'center' },
-  memberAvatar: { width: 48, height: 48, borderRadius: 24, borderWidth: 3, alignItems: 'center', justifyContent: 'center' },
-  memberAvatarText: { fontSize: 13, lineHeight: 18, fontWeight: '900' },
-  membersBody: { fontSize: 14, lineHeight: 21 },
+  actionList: { marginTop: 24, gap: 10 },
+  actionRow: { minHeight: 76, borderWidth: 1, borderRadius: 16, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  actionIcon: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  actionCopy: { flex: 1, gap: 2 },
+  actionTitle: { fontSize: 16, lineHeight: 22, fontWeight: '800' },
+  actionBody: { fontSize: 13, lineHeight: 18 },
+  memberStack: { width: 58, minHeight: 40, flexDirection: 'row', alignItems: 'center' },
+  memberAvatar: { width: 38, height: 38, borderRadius: 19, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
+  memberAvatarText: { fontSize: 11, lineHeight: 15, fontWeight: '900' },
+  detailsToggle: { minHeight: 64, marginTop: 16, borderWidth: 1, borderRadius: 16, paddingHorizontal: 16, paddingVertical: 10, flexDirection: 'row', alignItems: 'center', gap: 12 },
   reminderBody: { marginTop: 6, fontSize: 14, lineHeight: 21 },
   reminderOptions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 },
   reminderOption: { minHeight: 48, borderWidth: 1, borderRadius: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingHorizontal: 14 },
@@ -487,7 +527,7 @@ const styles = StyleSheet.create({
   pressed: { opacity: 0.68 },
   note: { marginTop: 10, fontSize: 16, lineHeight: 25 },
   deleteError: { marginTop: 28, fontSize: 14, lineHeight: 21, fontWeight: '700' },
-  deleteButton: { marginTop: 32 },
+  deleting: { marginTop: 24 },
 });
 
 function formatReminderDate(timestamp: number, language: 'vi' | 'en'): string {
