@@ -154,10 +154,12 @@ MVP cho sửa displayName, locale. Không cho sửa role/status.
 
 - POST /admin/auth/login
 - POST /admin/auth/logout
-- GET /admin/me
+- GET /admin/auth/me
 
 Login thành công set secure HttpOnly session cookie. Mutating admin request phải tuân theo CSRF
-policy đã chốt. Endpoint bên dưới luôn kiểm tra role ADMIN phía server.
+policy đã chốt. Login và `GET /admin/auth/me` cùng trả `{ user, csrfToken }`; token CSRF chỉ giữ
+trong memory của admin web và được khôi phục lại sau reload, còn session token không rời HttpOnly
+cookie. Endpoint bên dưới luôn kiểm tra role ADMIN phía server.
 
 ## 4. Trip endpoints
 

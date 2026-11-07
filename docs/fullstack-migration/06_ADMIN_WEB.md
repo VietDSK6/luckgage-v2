@@ -209,6 +209,11 @@ biến admin thành công cụ đọc dữ liệu riêng tư.
 
 ## 10. Frontend architecture
 
+Trạng thái Phase 4A: foundation đã được dựng tại `apps/admin` bằng Vite, React và TypeScript strict.
+Admin auth dùng HttpOnly cookie của API; endpoint restore session trả user cùng CSRF token và client
+chỉ giữ token đó trong memory. Router bảo vệ toàn bộ shell, API client chuẩn hóa Problem Details,
+field errors và request ID. Các trang nghiệp vụ hiện là placeholder có chủ đích cho đến đúng phase.
+
 ~~~text
 apps/admin/src/
 ├── app/

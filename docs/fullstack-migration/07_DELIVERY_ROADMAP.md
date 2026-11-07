@@ -203,6 +203,11 @@ retire; invite preview/confirm qua API là luồng cộng tác duy nhất.
 - Router/layout/design tokens.
 - API client/error handling.
 
+Trạng thái triển khai: hoàn thành, chờ QA. `apps/admin` có protected routing, restore session bằng
+HttpOnly cookie, CSRF token chỉ giữ trong memory, responsive admin shell, design tokens và API
+client chuẩn hóa Problem Details/request ID. Các route nghiệp vụ mới chỉ là readiness placeholder;
+không có chức năng thuộc 4B–4D được triển khai sớm.
+
 ### 4B. Users/dashboard
 
 - Dashboard aggregate.

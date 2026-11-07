@@ -10,6 +10,8 @@
     "mobile": "npm run start --workspace @luckgage/mobile",
     "api": "npm run start:dev --workspace @luckgage/api",
     "api:build": "npm run build --workspace @luckgage/api",
+    "admin": "npm run dev --workspace @luckgage/admin",
+    "admin:build": "npm run build --workspace @luckgage/admin",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
@@ -24,7 +26,8 @@
     "node": ">=22.13.0"
   },
   "overrides": {
-    "react": "19.3.0"
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
   },
   "packageManager": "npm@11.6.2"
 }

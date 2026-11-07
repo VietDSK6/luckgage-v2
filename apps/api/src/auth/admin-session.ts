@@ -34,6 +34,10 @@ export function readAdminSessionCookie(request: RequestWithContext): string | un
   return parseCookie(request.headers.cookie, ADMIN_SESSION_COOKIE);
 }
 
+export function readAdminCsrfCookie(request: RequestWithContext): string | undefined {
+  return parseCookie(request.headers.cookie, ADMIN_CSRF_COOKIE);
+}
+
 export function setAdminCookies(
   response: Response,
   sessionToken: string,
@@ -84,7 +88,7 @@ export class AdminSessionGuard implements CanActivate {
 export class AdminCsrfGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest<RequestWithContext>();
-    const cookieToken = parseCookie(request.headers.cookie, ADMIN_CSRF_COOKIE);
+    const cookieToken = readAdminCsrfCookie(request);
     const headerToken = request.header('x-csrf-token');
     if (!cookieToken || !headerToken || !safeEqual(cookieToken, headerToken)) {
       throw new ForbiddenException({

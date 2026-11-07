@@ -2,7 +2,7 @@
 
 luckgage v2 combines an Expo mobile app, a self-hosted TypeScript REST API, PostgreSQL, and a React
 admin app. **Phase 1D local mobile scope, backend Phase 2A–2D, and mobile integration Phase 3A–3D
-are complete.** The admin web app has not started.
+are complete. Phase 4A admin foundation is complete and awaiting QA.**
 
 ## Sources of truth
 
@@ -48,6 +48,17 @@ npm run db:seed
 npm run api
 ```
 
+To run the admin control desk after starting the API:
+
+```bash
+cp apps/admin/.env.example apps/admin/.env.local
+npm run admin
+```
+
+The admin app reads only the public API origin from `VITE_API_BASE_URL`. Authentication uses the
+server's HttpOnly admin cookie; the CSRF token is restored into memory and is never persisted in
+browser storage. The seeded admin account is documented in `apps/api/README.md`.
+
 The API exposes liveness at `/api/v1/health/live`, database/migration readiness at
 `/api/v1/health/ready`, Swagger UI at `/openapi`, and JSON at `/openapi.json`. See
 [`apps/api/README.md`](apps/api/README.md) for its commands and contracts.
@@ -59,6 +70,7 @@ npm run typecheck
 npm run lint
 npm test
 npm run api:build
+npm run admin:build
 npm run openapi:check
 npx expo-doctor@latest apps/mobile
 git diff --check
@@ -130,4 +142,10 @@ weather with typed remote adapters and contract/component coverage. Phase 3C add
 confirmed join, owner invite creation/revocation, member listing/removal, refetch-on-focus and
 pull-to-refresh, plus explicit stale-version recovery for shared checklist and trip edits. Phase 3D
 retires the old local adapters/schema and legacy QR-copy concept, leaving server data as the sole
-source of truth. The admin web app and shared generated clients are not implemented yet.
+source of truth.
+
+`apps/admin` contains the Phase 4A Vite + React + strict TypeScript foundation: protected routing,
+cookie-session restoration, in-memory CSRF handling, a responsive branded shell, design tokens,
+and a typed API client with normalized problem/error handling. Dashboard, user, packing-rule,
+trip-suggestion, and trip routes currently expose readiness placeholders only; their data workflows
+remain scoped to Phases 4B–4D.

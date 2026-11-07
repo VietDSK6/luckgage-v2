@@ -149,7 +149,11 @@ describe('Auth and users database integration', () => {
     expect(setCookies).toContain('SameSite=Strict');
     const csrfToken = adminLogin.body.csrfToken as string;
 
-    await agent.get('/api/v1/admin/auth/me').expect(200);
+    const restoredSession = await agent.get('/api/v1/admin/auth/me').expect(200);
+    expect(restoredSession.body).toMatchObject({
+      csrfToken,
+      user: { email: ADMIN_EMAIL, role: 'ADMIN', status: 'ACTIVE' },
+    });
     const users = await agent
       .get('/api/v1/admin/users')
       .query({ search: USER_EMAIL, page: 1, pageSize: 10 })

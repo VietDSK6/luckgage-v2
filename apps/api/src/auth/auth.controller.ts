@@ -9,6 +9,7 @@ import {
   Post,
   Req,
   Res,
+  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -31,11 +32,12 @@ import type { Request, Response } from 'express';
 import type { Environment } from '../config/environment.js';
 import { ProblemDetailsDto } from '../http/problem-details.dto.js';
 import type { RequestWithContext } from '../http/request-context.js';
-import { toUserDto, UserDto } from '../users/user.dto.js';
+import { toUserDto } from '../users/user.dto.js';
 import {
   AdminCsrfGuard,
   AdminSessionGuard,
   clearAdminCookies,
+  readAdminCsrfCookie,
   readAdminSessionCookie,
   setAdminCookies,
 } from './admin-session.js';
@@ -162,17 +164,31 @@ export class AdminAuthController {
   @UseGuards(AdminSessionGuard)
   @ApiCookieAuth('adminSession')
   @ApiOperation({ summary: 'Get the current admin profile' })
-  @ApiOkResponse({ type: UserDto })
+  @ApiOkResponse({ type: AdminLoginResponseDto })
   @ApiUnauthorizedResponse({ type: ProblemDetailsDto })
-  me(@CurrentUser() principal: AuthPrincipal): UserDto {
-    return toUserDto({
-      id: principal.userId,
-      email: principal.email,
-      displayName: principal.displayName,
-      role: principal.role,
-      status: principal.status,
-      locale: principal.locale,
-    });
+  me(
+    @CurrentUser() principal: AuthPrincipal,
+    @Req() request: Request,
+  ): AdminLoginResponseDto {
+    const csrfToken = readAdminCsrfCookie(request as RequestWithContext);
+    if (!csrfToken) {
+      throw new UnauthorizedException({
+        code: 'ADMIN_SESSION_INCOMPLETE',
+        title: 'Unauthorized',
+        detail: 'The admin session is missing its CSRF credential.',
+      });
+    }
+    return {
+      user: toUserDto({
+        id: principal.userId,
+        email: principal.email,
+        displayName: principal.displayName,
+        role: principal.role,
+        status: principal.status,
+        locale: principal.locale,
+      }),
+      csrfToken,
+    };
   }
 
   @Post('logout')
