@@ -2,7 +2,8 @@
 
 luckgage v2 combines an Expo mobile app, a self-hosted TypeScript REST API, PostgreSQL, and a React
 admin app. **Phase 1D local mobile scope, backend Phase 2A–2D, and mobile integration Phase 3A–3D
-are complete. Phase 4A admin foundation is complete and awaiting QA.**
+are complete. Phase 4A admin foundation is complete; Phase 4B dashboard and user management are
+implemented and awaiting QA.**
 
 ## Sources of truth
 
@@ -144,8 +145,9 @@ pull-to-refresh, plus explicit stale-version recovery for shared checklist and t
 retires the old local adapters/schema and legacy QR-copy concept, leaving server data as the sole
 source of truth.
 
-`apps/admin` contains the Phase 4A Vite + React + strict TypeScript foundation: protected routing,
+`apps/admin` contains the Vite + React + strict TypeScript control desk: protected routing,
 cookie-session restoration, in-memory CSRF handling, a responsive branded shell, design tokens,
-and a typed API client with normalized problem/error handling. Dashboard, user, packing-rule,
-trip-suggestion, and trip routes currently expose readiness placeholders only; their data workflows
-remain scoped to Phases 4B–4D.
+and a typed API client with normalized problem/error handling. Phase 4B adds a real aggregate
+dashboard plus server-paginated user search/filter/detail and confirmed suspend/reactivate flows.
+Filters are URL-backed and server data is cached/invalidation-aware through TanStack Query. Packing
+rules, trip suggestions, and trip support remain readiness placeholders for Phases 4C–4D.

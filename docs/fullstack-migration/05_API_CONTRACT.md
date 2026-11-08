@@ -161,6 +161,28 @@ policy đã chốt. Login và `GET /admin/auth/me` cùng trả `{ user, csrfToke
 trong memory của admin web và được khôi phục lại sau reload, còn session token không rời HttpOnly
 cookie. Endpoint bên dưới luôn kiểm tra role ADMIN phía server.
 
+#### GET /admin/dashboard
+
+Trả aggregate tại thời điểm request: tổng/active/suspended user, tổng trip, trip đang diễn ra theo
+calendar date UTC hiện tại, lượt join trong 7 ngày gần nhất, số packing rule published và số trip
+suggestion published. Response có `generatedAt`; không trả dữ liệu checklist hoặc note riêng tư.
+
+#### GET /admin/users
+
+Query hỗ trợ `page`, `pageSize`, `search`, `role`, `status` và `sort`. `search` match email hoặc tên
+hiển thị không phân biệt hoa thường. Response theo pagination envelope chuẩn và không chứa password,
+token hoặc session credential.
+
+#### GET /admin/users/{userId}
+
+Trả profile quản trị cùng `ownedTripCount`, `activeMembershipCount`, `activeSessionCount` và
+`lastSessionActivityAt`. Session metadata chỉ là aggregate/thời điểm; không trả token hash.
+
+#### PATCH /admin/users/{userId}/status
+
+Request `{ "status": "ACTIVE" | "SUSPENDED" }`, bắt buộc CSRF. Suspend thu hồi mọi session còn
+hiệu lực nhưng không xóa dữ liệu. Admin không thể tự suspend tài khoản đang dùng.
+
 ## 4. Trip endpoints
 
 ### GET /trips

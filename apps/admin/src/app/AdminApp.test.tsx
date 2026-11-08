@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ApiError } from '@/api/ApiClient';
+import { adminDataApi } from '@/api/adminDataApi';
 import { adminAuthApi } from '@/api/adminAuthApi';
 import type { AdminSession } from '@/api/types';
 
@@ -22,7 +23,20 @@ const session: AdminSession = {
 };
 
 describe('AdminApp auth routing', () => {
-  beforeEach(() => vi.restoreAllMocks());
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    vi.spyOn(adminDataApi, 'getDashboard').mockResolvedValue({
+      activeTrips: 1,
+      activeUsers: 4,
+      generatedAt: '2026-11-08T09:00:00.000Z',
+      joinsLast7Days: 2,
+      publishedPackingRules: 3,
+      publishedTripSuggestions: 2,
+      suspendedUsers: 1,
+      totalTrips: 5,
+      totalUsers: 5,
+    });
+  });
 
   it('redirects an anonymous visitor to login, then opens the protected shell', async () => {
     vi.spyOn(adminAuthApi, 'getSession').mockRejectedValue(
@@ -52,7 +66,7 @@ describe('AdminApp auth routing', () => {
 
     expect(await screen.findByRole('heading', { name: 'Tổng quan' })).toBeInTheDocument();
     expect(
-      screen.getByRole('heading', { name: /Dữ liệu rõ ràng.*Hành trình nhẹ đầu/ }),
+      await screen.findByRole('heading', { name: /Một lượt nhìn.*Đủ để điều phối/ }),
     ).toBeInTheDocument();
     expect(loginSpy).toHaveBeenCalledWith({
       email: session.user.email,

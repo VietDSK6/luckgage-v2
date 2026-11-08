@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 import {
   createContext,
   type PropsWithChildren,
@@ -16,7 +17,9 @@ import type { AdminUser, LoginInput } from '@/api/types';
 type AuthStatus = 'loading' | 'authenticated' | 'anonymous' | 'error';
 
 type AdminAuthContextValue = {
+  csrfToken: string | null;
   error: ApiError | null;
+  expireSession: () => void;
   login: (input: LoginInput) => Promise<void>;
   logout: () => Promise<void>;
   retrySession: () => Promise<void>;
@@ -27,6 +30,7 @@ type AdminAuthContextValue = {
 const AdminAuthContext = createContext<AdminAuthContextValue | undefined>(undefined);
 
 export function AdminAuthProvider({ children }: PropsWithChildren) {
+  const queryClient = useQueryClient();
   const [status, setStatus] = useState<AuthStatus>('loading');
   const [user, setUser] = useState<AdminUser | null>(null);
   const [csrfToken, setCsrfToken] = useState<string | null>(null);
@@ -85,15 +89,26 @@ export function AdminAuthProvider({ children }: PropsWithChildren) {
       email: input.email.trim().toLowerCase(),
       password: input.password,
     });
+    queryClient.clear();
     setUser(session.user);
     setCsrfToken(session.csrfToken);
     setError(null);
     setStatus('authenticated');
-  }, []);
+  }, [queryClient]);
+
+  const expireSession = useCallback(() => {
+    queryClient.clear();
+    setUser(null);
+    setCsrfToken(null);
+    setError(null);
+    setStatus('anonymous');
+  }, [queryClient]);
 
   const logout = useCallback(async () => {
     if (!csrfToken) {
+      queryClient.clear();
       setUser(null);
+      setError(null);
       setStatus('anonymous');
       return;
     }
@@ -106,11 +121,12 @@ export function AdminAuthProvider({ children }: PropsWithChildren) {
     setCsrfToken(null);
     setError(null);
     setStatus('anonymous');
-  }, [csrfToken]);
+    queryClient.clear();
+  }, [csrfToken, queryClient]);
 
   const value = useMemo(
-    () => ({ error, login, logout, retrySession: restoreSession, status, user }),
-    [error, login, logout, restoreSession, status, user],
+    () => ({ csrfToken, error, expireSession, login, logout, retrySession: restoreSession, status, user }),
+    [csrfToken, error, expireSession, login, logout, restoreSession, status, user],
   );
 
   return <AdminAuthContext.Provider value={value}>{children}</AdminAuthContext.Provider>;

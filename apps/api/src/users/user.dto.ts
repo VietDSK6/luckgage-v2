@@ -33,6 +33,20 @@ export class AdminUserDto extends UserDto {
   lastLoginAt!: string | null;
 }
 
+export class AdminUserDetailDto extends AdminUserDto {
+  @ApiProperty({ type: Number })
+  ownedTripCount!: number;
+
+  @ApiProperty({ type: Number })
+  activeMembershipCount!: number;
+
+  @ApiProperty({ type: Number })
+  activeSessionCount!: number;
+
+  @ApiPropertyOptional({ type: String, format: 'date-time', nullable: true })
+  lastSessionActivityAt!: string | null;
+}
+
 export type PublicUserRecord = {
   id: string;
   email: string;

@@ -156,12 +156,31 @@ describe('Auth and users database integration', () => {
     });
     const users = await agent
       .get('/api/v1/admin/users')
-      .query({ search: USER_EMAIL, page: 1, pageSize: 10 })
+      .query({ search: USER_EMAIL, role: 'USER', status: 'ACTIVE', page: 1, pageSize: 10 })
       .expect(200);
     expect(users.body).toMatchObject({ page: 1, pageSize: 10, totalItems: 1 });
     expect(users.body.items[0].id).toBe(userId);
     expect(JSON.stringify(users.body)).not.toContain('passwordHash');
     expect(JSON.stringify(users.body)).not.toContain('refreshTokenHash');
+
+    const detail = await agent.get(`/api/v1/admin/users/${userId}`).expect(200);
+    expect(detail.body).toMatchObject({
+      id: userId,
+      ownedTripCount: 0,
+      activeMembershipCount: 0,
+      activeSessionCount: 0,
+    });
+    expect(detail.body.lastSessionActivityAt).toEqual(expect.any(String));
+
+    const dashboard = await agent.get('/api/v1/admin/dashboard').expect(200);
+    expect(dashboard.body).toMatchObject({
+      totalUsers: 2,
+      activeUsers: 2,
+      suspendedUsers: 0,
+      totalTrips: 0,
+      activeTrips: 0,
+    });
+    expect(dashboard.body.generatedAt).toEqual(expect.any(String));
 
     await agent
       .patch(`/api/v1/admin/users/${userId}/status`)
@@ -178,6 +197,9 @@ describe('Auth and users database integration', () => {
       .send({ status: 'SUSPENDED' })
       .expect(200);
     expect(suspended.body.status).toBe('SUSPENDED');
+
+    const suspendedDashboard = await agent.get('/api/v1/admin/dashboard').expect(200);
+    expect(suspendedDashboard.body).toMatchObject({ activeUsers: 1, suspendedUsers: 1 });
 
     await request(app.getHttpServer())
       .get('/api/v1/me')

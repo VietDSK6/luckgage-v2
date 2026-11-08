@@ -8,8 +8,14 @@ import {
 
 import type { AuthPrincipal } from '../auth/auth.types.js';
 import { PrismaService } from '../database/prisma.service.js';
-import { UserStatus } from '../generated/prisma/enums.js';
-import { toAdminUserDto, toUserDto, type AdminUserDto, type UserDto } from './user.dto.js';
+import { TripMemberRole, UserStatus } from '../generated/prisma/enums.js';
+import {
+  toAdminUserDto,
+  toUserDto,
+  type AdminUserDetailDto,
+  type AdminUserDto,
+  type UserDto,
+} from './user.dto.js';
 import type {
   AdminUsersPageDto,
   AdminUsersQueryDto,
@@ -70,14 +76,18 @@ export class UsersService {
   }
 
   async listAdminUsers(query: AdminUsersQueryDto): Promise<AdminUsersPageDto> {
-    const where = query.search
-      ? {
+    const where = {
+      ...(query.search
+        ? {
           OR: [
             { email: { contains: query.search, mode: 'insensitive' as const } },
             { displayName: { contains: query.search, mode: 'insensitive' as const } },
           ],
-        }
-      : {};
+          }
+        : {}),
+      ...(query.role ? { role: query.role } : {}),
+      ...(query.status ? { status: query.status } : {}),
+    };
     const orderBy = query.sort.startsWith('-')
       ? { [query.sort.slice(1)]: 'desc' as const }
       : { [query.sort]: 'asc' as const };
@@ -100,15 +110,39 @@ export class UsersService {
     };
   }
 
-  async getAdminUser(userId: string): Promise<AdminUserDto> {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: SAFE_USER_SELECT,
-    });
+  async getAdminUser(userId: string): Promise<AdminUserDetailDto> {
+    const now = new Date();
+    const [user, ownedTripCount, activeMembershipCount, activeSessionCount, latestSession] =
+      await this.prisma.$transaction([
+        this.prisma.user.findUnique({ where: { id: userId }, select: SAFE_USER_SELECT }),
+        this.prisma.tripMember.count({
+          where: { userId, role: TripMemberRole.OWNER, removedAt: null },
+        }),
+        this.prisma.tripMember.count({ where: { userId, removedAt: null } }),
+        this.prisma.authSession.count({
+          where: { userId, revokedAt: null, expiresAt: { gt: now } },
+        }),
+        this.prisma.authSession.aggregate({
+          where: { userId },
+          _max: { createdAt: true, lastUsedAt: true },
+        }),
+      ]);
     if (!user) {
       throw userNotFound();
     }
-    return toAdminUserDto(user);
+    const sessionDates = [latestSession._max.lastUsedAt, latestSession._max.createdAt].filter(
+      (value): value is Date => value instanceof Date,
+    );
+    return {
+      ...toAdminUserDto(user),
+      ownedTripCount,
+      activeMembershipCount,
+      activeSessionCount,
+      lastSessionActivityAt:
+        sessionDates.length > 0
+          ? new Date(Math.max(...sessionDates.map((value) => value.getTime()))).toISOString()
+          : null,
+    };
   }
 
   async updateStatus(

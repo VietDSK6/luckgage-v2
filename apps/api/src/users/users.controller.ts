@@ -29,7 +29,7 @@ import { JwtAuthGuard, RolesGuard } from '../auth/auth.guards.js';
 import type { AuthPrincipal } from '../auth/auth.types.js';
 import { UserRole } from '../generated/prisma/enums.js';
 import { ProblemDetailsDto } from '../http/problem-details.dto.js';
-import { AdminUserDto, UserDto } from './user.dto.js';
+import { AdminUserDetailDto, AdminUserDto, UserDto } from './user.dto.js';
 import {
   AdminUsersPageDto,
   AdminUsersQueryDto,
@@ -85,9 +85,9 @@ export class AdminUsersController {
 
   @Get(':userId')
   @ApiOperation({ summary: 'Get a user for administration' })
-  @ApiOkResponse({ type: AdminUserDto })
+  @ApiOkResponse({ type: AdminUserDetailDto })
   @ApiNotFoundResponse({ type: ProblemDetailsDto })
-  get(@Param('userId', new ParseUUIDPipe()) userId: string): Promise<AdminUserDto> {
+  get(@Param('userId', new ParseUUIDPipe()) userId: string): Promise<AdminUserDetailDto> {
     return this.usersService.getAdminUser(userId);
   }
 

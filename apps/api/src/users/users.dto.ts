@@ -12,7 +12,7 @@ import {
   Min,
 } from 'class-validator';
 
-import { UserLocale, UserStatus } from '../generated/prisma/enums.js';
+import { UserLocale, UserRole, UserStatus } from '../generated/prisma/enums.js';
 import { AdminUserDto } from './user.dto.js';
 
 export class UpdateMeDto {
@@ -55,6 +55,16 @@ export class AdminUsersQueryDto {
   @IsString()
   @MaxLength(100)
   search?: string;
+
+  @ApiPropertyOptional({ enum: UserRole, enumName: 'UserRole' })
+  @IsOptional()
+  @IsEnum(UserRole)
+  role?: UserRole;
+
+  @ApiPropertyOptional({ enum: UserStatus, enumName: 'UserStatus' })
+  @IsOptional()
+  @IsEnum(UserStatus)
+  status?: UserStatus;
 
   @ApiPropertyOptional({
     enum: ['createdAt', '-createdAt', 'email', '-email'],

@@ -67,6 +67,10 @@ Visual:
 
 ## 5. Dashboard
 
+Trạng thái Phase 4B: đã nối endpoint aggregate thật cho toàn bộ chỉ số bên dưới. UI dùng manifest
+theo nhóm tài khoản/chuyến đi/nội dung, có loading, retry, freshness timestamp và không dựng chart
+hoặc recent activity giả khi chưa có audit event bền vững.
+
 Cards:
 
 - Total users.
@@ -88,6 +92,12 @@ Recent activity:
 Dashboard error không chặn navigation tới module khác.
 
 ## 6. User management
+
+Trạng thái Phase 4B: list/search/filter role-status/sort và pagination đều chạy server-side; filter
+được phản ánh trên URL. Detail chỉ hiển thị profile, trip/membership aggregate và session metadata
+tối thiểu. Suspend/reactivate dùng dialog có focus trap, bắt buộc CSRF, invalidate cache liên quan và
+giữ nguyên dữ liệu. Request log/request ID là dấu vết tối thiểu; audit timeline bền vững chưa được
+giả lập bằng `updatedAt`.
 
 ### List
 

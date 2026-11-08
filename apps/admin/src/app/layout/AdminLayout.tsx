@@ -43,10 +43,7 @@ export function AdminLayout() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [logoutError, setLogoutError] = useState<ApiError | null>(null);
-  const route = useMemo(
-    () => routeTitles[location.pathname] ?? { eyebrow: 'LUCKGAGE ADMIN', title: 'Không gian quản trị' },
-    [location.pathname],
-  );
+  const route = useMemo(() => resolveRouteTitle(location.pathname), [location.pathname]);
 
   const submitLogout = async () => {
     setIsLoggingOut(true);
@@ -175,6 +172,11 @@ function environmentLabel(environment: string): string {
     staging: 'STAGING',
     production: 'PRODUCTION',
   }[environment] ?? environment.toUpperCase();
+}
+
+function resolveRouteTitle(pathname: string): { eyebrow: string; title: string } {
+  if (pathname.startsWith('/users/')) return { eyebrow: 'ACCOUNT DOSSIER', title: 'Chi tiết người dùng' };
+  return routeTitles[pathname] ?? { eyebrow: 'LUCKGAGE ADMIN', title: 'Không gian quản trị' };
 }
 
 function useMediaQuery(query: string): boolean {

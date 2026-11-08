@@ -255,6 +255,53 @@
         ]
       }
     },
+    "/api/v1/admin/dashboard": {
+      "get": {
+        "operationId": "AdminDashboardController_getSummary",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminDashboardDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "summary": "Get aggregate metrics for the admin dashboard",
+        "tags": [
+          "admin-dashboard"
+        ]
+      }
+    },
     "/api/v1/me": {
       "get": {
         "operationId": "MeController_getCurrent",
@@ -394,7 +441,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AdminUserDto"
+                  "$ref": "#/components/schemas/AdminUserDetailDto"
                 }
               }
             }
@@ -1885,6 +1932,50 @@
           "csrfToken"
         ]
       },
+      "AdminDashboardDto": {
+        "type": "object",
+        "properties": {
+          "totalUsers": {
+            "type": "number"
+          },
+          "activeUsers": {
+            "type": "number"
+          },
+          "suspendedUsers": {
+            "type": "number"
+          },
+          "totalTrips": {
+            "type": "number"
+          },
+          "activeTrips": {
+            "type": "number"
+          },
+          "joinsLast7Days": {
+            "type": "number"
+          },
+          "publishedPackingRules": {
+            "type": "number"
+          },
+          "publishedTripSuggestions": {
+            "type": "number"
+          },
+          "generatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "totalUsers",
+          "activeUsers",
+          "suspendedUsers",
+          "totalTrips",
+          "activeTrips",
+          "joinsLast7Days",
+          "publishedPackingRules",
+          "publishedTripSuggestions",
+          "generatedAt"
+        ]
+      },
       "AdminUserDto": {
         "type": "object",
         "properties": {
@@ -1974,6 +2065,84 @@
           "pageSize",
           "totalItems",
           "totalPages"
+        ]
+      },
+      "AdminUserDetailDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "displayName": {
+            "type": "string",
+            "example": "Mai"
+          },
+          "role": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/UserRole"
+              }
+            ]
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/UserStatus"
+              }
+            ]
+          },
+          "locale": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/UserLocale"
+              }
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastLoginAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "ownedTripCount": {
+            "type": "number"
+          },
+          "activeMembershipCount": {
+            "type": "number"
+          },
+          "activeSessionCount": {
+            "type": "number"
+          },
+          "lastSessionActivityAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "displayName",
+          "role",
+          "status",
+          "locale",
+          "createdAt",
+          "updatedAt",
+          "ownedTripCount",
+          "activeMembershipCount",
+          "activeSessionCount"
         ]
       },
       "DestinationDto": {

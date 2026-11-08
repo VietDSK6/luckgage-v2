@@ -63,6 +63,7 @@ describe('API foundation', () => {
     expect(response.body.paths).toHaveProperty('/api/v1/health/live');
     expect(response.body.paths).toHaveProperty('/api/v1/health/ready');
     expect(response.body.paths).toHaveProperty('/api/v1/auth/register');
+    expect(response.body.paths).toHaveProperty('/api/v1/admin/dashboard');
     expect(response.body.paths).toHaveProperty('/api/v1/admin/users');
     expect(response.body.paths).toHaveProperty('/api/v1/trips');
     expect(response.body.paths).toHaveProperty('/api/v1/trip-invites/join');

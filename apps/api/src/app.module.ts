@@ -1,6 +1,7 @@
 import { MiddlewareConsumer, Module, type NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
+import { AdminDashboardModule } from './admin-dashboard/admin-dashboard.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { ChecklistsModule } from './checklists/checklists.module.js';
 import { validateEnvironment } from './config/environment.js';
@@ -22,6 +23,7 @@ import { WeatherModule } from './weather/weather.module.js';
     }),
     DatabaseModule,
     AuthModule,
+    AdminDashboardModule,
     UsersModule,
     TripsModule,
     ChecklistsModule,
