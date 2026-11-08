@@ -626,6 +626,19 @@ Không có endpoint đổi password người khác trong MVP.
 Published rule không sửa trực tiếp làm thay đổi lịch sử. Edit tạo draft/version tiếp theo hoặc
 backend copy thành editable revision.
 
+Trạng thái Phase 4C:
+
+- List trả mọi revision theo `key` và version giảm dần để admin nhìn được lịch sử.
+- Create luôn tạo `DRAFT` ở version kế tiếp của `key`.
+- PATCH một `DRAFT` cập nhật tại chỗ; PATCH một `PUBLISHED` tạo `DRAFT` version mới và giữ nguyên
+  revision đang chạy trên mobile; `ARCHIVED` là read-only.
+- Preview nhận sample trip đầy đủ (`tripType`, `durationDays`, activities, weather, locale), chỉ đọc
+  đúng revision được chọn và không ghi checklist.
+- Publish chỉ nhận `DRAFT`, đồng thời archive revision published trước đó cùng key trong transaction.
+- Archive loại revision khỏi rule set mà mobile sử dụng; checklist đã áp dụng trước đó không đổi.
+- Mọi mutation admin bắt buộc cookie ADMIN, `x-csrf-token`, Problem Details và request ID như contract
+  auth chung.
+
 ### Trip suggestions
 
 - GET /admin/trip-suggestions

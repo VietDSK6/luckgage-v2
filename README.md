@@ -2,8 +2,8 @@
 
 luckgage v2 combines an Expo mobile app, a self-hosted TypeScript REST API, PostgreSQL, and a React
 admin app. **Phase 1D local mobile scope, backend Phase 2A–2D, and mobile integration Phase 3A–3D
-are complete. Phase 4A admin foundation is complete; Phase 4B dashboard and user management are
-implemented and awaiting QA.**
+are complete. Admin Phases 4A–4B are complete; Phase 4C packing-rule management is implemented and
+awaiting QA.**
 
 ## Sources of truth
 
@@ -149,5 +149,7 @@ source of truth.
 cookie-session restoration, in-memory CSRF handling, a responsive branded shell, design tokens,
 and a typed API client with normalized problem/error handling. Phase 4B adds a real aggregate
 dashboard plus server-paginated user search/filter/detail and confirmed suspend/reactivate flows.
-Filters are URL-backed and server data is cached/invalidation-aware through TanStack Query. Packing
-rules, trip suggestions, and trip support remain readiness placeholders for Phases 4C–4D.
+Filters are URL-backed and server data is cached/invalidation-aware through TanStack Query. Phase
+4C adds a revision ledger and a bilingual packing-rule workbench with validation, sample-trip
+preview, confirmed publish/archive, dirty-form protection, and version-aware mobile verification.
+Trip suggestions and trip support remain readiness placeholders for Phase 4D.

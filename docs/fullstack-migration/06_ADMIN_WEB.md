@@ -126,6 +126,13 @@ Suspend flow:
 
 Đây là trang quan trọng nhất của admin.
 
+Trạng thái Phase 4C: đã triển khai revision ledger có search/status filter trên URL và workbench
+responsive cho create/edit/preview/publish/archive. Form dùng field có cấu trúc thay vì JSON, kiểm
+tra range/key/localization/item trùng ở client rồi vẫn giữ validation phía API. Preview luôn chạy
+trên revision đã lưu; khi form dirty phải save trước. Published revision được giải thích rõ là đang
+chạy trên mobile và thao tác save tạo DRAFT version mới. Publish/archive/rời form dirty dùng dialog
+riêng, không gọi native `alert`/`confirm`.
+
 ### List
 
 - Status: Draft, Published, Archived.
@@ -219,10 +226,11 @@ biến admin thành công cụ đọc dữ liệu riêng tư.
 
 ## 10. Frontend architecture
 
-Trạng thái Phase 4A: foundation đã được dựng tại `apps/admin` bằng Vite, React và TypeScript strict.
+Foundation được dựng tại `apps/admin` bằng Vite, React và TypeScript strict.
 Admin auth dùng HttpOnly cookie của API; endpoint restore session trả user cùng CSRF token và client
 chỉ giữ token đó trong memory. Router bảo vệ toàn bộ shell, API client chuẩn hóa Problem Details,
-field errors và request ID. Các trang nghiệp vụ hiện là placeholder có chủ đích cho đến đúng phase.
+field errors và request ID. Dashboard/users/packing rules đã dùng API thật; trip suggestions và
+trips support vẫn là placeholder có chủ đích cho đến Phase 4D.
 
 ~~~text
 apps/admin/src/

@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiError } from '@/api/ApiClient';
 import { adminDataApi } from '@/api/adminDataApi';
 import { adminAuthApi } from '@/api/adminAuthApi';
+import { adminPackingRulesApi } from '@/api/adminPackingRulesApi';
 import type { AdminSession } from '@/api/types';
 
 import { AdminApp } from './AdminApp';
@@ -36,6 +37,7 @@ describe('AdminApp auth routing', () => {
       totalTrips: 5,
       totalUsers: 5,
     });
+    vi.spyOn(adminPackingRulesApi, 'list').mockResolvedValue({ items: [] });
   });
 
   it('redirects an anonymous visitor to login, then opens the protected shell', async () => {

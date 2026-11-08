@@ -145,6 +145,56 @@ describe('Phase 2D packing, weather, and trip suggestions integration', () => {
     await expect(
       prisma.packingRule.findUniqueOrThrow({ where: { id: createdRule.body.id } }),
     ).resolves.toMatchObject({ status: 'PUBLISHED', version: 1 });
+
+    const adminPreview = await admin.agent
+      .post(`/api/v1/admin/packing-rules/${nextDraft.body.id}/preview`)
+      .set('x-csrf-token', admin.csrfToken)
+      .send({
+        tripType: 'BEACH',
+        durationDays: 3,
+        activities: [],
+        lowTemperatureCelsius: 23,
+        highTemperatureCelsius: 30,
+        rainChancePercent: 80,
+        locale: 'en',
+      })
+      .expect(200);
+    expect(adminPreview.body.categories[0].items[0]).toMatchObject({
+      name: 'Rain jacket',
+      matchedRules: [{ ruleId: nextDraft.body.id, version: 2 }],
+    });
+
+    await admin.agent
+      .post(`/api/v1/admin/packing-rules/${nextDraft.body.id}/publish`)
+      .set('x-csrf-token', admin.csrfToken)
+      .expect(200)
+      .expect(({ body }) => {
+        expect(body).toMatchObject({ id: nextDraft.body.id, status: 'PUBLISHED', version: 2 });
+      });
+    await expect(
+      prisma.packingRule.findUniqueOrThrow({ where: { id: createdRule.body.id } }),
+    ).resolves.toMatchObject({ status: 'ARCHIVED', version: 1 });
+
+    const versionTwoMobilePreview = await api(user)
+      .post(`/api/v1/trips/${tripId}/packing-suggestions/preview`)
+      .send({ locale: 'en', activities: [] })
+      .expect(200);
+    expect(versionTwoMobilePreview.body.categories[0].items[0].matchedRules).toEqual([
+      { ruleId: nextDraft.body.id, version: 2 },
+    ]);
+
+    await admin.agent
+      .post(`/api/v1/admin/packing-rules/${nextDraft.body.id}/archive`)
+      .set('x-csrf-token', admin.csrfToken)
+      .expect(200)
+      .expect(({ body }) => {
+        expect(body).toMatchObject({ status: 'ARCHIVED', version: 2 });
+      });
+    const previewAfterArchive = await api(user)
+      .post(`/api/v1/trips/${tripId}/packing-suggestions/preview`)
+      .send({ locale: 'en', activities: [] })
+      .expect(200);
+    expect(previewAfterArchive.body.categories).toEqual([]);
   });
 
   it('uses cached weather and degrades to unavailable without blocking trip or checklist flows', async () => {

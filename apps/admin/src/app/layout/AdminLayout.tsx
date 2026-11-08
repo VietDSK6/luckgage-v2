@@ -176,6 +176,8 @@ function environmentLabel(environment: string): string {
 
 function resolveRouteTitle(pathname: string): { eyebrow: string; title: string } {
   if (pathname.startsWith('/users/')) return { eyebrow: 'ACCOUNT DOSSIER', title: 'Chi tiết người dùng' };
+  if (pathname === '/packing-rules/new') return { eyebrow: 'PACKING CONTENT', title: 'Tạo quy tắc' };
+  if (pathname.startsWith('/packing-rules/')) return { eyebrow: 'PACKING CONTENT', title: 'Rule workbench' };
   return routeTitles[pathname] ?? { eyebrow: 'LUCKGAGE ADMIN', title: 'Không gian quản trị' };
 }
 

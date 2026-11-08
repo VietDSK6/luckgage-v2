@@ -213,10 +213,10 @@ client chuẩn hóa Problem Details/request ID.
 - User list/detail.
 - Suspend/reactivate.
 
-Trạng thái triển khai: hoàn thành, chờ QA. Dashboard dùng aggregate server thật; user list có
+Trạng thái triển khai: hoàn thành và đã QA. Dashboard dùng aggregate server thật; user list có
 search/filter/sort/pagination trên server và đồng bộ query vào URL. Detail chỉ trả metadata cùng
 trip/membership/session aggregate. Suspend/reactivate có confirm, CSRF, revoke session và cache
-invalidation. Packing rules, trip suggestions và trips support chưa được bắt đầu.
+invalidation.
 
 ### 4C. Packing rules
 
@@ -224,6 +224,12 @@ invalidation. Packing rules, trip suggestions và trips support chưa được b
 - Preview.
 - Publish/archive/version.
 - End-to-end mobile verification.
+
+Trạng thái triển khai: hoàn thành, chờ QA. Admin có revision ledger, structured editor song ngữ,
+sample-trip preview, dirty-state guard và confirm dialog cho publish/archive. Published rule chỉ sinh
+DRAFT version mới khi edit; publish thay revision active theo transaction. Integration test xác minh
+chuỗi admin preview → publish version mới → mobile nhận đúng `matchedRules.version` → archive →
+mobile không còn nhận rule. Phase 4D chưa bắt đầu.
 
 ### 4D. Trip suggestions/trips
 
