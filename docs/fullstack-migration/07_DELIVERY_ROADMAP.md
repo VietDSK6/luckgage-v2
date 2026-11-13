@@ -270,6 +270,9 @@ Phase 5.
 
 ## 7. Phase 5 — Hardening, deploy, rehearsal
 
+Kế hoạch triển khai và gate chi tiết: [10 — Chuẩn bị Phase 5](10_PHASE5_PREPARATION.md).
+Trạng thái hiện tại: chỉ chuẩn bị; chờ smoke test giao diện 4D/4E trước khi bắt đầu 5A.
+
 - Security checklist.
 - Performance smoke test.
 - Accessibility audit.
