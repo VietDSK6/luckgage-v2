@@ -74,7 +74,8 @@ Thứ tự ưu tiên khi có xung đột:
 8. [07 — Roadmap và quality gates](07_DELIVERY_ROADMAP.md)
 9. [08 — Quality, security và vận hành](08_QUALITY_SECURITY_OPERATIONS.md)
 10. [09 — Kịch bản demo và bảo vệ](09_DEMO_AND_DEFENSE.md)
-11. [10 — Chuẩn bị Phase 5](10_PHASE5_PREPARATION.md)
+11. [10 — Triển khai Phase 5](10_PHASE5_PREPARATION.md)
+12. [11 — Security audit local](11_LOCAL_SECURITY_AUDIT.md)
 
 ## Thứ tự triển khai đã chốt
 

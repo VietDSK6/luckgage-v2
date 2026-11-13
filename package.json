@@ -19,6 +19,7 @@
     "db:down": "docker compose down",
     "db:migrate": "npm run db:migrate --workspace @luckgage/api",
     "db:seed": "npm run db:seed --workspace @luckgage/api",
+    "perf:smoke": "node scripts/performance-smoke.mjs",
     "openapi:generate": "npm run openapi:generate --workspace @luckgage/api",
     "openapi:check": "npm run openapi:check --workspace @luckgage/api"
   },

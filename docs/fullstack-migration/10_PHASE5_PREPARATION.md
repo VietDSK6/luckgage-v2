@@ -1,9 +1,9 @@
-# 10 — Chuẩn bị Phase 5
+# 10 — Triển khai Phase 5
 
-Trạng thái ngày 2026-11-13: **chuẩn bị, chưa bắt đầu Phase 5**. Migration đã chạy trên database
-local và `luckgage_integration`; 8/8 integration tests qua. Gate 4D/4E còn smoke test giao diện
-admin/mobile trên thiết bị và trình duyệt. Không chuyển trạng thái Phase 5 trước khi ghi lại kết
-quả gate này.
+Trạng thái ngày 2026-11-13: **Phase 5 đang triển khai local**. Theo chỉ đạo của người dùng,
+smoke/QA giao diện 4D/4E do người dùng tự thực hiện; không chạy Playwright hay device QA trong
+luồng triển khai này. Migration đã chạy trên database local và `luckgage_integration`; 8/8
+integration tests qua. Bản release vẫn cần bằng chứng QA thủ công trước khi chốt gate cuối.
 
 ## 1. Khóa gate 4D/4E
 
@@ -29,7 +29,7 @@ Preflight local ngày 2026-11-13: API liveness trả 200, admin dev server chưa
 trường phù hợp rồi dọn fixture sau khi ghi bằng chứng. Không dùng số lượng dữ liệu local này làm
 bằng chứng cho performance hoặc nội dung Discover.
 
-## 2. Thứ tự triển khai Phase 5 sau gate
+## 2. Thứ tự triển khai Phase 5
 
 ### 5A — Security, accessibility và resilience
 
@@ -86,4 +86,33 @@ chứng khớp implementation.
 - Tài khoản Expo/build, application IDs Android/iOS và thiết bị mục tiêu.
 - Nơi lưu secret, backup và artifact; người có quyền deploy.
 
-Các quyết định này không chặn 5A–5B sau khi gate 4D/4E hoàn tất.
+Các quyết định này không chặn công việc local 5A–5B. QA giao diện vẫn là gate của bản release.
+
+Quyết định hiện tại: **local trước, chưa chốt hosting**. Vì vậy phần CI/build artifact có thể
+chuẩn bị, còn deploy HTTPS/staging và kiểm tra cookie/CORS với origin thật vẫn chờ lựa chọn hạ tầng.
+
+## 4. Bằng chứng triển khai local
+
+- 5A: ảnh mạng trên mobile và admin guide/suggestion có fallback alt text thay cho khung trống;
+  production hoặc remote demo seed cần `ALLOW_DEMO_SEED=true` rõ ràng. QA visual/accessibility do
+  người dùng giữ.
+- 5B: demo seed tạo một guide VI/EN liên kết suggestion, hai user và trip có checklist. Chạy hai
+  lần trên `luckgage_integration` cho cùng số lượng 3 user, 1 trip, 1 guide, 3 item. Script
+  `scripts/verify-demo-backup.sh luckgage_integration` đã dump, restore và đối chiếu 3 user,
+  1 trip, 1 guide, 5 migration; database restore tạm đã được dọn. Script từ chối database `luckgage`.
+- Database local `luckgage` đã seed ngày 2026-11-13: 1 guide published, 1 trip demo và 3 checklist
+  item của trip demo. Seed làm mới phiên của tài khoản demo chung; admin hiện có được giữ nguyên.
+- Baseline API local ngày 2026-11-13, 20 request/route: p95 trips list 15,9 ms, guides list
+  5,8 ms, suggestions list 7,7 ms, checklist 11,7 ms. Dataset local nhỏ, chưa đại diện staging
+  hay vài trăm checklist item. Một lượt riêng trên database tạm có **303 checklist item** cho
+  p95 trips list 18,5 ms, guides list 11,5 ms, suggestions list 11,1 ms và checklist 16,1 ms
+  (20 request tuần tự/route, API local port 3100). Database và API tạm đã được dọn. Đây là
+  latency HTTP local không có tải đồng thời; vẫn cần số đo staging trước release.
+- 5C: `.github/workflows/ci.yml` chạy PostgreSQL `_integration`, typecheck, lint, unit/integration
+  tests, seed hai lần, OpenAPI, API/admin build và Expo Android JS export. Workflow chưa được xác minh trên
+  GitHub Actions runner; deployment và binary release chưa cấu hình. Cả 5 migration đã áp thành
+  công từ database tạm sạch `luckgage_phase5_integration`, sau đó database tạm đã được dọn.
+- Local code checks: 14 admin, 27 API, 57 mobile tests và 8 integration tests qua; Expo Android
+  JS export, typecheck, lint, OpenAPI check và admin build qua. Đây là code/build checks, không thay
+  thế QA giao diện.
+- Security review local và các giới hạn staging: [11 — Security audit local](11_LOCAL_SECURITY_AUDIT.md).

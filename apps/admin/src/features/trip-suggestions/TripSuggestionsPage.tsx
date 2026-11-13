@@ -6,6 +6,7 @@ import { ApiError } from '@/api/ApiClient';
 import { adminTripSuggestionsApi } from '@/api/adminTripSuggestionsApi';
 import type { ContentStatus } from '@/api/types';
 import { useSessionAwareError } from '@/app/auth/useSessionAwareError';
+import { ContentImage } from '@/features/content/ContentImage';
 
 export function TripSuggestionsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -43,7 +44,7 @@ export function TripSuggestionsPage() {
         <section className="suggestion-grid" aria-label="Danh sách gợi ý chuyến đi">
           {visible.map((item) => (
             <article className="suggestion-card" key={item.id}>
-              <Link aria-label={`Mở ${item.titleVi}`} className="suggestion-card__image" to={`/trip-suggestions/${item.id}`}><img alt={item.imageAltVi} src={item.imageUrl} /></Link>
+              <Link aria-label={`Mở ${item.titleVi}`} className="suggestion-card__image" to={`/trip-suggestions/${item.id}`}><ContentImage alt={item.imageAltVi} className="suggestion-card__media" src={item.imageUrl} /></Link>
               <div className="suggestion-card__body">
                 <span className={`rule-status rule-status--${item.status.toLowerCase()}`}>{item.status === 'PUBLISHED' ? <Rocket size={14} /> : item.status === 'ARCHIVED' ? <Archive size={14} /> : <FilePenLine size={14} />}{statusLabel(item.status)}</span>
                 <p className="eyebrow">{item.destinationLabel}</p>

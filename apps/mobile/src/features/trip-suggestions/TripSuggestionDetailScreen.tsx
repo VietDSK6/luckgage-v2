@@ -1,12 +1,13 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useTripSuggestionsRepository } from '@/data/repositories/TripSuggestionsRepositoryProvider';
 import { AppButton } from '@/design/components/AppButton';
 import { AppIcon } from '@/design/components/AppIcon';
 import { AppPageHeader } from '@/design/components/AppPageHeader';
+import { RemoteImage } from '@/design/components/RemoteImage';
 import { useAppTheme } from '@/design/theme/AppThemeProvider';
 import { control, radius, spacing, typography } from '@/design/tokens';
 import { useI18n } from '@/i18n/I18nProvider';
@@ -50,7 +51,7 @@ export function TripSuggestionDetailScreen({ slug }: { slug: string }) {
       ) : suggestion && state === 'ready' ? (
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           <View style={[styles.hero, { backgroundColor: theme.colors.surface, borderColor: theme.colors.outline }]}>
-            <Image accessibilityLabel={suggestion.image.alt} source={{ uri: suggestion.image.url }} style={styles.image} />
+            <RemoteImage alt={suggestion.image.alt} style={styles.image} uri={suggestion.image.url} />
             <View style={styles.heroCopy}>
               <Text accessibilityRole="header" style={[styles.title, { color: theme.colors.ink }]}>{suggestion.title}</Text>
               <Text style={[theme.typography.body, { color: theme.colors.inkMuted }]}>{suggestion.summary}</Text>

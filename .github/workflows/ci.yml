@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: luckgage_integration
+          POSTGRES_USER: luckgage
+          POSTGRES_PASSWORD: luckgage_ci_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U luckgage -d luckgage_integration"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://luckgage:luckgage_ci_test@127.0.0.1:5432/luckgage_integration?schema=public
+      JWT_ACCESS_SECRET: ci-test-access-secret-at-least-32-characters
+      ALLOWED_ORIGINS: http://localhost:5173
+      EXPO_PUBLIC_API_BASE_URL: http://127.0.0.1:3000
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run prisma:generate --workspace @luckgage/api
+      - run: npm run db:migrate --workspace @luckgage/api
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run test
+      - run: npm run test:integration --workspace @luckgage/api
+      - run: npm run db:seed --workspace @luckgage/api
+      - run: npm run db:seed --workspace @luckgage/api
+      - run: npm run openapi:check
+      - run: npm run api:build
+      - run: npm run admin:build
+      - run: npx expo export --platform android
+        working-directory: apps/mobile

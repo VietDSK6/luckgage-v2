@@ -33,6 +33,8 @@ Nói:
 
 - Login mobile.
 - Trips Hub mới.
+- Nếu có thời gian, mở “Cẩm nang từ Luki”, lưu một bài rồi mở Trip Suggestion liên quan. CTA của
+  suggestion chỉ điền bản nháp form tạo trip; user vẫn xác nhận trước khi lưu.
 - Tạo trip Đà Nẵng.
 - Chọn date/type/activities.
 - Mở Trip command center.

@@ -24,6 +24,12 @@ To bootstrap the first local admin, set `SEED_ADMIN_EMAIL` and `SEED_ADMIN_PASSW
 ignored `apps/api/.env`, then run `npm run db:seed`. The seed creates a missing admin but never
 overwrites credentials for an existing account.
 
+The seed also creates one published bilingual guide linked to the Da Lat suggestion and an
+idempotent two-user trip with a short checklist. The demo users are `demo@luckgage.app` and
+`demo2@luckgage.app`; both use the documented classroom password `DemoLuckgage2026!`. Seeding
+with `NODE_ENV=production` or a remote database requires an explicit `ALLOW_DEMO_SEED=true` opt-in;
+do not enable this for real user data.
+
 The API listens on `http://localhost:3000` by default:
 
 - `GET /api/v1/health/live` checks the process.

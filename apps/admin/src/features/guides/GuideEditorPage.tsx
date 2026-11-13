@@ -9,6 +9,7 @@ import type { Guide, GuideInput, GuideSection } from '@/api/types';
 import { useAdminAuth } from '@/app/auth/AdminAuthProvider';
 import { useSessionAwareError } from '@/app/auth/useSessionAwareError';
 import { useUnsavedLinkGuard } from '@/app/useUnsavedLinkGuard';
+import { ContentImage } from '@/features/content/ContentImage';
 
 const blank: GuideInput = { slug: '', titleVi: '', titleEn: '', summaryVi: '', summaryEn: '', coverUrl: '', coverAltVi: '', coverAltEn: '', tags: [], sectionsVi: [], sectionsEn: [], tripSuggestionId: null, sortOrder: 0 };
 type Locale = 'vi' | 'en';
@@ -93,7 +94,7 @@ function Workbench({ initial }: { initial: Guide | null }) {
         </div>)}
         <div className="guide-add">{(['heading', 'paragraph', 'image', 'bulletList', 'callout'] as const).map((type) => <button className="button button--quiet" disabled={sections.length >= 30} key={type} onClick={() => addSection(type)} type="button"><Plus size={16} /> {sectionLabel(type)}</button>)}</div>
       </fieldset>
-    </div><aside className="guide-preview"><div className="guide-preview__bar"><h3>Xem trước bài viết</h3><span>{locale === 'vi' ? 'VI' : 'EN'}</span></div>{form.coverUrl ? <img src={form.coverUrl} alt={locale === 'vi' ? form.coverAltVi : form.coverAltEn} /> : null}<div className="guide-preview__body"><h4>{(locale === 'vi' ? form.titleVi : form.titleEn) || 'Tiêu đề bài viết'}</h4><p>{locale === 'vi' ? form.summaryVi : form.summaryEn}</p>{sections.map((section, index) => <PreviewSection key={index} section={section} />)}</div></aside></div>
+    </div><aside className="guide-preview"><div className="guide-preview__bar"><h3>Xem trước bài viết</h3><span>{locale === 'vi' ? 'VI' : 'EN'}</span></div>{form.coverUrl ? <ContentImage alt={locale === 'vi' ? form.coverAltVi : form.coverAltEn} className="guide-preview__image" src={form.coverUrl} /> : null}<div className="guide-preview__body"><h4>{(locale === 'vi' ? form.titleVi : form.titleEn) || 'Tiêu đề bài viết'}</h4><p>{locale === 'vi' ? form.summaryVi : form.summaryEn}</p>{sections.map((section, index) => <PreviewSection key={index} section={section} />)}</div></aside></div>
     <GuideDialog action={action} busy={publish.isPending || archive.isPending || remove.isPending} error={(publish.error ?? archive.error ?? remove.error)?.message ?? null} onClose={() => setAction(null)} onConfirm={confirm} />
   </div>;
 }
@@ -112,7 +113,7 @@ function GuideDialog({ action, busy, error, onClose, onConfirm }: { action: Acti
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) { return <label className="guide-field"><span>{label}</span>{children}</label>; }
 function sectionLabel(type: GuideSection['type']) { return { heading: 'Tiêu đề mục', paragraph: 'Đoạn văn', image: 'Ảnh', bulletList: 'Danh sách', callout: 'Ghi chú' }[type]; }
-function PreviewSection({ section }: { section: GuideSection }) { if (section.type === 'heading') return <h5>{section.text}</h5>; if (section.type === 'paragraph') return <p>{section.text}</p>; if (section.type === 'callout') return <blockquote>{section.text}</blockquote>; if (section.type === 'image') return <img src={section.url} alt={section.alt} />; if (section.type === 'bulletList') return <ul>{section.items.map((item, index) => <li key={index}>{item}</li>)}</ul>; return null; }
+function PreviewSection({ section }: { section: GuideSection }) { if (section.type === 'heading') return <h5>{section.text}</h5>; if (section.type === 'paragraph') return <p>{section.text}</p>; if (section.type === 'callout') return <blockquote>{section.text}</blockquote>; if (section.type === 'image') return <ContentImage alt={section.alt} className="guide-preview__section-image" src={section.url} />; if (section.type === 'bulletList') return <ul>{section.items.map((item, index) => <li key={index}>{item}</li>)}</ul>; return null; }
 function toInput(guide: Guide): GuideInput { return { slug: guide.slug, titleVi: guide.titleVi, titleEn: guide.titleEn, summaryVi: guide.summaryVi, summaryEn: guide.summaryEn, coverUrl: guide.coverUrl, coverAltVi: guide.coverAltVi, coverAltEn: guide.coverAltEn, tags: guide.tags, sectionsVi: guide.sectionsVi, sectionsEn: guide.sectionsEn, tripSuggestionId: guide.tripSuggestionId, sortOrder: guide.sortOrder }; }
 function validate(form: GuideInput): string | null {
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(form.slug) || form.slug.length > 100) return 'Kiểm tra slug: dùng chữ thường, số và dấu gạch ngang.';

@@ -3,7 +3,8 @@
 luckgage v2 combines an Expo mobile app, a self-hosted TypeScript REST API, PostgreSQL, and a React
 admin app. **Phase 1D local mobile scope, backend Phase 2A–2D, and mobile integration Phase 3A–3D
 are complete. Admin Phases 4A–4C are complete and QA-accepted. Phases 4D–4E are implemented;
-PostgreSQL integration tests pass, with manual app QA still pending.**
+PostgreSQL integration tests pass. Phase 5 local hardening is in progress; manual app QA and
+deployment are pending.**
 
 ## Sources of truth
 
@@ -48,6 +49,11 @@ npm run db:migrate
 npm run db:seed
 npm run api
 ```
+
+For the local Phase 5 checks, `npm run perf:smoke` samples authenticated read routes and
+`bash scripts/verify-demo-backup.sh luckgage_integration` verifies a backup/restore on the isolated
+integration database. The latter refuses the ordinary `luckgage` database. GitHub Actions runs
+typecheck, lint, tests, migration, OpenAPI, API/admin builds, and the Android JS export.
 
 To run the admin control desk after starting the API:
 

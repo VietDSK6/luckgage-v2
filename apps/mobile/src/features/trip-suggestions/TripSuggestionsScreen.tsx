@@ -3,7 +3,6 @@ import { useCallback, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
-  Image,
   Pressable,
   RefreshControl,
   StyleSheet,
@@ -17,6 +16,7 @@ import { AppButton } from '@/design/components/AppButton';
 import { AppIcon } from '@/design/components/AppIcon';
 import { AppPageHeader } from '@/design/components/AppPageHeader';
 import { BrandLuki } from '@/design/components/BrandLuki';
+import { RemoteImage } from '@/design/components/RemoteImage';
 import { useAppTheme } from '@/design/theme/AppThemeProvider';
 import { control, radius, spacing, typography, type AppTheme } from '@/design/tokens';
 import { useI18n } from '@/i18n/I18nProvider';
@@ -149,7 +149,7 @@ function SuggestionCard({
         pressed ? styles.pressed : null,
       ]}>
       <View style={styles.imageWrap}>
-        <Image accessibilityLabel={item.image.alt} source={{ uri: item.image.url }} style={styles.image} />
+        <RemoteImage alt={item.image.alt} style={styles.image} uri={item.image.url} />
         <View style={[styles.number, { backgroundColor: theme.colors.sun }]}>
           <Text style={[theme.typography.label, { color: theme.colors.onWarm }]}>
             {String(index + 1).padStart(2, '0')}

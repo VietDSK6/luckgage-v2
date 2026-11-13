@@ -40,6 +40,23 @@ describe('API foundation', () => {
     expect(response.body).toEqual({ status: 'up', service: 'luckgage-api' });
   });
 
+  it('sets security headers and only allows the configured browser origin', async () => {
+    const allowed = await request(app.getHttpServer())
+      .get('/api/v1/health/live')
+      .set('origin', 'http://localhost:5173')
+      .expect(200);
+    expect(allowed.headers['access-control-allow-origin']).toBe('http://localhost:5173');
+    expect(allowed.headers['access-control-allow-credentials']).toBe('true');
+    expect(allowed.headers['x-content-type-options']).toBe('nosniff');
+    expect(allowed.headers['x-frame-options']).toBe('SAMEORIGIN');
+
+    const unknown = await request(app.getHttpServer())
+      .get('/api/v1/health/live')
+      .set('origin', 'https://untrusted.example')
+      .expect(200);
+    expect(unknown.headers['access-control-allow-origin']).toBeUndefined();
+  });
+
   it('serves readiness when database migrations are healthy', async () => {
     const response = await request(app.getHttpServer()).get('/api/v1/health/ready').expect(200);
 
