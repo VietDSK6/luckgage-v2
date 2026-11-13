@@ -2,9 +2,8 @@
 
 luckgage v2 combines an Expo mobile app, a self-hosted TypeScript REST API, PostgreSQL, and a React
 admin app. **Phase 1D local mobile scope, backend Phase 2A–2D, and mobile integration Phase 3A–3D
-are complete. Admin Phases 4A–4C are complete and QA-accepted; Phase 4D trip suggestions and the
-privacy-safe trips support view are implemented and awaiting QA. Phase 4E Luki guides are implemented
-and awaiting PostgreSQL integration QA.**
+are complete. Admin Phases 4A–4C are complete and QA-accepted. Phases 4D–4E are implemented;
+PostgreSQL integration tests pass, with manual app QA still pending.**
 
 ## Sources of truth
 

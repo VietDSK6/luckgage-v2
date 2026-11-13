@@ -2,7 +2,7 @@
 
 NestJS modular-monolith API for luckgage. Backend Phase 2A–2D is implemented: infrastructure,
 Auth/Users, Trips/Memberships/Checklists, deterministic packing suggestions, published trip
-suggestions, and optional Open-Meteo weather.
+suggestions, optional Open-Meteo weather, and Phase 4E Luki guides with account-backed bookmarks.
 
 ## Local setup
 
@@ -42,8 +42,13 @@ The API listens on `http://localhost:3000` by default:
   Open-Meteo data with timeout, retry, cache, stale fallback, and a non-blocking `UNAVAILABLE`
   state.
 - `GET /api/v1/trip-suggestions[/:slug]` exposes published localized destination content.
+- `GET /api/v1/guides`, `GET /api/v1/guides/:slug`, and `GET /api/v1/guides/saved` expose
+  published localized guides; `PUT|DELETE /api/v1/guides/:slug/save` changes the current user's
+  bookmark.
 - `/api/v1/admin/packing-rules/*` and `/api/v1/admin/trip-suggestions/*` provide cookie/CSRF
   protected draft, preview, publish, and archive workflows.
+- `/api/v1/admin/guides/*` provides cookie/CSRF protected draft editing, publish, archive, and
+  permanent deletion of draft or archived guides.
 - `/openapi` serves Swagger UI.
 - `/openapi.json` serves the runtime OpenAPI document.
 
@@ -89,5 +94,6 @@ npm run openapi:check
 `apps/api/openapi/openapi.json` is the version-controlled contract artifact. Regenerate it whenever
 controllers or DTOs change.
 
-Database integration tests intentionally refuse to run unless the database name ends in
-`_integration`; they clear Auth/Users records in that isolated database.
+Database integration tests intentionally refuse to run unless `DATABASE_URL` names a database
+ending in `_integration`. Apply migrations there first. The tests clear app records in that
+isolated database.

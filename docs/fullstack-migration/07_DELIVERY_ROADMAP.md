@@ -239,20 +239,21 @@ mobile không còn nhận rule.
 
 Gate: admin publish thay đổi dữ liệu user thấy mà không sửa database thủ công.
 
-Trạng thái triển khai: hoàn thành, chờ QA. Admin có editorial list/workbench song ngữ, destination
-lookup, mobile-card preview, dirty guard và publish/archive confirmation. Mobile đọc list/detail đã
+Trạng thái triển khai: hoàn thành, integration QA đã qua; chờ kiểm tra UI thủ công. Admin có
+editorial list/workbench song ngữ, destination lookup, mobile-card preview, dirty guard và
+publish/archive confirmation. Mobile đọc list/detail đã
 publish, rồi chỉ prefill draft sau CTA rõ ràng; không tự tạo trip. Trips support dùng search,
 timeline filter và pagination server-side, chỉ trả aggregate privacy-safe. Integration test bao phủ
 admin create/publish/update → mobile đọc nội dung localized → archive làm nội dung biến mất, đồng
-thời xác minh support response không chứa note/checklist detail. Integration test cần PostgreSQL
-riêng `_integration` trước khi chốt QA.
+thời xác minh support response không chứa note/checklist detail. Integration test đã qua trên
+PostgreSQL `luckgage_integration` ngày 2026-11-13.
 
 ### 4E. Cẩm nang từ Luki
 
 - Backend: article draft/published/archived, structured sections VI/EN, liên kết tùy chọn tới
   Trip Suggestion và bookmark theo user.
-- Admin: danh sách, editor song ngữ, preview native-like, publish/archive/delete và cảnh báo khi sửa bản
-  đang xuất bản.
+- Admin: danh sách, editor song ngữ, preview native-like, publish/archive/delete và cảnh báo khi
+  sửa bản đang xuất bản.
 - Mobile: entry trong Trips Hub, danh sách/detail native, lưu/bỏ lưu và CTA tới suggestion hoặc
   form tạo trip. Không thêm tab Discover khi thư viện chưa có khoảng 12–20 bài thực.
 
@@ -262,8 +263,10 @@ sau đăng nhập lại; archive ẩn bài khỏi public API. Integration test 4
 
 Trạng thái triển khai: API, Prisma migration, admin editor và mobile list/detail/bookmark đã hoàn
 thành; typecheck, lint, unit tests, admin build, API build và Expo Android export đã qua. Đã thêm
-integration test cho publish → public detail → bookmark → archive. Gate database còn chờ chạy trên
-PostgreSQL `_integration` riêng; chưa bắt đầu Phase 5.
+integration test cho publish → public detail → bookmark sau đăng nhập lại → archive → xóa. Cả 8
+integration tests đã qua trên PostgreSQL `luckgage_integration` ngày 2026-11-13; migration cũng đã
+áp vào database local `luckgage`. Kiểm tra UI thủ công trên admin/mobile còn chờ; chưa bắt đầu
+Phase 5.
 
 ## 7. Phase 5 — Hardening, deploy, rehearsal
 
