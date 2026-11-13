@@ -127,8 +127,9 @@ denied permission and weather failure never block trip or checklist flows.
 Phase 3D removes the relational mobile schema and the temporary local trip, checklist, direct
 Open-Meteo, and packing-rule implementations. `expo-sqlite` remains only behind its key-value store
 for preferences and local reminder metadata; no trip or checklist data is written locally. The v2
-app does not carry forward the legacy QR snapshot-copy bridge: REST invite preview and confirmed
-join are the only collaboration path. On the first Phase 3D launch, obsolete scheduled reminders
+app does not carry forward the legacy QR snapshot-copy bridge. An owner can show a QR of the current
+join code; scanning it uses the same REST preview and confirmed join path as typing the code. On the
+first Phase 3D launch, obsolete scheduled reminders
 from the retired relational store are cleared once; users can then schedule them again normally.
 
 `apps/api` provides the Phase 2A NestJS foundation: validated environment configuration,

@@ -228,6 +228,9 @@ Nguyên tắc:
 
 ### 6.4. Join trip
 
+- Có hành động quét QR bằng camera; chỉ xin quyền khi người dùng chọn quét.
+- QR chỉ chứa join code, không chứa dữ liệu trip. Quét xong gọi cùng API preview như nhập mã.
+- Khi camera bị từ chối hoặc QR không hợp lệ, người dùng có thể nhập mã.
 - Input code rõ ràng, hỗ trợ paste.
 - Không tự join ngay khi nhập đủ ký tự.
 - Sau lookup hiển thị preview: trip, owner, date, destination.
@@ -307,6 +310,7 @@ Apply failure:
 - Avatar/photo nếu có; fallback initials nhất quán.
 - Owner tạo code với expiry preset đơn giản.
 - Code có copy/share và revoke.
+- Sau khi tạo code, owner thấy QR của chính code đó; revoke phải ẩn cả code lẫn QR.
 - Không hiển thị join code cũ sau khi revoke.
 - Remove member cần confirm.
 

@@ -1,7 +1,11 @@
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { CameraView, useCameraPermissions, type BarcodeScanningResult } from 'expo-camera';
+import { useEffect, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
+  AppState,
   KeyboardAvoidingView,
+  Linking,
   Platform,
   ScrollView,
   StyleSheet,
@@ -19,10 +23,13 @@ import { useMembershipRepository } from '@/data/repositories/MembershipRepositor
 import { AppButton } from '@/design/components/AppButton';
 import { AppPageHeader } from '@/design/components/AppPageHeader';
 import { useAppTheme } from '@/design/theme/AppThemeProvider';
+import { radius, spacing } from '@/design/tokens';
 import { formatCalendarDate } from '@/features/trips/domain/calendarDate';
 import { useI18n } from '@/i18n/I18nProvider';
 import type { MessageKey } from '@/i18n/messages';
 import { usePreferences } from '@/platform/preferences/PreferencesProvider';
+
+import { parseScannedInviteCode } from './inviteQr';
 
 export function JoinTripScreen() {
   const repository = useMembershipRepository();
@@ -34,6 +41,21 @@ export function JoinTripScreen() {
   const [preview, setPreview] = useState<InvitePreview | null>(null);
   const [pending, setPending] = useState<'preview' | 'join' | null>(null);
   const [error, setError] = useState<MessageKey | null>(null);
+  const [scanning, setScanning] = useState(false);
+  const [scanError, setScanError] = useState<MessageKey | null>(null);
+  const [cameraPermission, requestCameraPermission, getCameraPermission] = useCameraPermissions();
+  const scanLocked = useRef(false);
+
+  useEffect(() => {
+    if (!scanning) return;
+    const listener = AppState.addEventListener('change', (state) => {
+      if (state === 'active') void getCameraPermission().catch(() => {
+        setScanning(false);
+        setError('joinQrCameraError');
+      });
+    });
+    return () => listener.remove();
+  }, [getCameraPermission, scanning]);
 
   const goBack = () => {
     if (router.canGoBack()) router.back();
@@ -46,22 +68,53 @@ export function JoinTripScreen() {
     setError(null);
   };
 
-  const lookup = async () => {
+  const lookupCode = async (inviteCode: string) => {
     if (pending) return;
-    if (code.trim().length < 8) {
+    if (inviteCode.trim().length < 8) {
       setError('joinCodeFormatError');
       return;
     }
     setPending('preview');
     setError(null);
     try {
-      setPreview(await repository.previewInvite(code));
+      setPreview(await repository.previewInvite(inviteCode));
     } catch (lookupError) {
       setPreview(null);
       setError(inviteErrorMessage(lookupError));
     } finally {
       setPending(null);
     }
+  };
+
+  const openScanner = async () => {
+    if (pending) return;
+    setScanError(null);
+    setError(null);
+    setPreview(null);
+    scanLocked.current = false;
+    setScanning(true);
+    if (cameraPermission && !cameraPermission.granted && cameraPermission.canAskAgain) {
+      try {
+        await requestCameraPermission();
+      } catch {
+        setScanning(false);
+        setError('joinQrCameraError');
+      }
+    }
+  };
+
+  const onScanned = ({ data }: BarcodeScanningResult) => {
+    if (scanLocked.current) return;
+    scanLocked.current = true;
+    const scannedCode = parseScannedInviteCode(data);
+    if (!scannedCode) {
+      setScanError('joinQrInvalid');
+      return;
+    }
+    setScanning(false);
+    setCode(scannedCode);
+    setPreview(null);
+    void lookupCode(scannedCode);
   };
 
   const join = async () => {
@@ -90,7 +143,39 @@ export function JoinTripScreen() {
           showsVerticalScrollIndicator={false}>
           <Text style={[styles.intro, { color: theme.colors.inkMuted }]}>{t('joinIntro')}</Text>
 
-          <View
+          {scanning ? (
+            <View style={styles.scannerSection}>
+              {cameraPermission?.granted ? (
+                <CameraView
+                  accessibilityLabel={t('joinQrCameraLabel')}
+                  barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
+                  facing="back"
+                  onBarcodeScanned={onScanned}
+                  onMountError={() => { setScanning(false); setError('joinQrCameraError'); }}
+                  style={styles.camera}
+                />
+              ) : !cameraPermission ? (
+                <ActivityIndicator color={theme.colors.primary} />
+              ) : (
+                <View style={[styles.cameraState, { borderColor: theme.colors.outline }]}>
+                  <Text style={[theme.typography.body, { color: theme.colors.ink }]}>{t('joinQrPermission')}</Text>
+                  <AppButton
+                    label={cameraPermission.canAskAgain ? t('joinQrAllowCamera') : t('joinQrOpenSettings')}
+                    onPress={() => void (cameraPermission.canAskAgain ? openScanner() : Linking.openSettings())}
+                  />
+                </View>
+              )}
+              {scanError ? <Text accessibilityRole="alert" style={[styles.error, { color: theme.colors.danger }]}>{t(scanError)}</Text> : null}
+              {scanError && cameraPermission?.granted ? (
+                <AppButton label={t('joinQrRetry')} onPress={() => { scanLocked.current = false; setScanError(null); }} variant="secondary" />
+              ) : null}
+              <AppButton label={t('joinQrCancel')} onPress={() => { setScanning(false); setScanError(null); }} variant="ghost" />
+            </View>
+          ) : (
+            <AppButton disabled={pending !== null} label={t('joinQrScan')} onPress={() => void openScanner()} style={styles.scanAction} />
+          )}
+
+          {!scanning ? <View
             style={[
               styles.codePanel,
               { backgroundColor: theme.colors.surface, borderColor: theme.colors.outline },
@@ -101,6 +186,7 @@ export function JoinTripScreen() {
               accessibilityLabel={t('joinCodeLabel')}
               autoCapitalize="characters"
               autoCorrect={false}
+              editable={pending === null}
               maxLength={32}
               onChangeText={updateCode}
               placeholder="LUCK-8K4M2P7Q"
@@ -119,10 +205,10 @@ export function JoinTripScreen() {
               disabled={!code.trim() || pending !== null}
               label={t('joinPreviewAction')}
               loading={pending === 'preview'}
-              onPress={() => void lookup()}
+              onPress={() => void lookupCode(code)}
               variant="secondary"
             />
-          </View>
+          </View> : null}
 
           {error ? (
             <Text accessibilityRole="alert" style={[styles.error, { color: theme.colors.danger }]}>
@@ -227,6 +313,10 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   intro: { maxWidth: 520, fontSize: 16, lineHeight: 24 },
+  scanAction: { marginTop: spacing.x6 },
+  scannerSection: { marginTop: spacing.x6, gap: spacing.x3 },
+  camera: { width: '100%', aspectRatio: 1, borderRadius: radius.card, overflow: 'hidden' },
+  cameraState: { borderWidth: 1, borderRadius: radius.card, padding: spacing.x5, gap: spacing.x4 },
   codePanel: {
     position: 'relative',
     overflow: 'hidden',

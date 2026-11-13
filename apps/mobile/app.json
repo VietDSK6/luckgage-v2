@@ -24,6 +24,13 @@
       "expo-sqlite",
       "expo-notifications",
       "expo-secure-store",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow luckgage to scan trip invite QR codes",
+          "recordAudioAndroid": false
+        }
+      ],
       "@react-native-community/datetimepicker"
     ],
     "experiments": {

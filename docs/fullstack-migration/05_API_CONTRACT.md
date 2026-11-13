@@ -310,12 +310,16 @@ Response 201 chỉ là lần raw code được trả:
 ~~~json
 {
   "id": "uuid",
-  "code": "LUCK-8K4M",
+  "code": "LUCK-8K4M2P7Q",
   "expiresAt": "2026-11-06T09:30:00Z",
   "maxUses": 5,
   "useCount": 0
 }
 ~~~
+
+Mobile có thể render QR từ chuỗi `code` trong response này. Camera trong app chỉ nhận QR chứa
+đúng định dạng join code; sau quét, mobile gửi code qua cùng endpoint preview/join bên dưới. Không
+có endpoint, token, link mời hoặc quyền mới cho QR.
 
 ### DELETE /trips/{tripId}/invites/{inviteId}
 

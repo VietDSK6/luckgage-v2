@@ -193,6 +193,8 @@ Trạng thái triển khai: hoàn thành. Mobile chỉ còn dùng SQLite key-val
 reminder cục bộ; trip, checklist, packing suggestions và weather dùng REST API làm source of truth.
 Relational schema/adapters local và pure-local packing generator đã được xóa. QR snapshot copy được
 retire; invite preview/confirm qua API là luồng cộng tác duy nhất.
+Phase 5 bổ sung QR chỉ mã hóa join code hiện có để quét vào cùng luồng API này; không khôi phục
+QR snapshot copy.
 
 ## 6. Phase 4 — Admin web
 
@@ -265,8 +267,8 @@ Trạng thái triển khai: API, Prisma migration, admin editor và mobile list/
 thành; typecheck, lint, unit tests, admin build, API build và Expo Android export đã qua. Đã thêm
 integration test cho publish → public detail → bookmark sau đăng nhập lại → archive → xóa. Cả 8
 integration tests đã qua trên PostgreSQL `luckgage_integration` ngày 2026-11-13; migration cũng đã
-áp vào database local `luckgage`. Kiểm tra UI thủ công trên admin/mobile còn chờ; chưa bắt đầu
-Phase 5.
+áp vào database local `luckgage`. Kiểm tra UI thủ công trên admin/mobile còn chờ; Phase 5 đang
+triển khai local, chưa chốt gate release.
 
 ## 7. Phase 5 — Hardening, deploy, rehearsal
 

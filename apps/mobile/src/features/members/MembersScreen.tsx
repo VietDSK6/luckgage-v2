@@ -12,6 +12,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import QRCode from 'react-native-qrcode-svg';
 
 import {
   type TripInvite,
@@ -23,7 +24,7 @@ import { AppButton } from '@/design/components/AppButton';
 import { AppPageHeader } from '@/design/components/AppPageHeader';
 import { useAppFeedback } from '@/design/feedback/AppFeedbackProvider';
 import { useAppTheme } from '@/design/theme/AppThemeProvider';
-import type { AppTheme } from '@/design/tokens';
+import { radius, spacing, themes, type AppTheme } from '@/design/tokens';
 import type { Trip } from '@/features/trips/domain/trip';
 import { useI18n } from '@/i18n/I18nProvider';
 import { usePreferences } from '@/platform/preferences/PreferencesProvider';
@@ -271,6 +272,12 @@ export function MembersScreen({ tripId }: { tripId: string }) {
                 <Text selectable style={[styles.inviteCode, { color: theme.colors.onWarm }]}>
                   {invite.code}
                 </Text>
+                <View accessible accessibilityLabel={t('membersInviteQrLabel')} accessibilityRole="image" style={styles.inviteQr}>
+                  <QRCode value={invite.code} size={200} color={theme.colors.onWarm} backgroundColor={themes.light.colors.surface} quietZone={spacing.x3} />
+                </View>
+                <Text style={[theme.typography.bodySmall, { color: theme.colors.onWarm }]}>
+                  {t('membersInviteQrHint')}
+                </Text>
                 <Text style={[styles.inviteMeta, { color: theme.colors.onWarm }]}>
                   {t('membersInviteExpires', {
                     date: formatDateTime(invite.expiresAt, language),
@@ -449,6 +456,7 @@ const styles = StyleSheet.create({
   inviteHole: { position: 'absolute', top: 16, right: 16, width: 18, height: 18, borderRadius: 9 },
   inviteLabel: { fontSize: 10, lineHeight: 14, fontWeight: '900', letterSpacing: 1.2 },
   inviteCode: { marginTop: 8, paddingRight: 22, fontSize: 26, lineHeight: 32, fontWeight: '900', letterSpacing: 1.2 },
+  inviteQr: { alignSelf: 'center', marginVertical: spacing.x2, borderRadius: radius.panel, overflow: 'hidden' },
   inviteMeta: { fontSize: 13, lineHeight: 19, fontWeight: '700', opacity: 0.72 },
   inviteActions: { flexDirection: 'row', gap: 8 },
   inviteAction: { flex: 1 },

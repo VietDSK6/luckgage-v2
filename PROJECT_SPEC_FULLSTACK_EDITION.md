@@ -115,11 +115,13 @@ Không tạo entity “luggage” riêng chỉ để đổi tên checklist. Chec
 ### 5.3. Join trip
 
 - Owner tạo join code có hạn sử dụng.
-- User nhập code và xem preview tối thiểu: tên trip, điểm đến, ngày và owner.
+- Owner có thể hiển thị QR chứa chính join code đó; QR hết hiệu lực cùng code khi hết hạn, hết lượt
+  hoặc bị thu hồi. QR không chứa snapshot dữ liệu trip và không tạo loại invite riêng.
+- User quét QR trong app hoặc nhập code, rồi xem preview tối thiểu: tên trip, điểm đến, ngày và owner.
 - Sau xác nhận, backend thêm membership trong transaction.
 - Join cùng một trip nhiều lần không tạo membership trùng.
 - Owner có thể thu hồi code.
-- MVP không có link mời, email invite, chat, presence hoặc con trỏ realtime.
+- MVP không có link mời/deep link, email invite, chat, presence hoặc con trỏ realtime.
 
 ### 5.4. Checklist
 

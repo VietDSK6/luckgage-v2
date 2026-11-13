@@ -20,6 +20,8 @@ nhân. Ghi kết quả, ảnh màn hình và lỗi vào tài liệu QA trước 
 - [ ] Kiểm tra loading/empty/error, ảnh lỗi, font lớn, light/dark và màn hình hẹp; ghi lỗi cụ thể.
 - [ ] Smoke Phase 4D: admin publish suggestion, mobile đọc và mở form prefill; trips support chỉ
   hiển thị aggregate.
+- [ ] Owner tạo mã và cho user khác quét QR; user xem preview rồi mới xác nhận join. Kiểm tra QR
+  sai, camera bị từ chối, mã hết hạn hoặc bị thu hồi và nhập mã thủ công vẫn hoạt động.
 
 Android AVD `Pixel_7` và iOS Simulator `iPhone 17` có sẵn nhưng chưa boot tại thời điểm preflight.
 Không có bằng chứng device smoke cho 4E trong repo.
@@ -93,6 +95,9 @@ chuẩn bị, còn deploy HTTPS/staging và kiểm tra cookie/CORS với origin 
 
 ## 4. Bằng chứng triển khai local
 
+- QR tham gia chuyến đi dùng chính join code đã có: owner thấy QR sau khi tạo mã, mobile quét bằng
+  camera và gọi preview trước xác nhận. Camera chỉ xin quyền khi chọn quét; nhập mã vẫn hoạt động.
+  Typecheck, lint, test parser QR và Android JS export đã qua; device QA thuộc người dùng.
 - 5A: ảnh mạng trên mobile và admin guide/suggestion có fallback alt text thay cho khung trống;
   production hoặc remote demo seed cần `ALLOW_DEMO_SEED=true` rõ ràng. QA visual/accessibility do
   người dùng giữ.
