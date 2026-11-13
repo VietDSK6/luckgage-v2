@@ -2,8 +2,8 @@
 
 luckgage v2 combines an Expo mobile app, a self-hosted TypeScript REST API, PostgreSQL, and a React
 admin app. **Phase 1D local mobile scope, backend Phase 2A–2D, and mobile integration Phase 3A–3D
-are complete. Admin Phases 4A–4B are complete; Phase 4C packing-rule management is implemented and
-awaiting QA.**
+are complete. Admin Phases 4A–4C are complete and QA-accepted; Phase 4D trip suggestions and the
+privacy-safe trips support view are implemented and awaiting QA.**
 
 ## Sources of truth
 
@@ -101,7 +101,10 @@ icon rules, voice, reproducible prompts, and the checklist for future variants.
 
 The Trips slice includes calendar-date validation, timeline grouping, Trips Hub, three-step
 create/review, edit, detail, delete, destination lookup, and loading/refresh/offline states. Its
-remote repository maps the REST DTOs and preserves server versions for optimistic updates.
+remote repository maps the REST DTOs and preserves server versions for optimistic updates. Phase
+4D adds a localized editorial suggestions list/detail flow. Opening a suggestion never creates a
+trip; the explicit CTA only prefills an editable trip draft with destination metadata, duration,
+and trip style.
 
 The Checklist slice adds category/item relations with cascading deletion, progress,
 search, packed/unpacked filters, category and item CRUD, per-category bulk state, inline quick-add,
@@ -152,4 +155,7 @@ dashboard plus server-paginated user search/filter/detail and confirmed suspend/
 Filters are URL-backed and server data is cached/invalidation-aware through TanStack Query. Phase
 4C adds a revision ledger and a bilingual packing-rule workbench with validation, sample-trip
 preview, confirmed publish/archive, dirty-form protection, and version-aware mobile verification.
-Trip suggestions and trip support remain readiness placeholders for Phase 4D.
+Phase 4D replaces the remaining placeholders with a responsive editorial desk for bilingual trip
+suggestions, a mobile-card preview, destination metadata lookup, confirmed publish/archive, and a
+paginated trip support ledger exposing only operational aggregates rather than notes or checklist
+content.

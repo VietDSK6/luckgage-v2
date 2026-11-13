@@ -82,7 +82,7 @@ export function generatePackingPreview(
       sample.locale === ApiLocale.vi
         ? weatherStatus === WeatherStatus.UNAVAILABLE
           ? 'Gợi ý theo quy tắc; thời tiết không bắt buộc'
-          : 'Gợi ý theo quy tắc và dự báo Open‑Meteo'
+          : 'Gợi ý theo quy tắc và dự báo thời tiết'
         : weatherStatus === WeatherStatus.UNAVAILABLE
           ? 'Rule-based suggestions; weather is optional'
           : 'Rule-based suggestions with Open‑Meteo forecast',

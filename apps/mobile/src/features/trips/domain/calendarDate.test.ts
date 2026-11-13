@@ -1,6 +1,7 @@
 import {
   addCalendarDays,
   calendarDateFromLocalDate,
+  calendarDateToLocalDate,
   differenceInCalendarDays,
   parseCalendarDate,
 } from './calendarDate';
@@ -26,5 +27,6 @@ describe('calendar dates', () => {
     const localLateNight = new Date(2026, 10, 5, 23, 45);
 
     expect(calendarDateFromLocalDate(localLateNight)).toBe('2026-11-05');
+    expect(calendarDateFromLocalDate(calendarDateToLocalDate('2026-11-05'))).toBe('2026-11-05');
   });
 });

@@ -205,7 +205,7 @@ export function PackingStudioScreen({ tripId }: { tripId: string }) {
   if (state === 'success') {
     return (
       <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
-        <AppPageHeader eyebrow={t('packingEyebrow')} onBack={goBack} title={trip.name} />
+        <AppPageHeader onBack={goBack} title={trip.name} />
         <View style={styles.successState}>
           <View style={[styles.successStamp, { backgroundColor: theme.colors.primarySoft, borderColor: theme.colors.primary }]}>
             <AppIcon color={theme.colors.primary} name="check" size={50} strokeWidth={2.8} />
@@ -238,7 +238,7 @@ export function PackingStudioScreen({ tripId }: { tripId: string }) {
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.safeArea}>
-        <AppPageHeader eyebrow={t('packingEyebrow')} onBack={goBack} title={trip.name} />
+        <AppPageHeader onBack={goBack} title={trip.name} />
         <ScrollView
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
@@ -327,7 +327,6 @@ export function PackingStudioScreen({ tripId }: { tripId: string }) {
 
           {state === 'preview' && preview ? (
             <>
-              <Text style={[styles.sourceLabel, { color: theme.colors.primary }]}>{t('packingSourceLabel')}</Text>
               <Text accessibilityRole="header" style={[styles.displayTitle, { color: theme.colors.ink }]}>
                 {t('packingPreviewTitle')}
               </Text>
@@ -474,7 +473,6 @@ const styles = StyleSheet.create({
   primaryAction: { marginTop: 24 },
   stickyFooter: { borderTopWidth: 1, paddingHorizontal: 20, paddingTop: 10, paddingBottom: 8, flexDirection: 'row', gap: 8 },
   footerButton: { flex: 1, minWidth: 0, paddingHorizontal: 10 },
-  sourceLabel: { fontSize: 11, lineHeight: 16, fontWeight: '900', letterSpacing: 1.1 },
   sourceNote: { marginTop: 18, borderRadius: 16, padding: 14 },
   sourceNoteText: { fontSize: 13, lineHeight: 19, fontWeight: '800' },
   selectedCount: { marginTop: 24, fontSize: 17, lineHeight: 23, fontWeight: '900', fontVariant: ['tabular-nums'] },

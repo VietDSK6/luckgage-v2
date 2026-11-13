@@ -153,6 +153,77 @@ export type PackingPreview = {
   }>;
 };
 
+export type TripSuggestionInput = {
+  slug: string;
+  titleVi: string;
+  titleEn: string;
+  summaryVi: string;
+  summaryEn: string;
+  destinationLabel: string;
+  providerPlaceId?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  destinationTimezone?: string | null;
+  countryCode?: string | null;
+  adminArea?: string | null;
+  country?: string | null;
+  imageUrl: string;
+  imageAltVi: string;
+  imageAltEn: string;
+  tags: string[];
+  tripType?: TripType | null;
+  suggestedDurationDays: number;
+  sortOrder: number;
+};
+
+export type TripSuggestion = TripSuggestionInput & {
+  id: string;
+  status: ContentStatus;
+  publishedAt: string | null;
+  updatedAt: string;
+};
+
+export type AdminTripSupportItem = {
+  id: string;
+  name: string;
+  destinationLabel: string;
+  startDate: string;
+  endDate: string;
+  tripType: TripType;
+  timelineStatus: 'UPCOMING' | 'ACTIVE' | 'PAST';
+  ownerDisplayName: string;
+  memberCount: number;
+  checklistProgress: { packedItems: number; totalItems: number; percentage: number };
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AdminTripsPage = {
+  items: AdminTripSupportItem[];
+  page: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
+};
+
+export type AdminTripsQuery = {
+  page: number;
+  pageSize: number;
+  search?: string;
+  status?: 'UPCOMING' | 'ACTIVE' | 'PAST';
+};
+
+export type AdminLocation = {
+  id: string;
+  label: string;
+  latitude: number;
+  longitude: number;
+  timezone: string;
+  countryCode: string | null;
+  adminArea: string | null;
+  country: string | null;
+};
+
 export type AdminSession = {
   user: AdminUser;
   csrfToken: string;

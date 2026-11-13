@@ -8,10 +8,12 @@ import { AnonymousOnly, RequireAdmin } from '@/app/auth/AuthRoutes';
 import { AdminLayout } from '@/app/layout/AdminLayout';
 import { LoginPage } from '@/features/auth/LoginPage';
 import { DashboardPage } from '@/features/dashboard/DashboardPage';
-import { ModulePlaceholderPage } from '@/features/foundation/ModulePlaceholderPage';
 import { NotFoundPage } from '@/features/foundation/NotFoundPage';
 import { PackingRuleEditorPage } from '@/features/packing-rules/PackingRuleEditorPage';
 import { PackingRulesPage } from '@/features/packing-rules/PackingRulesPage';
+import { TripSuggestionEditorPage } from '@/features/trip-suggestions/TripSuggestionEditorPage';
+import { TripSuggestionsPage } from '@/features/trip-suggestions/TripSuggestionsPage';
+import { TripsSupportPage } from '@/features/trips/TripsSupportPage';
 import { UserDetailPage } from '@/features/users/UserDetailPage';
 import { UsersPage } from '@/features/users/UsersPage';
 
@@ -46,8 +48,10 @@ export function AdminApp() {
               <Route element={<PackingRulesPage />} path="/packing-rules" />
               <Route element={<PackingRuleEditorPage />} path="/packing-rules/new" />
               <Route element={<PackingRuleEditorPage />} path="/packing-rules/:ruleId" />
-              <Route element={<ModulePlaceholderPage />} path="/trip-suggestions" />
-              <Route element={<ModulePlaceholderPage />} path="/trips" />
+              <Route element={<TripSuggestionsPage />} path="/trip-suggestions" />
+              <Route element={<TripSuggestionEditorPage />} path="/trip-suggestions/new" />
+              <Route element={<TripSuggestionEditorPage />} path="/trip-suggestions/:suggestionId" />
+              <Route element={<TripsSupportPage />} path="/trips" />
             </Route>
           </Route>
           <Route element={<Navigate replace to="/dashboard" />} path="/" />

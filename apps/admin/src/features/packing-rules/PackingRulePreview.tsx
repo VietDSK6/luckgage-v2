@@ -81,10 +81,9 @@ export function PackingRulePreview({
   return (
     <aside className="rule-preview" aria-labelledby="rule-preview-title">
       <div className="rule-preview__heading">
-        <span><Beaker size={19} /></span>
-        <div><p className="eyebrow">SAFE SANDBOX</p><h3 id="rule-preview-title">Preview một chuyến đi mẫu</h3></div>
+        <span><Beaker size={18} /></span>
+        <h3 id="rule-preview-title">Xem trước theo chuyến đi mẫu</h3>
       </div>
-      <p className="rule-preview__lead">Preview chỉ đọc revision đang lưu, không ghi vào checklist thật.</p>
 
       <div className="preview-sample">
         <label><span>Loại chuyến đi</span><select onChange={(event) => update('tripType', event.target.value as TripType)} value={sample.tripType}>{tripTypeOptions.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
@@ -93,7 +92,7 @@ export function PackingRulePreview({
         <label><span>Nhiệt độ thấp (°C)</span><input inputMode="decimal" onChange={(event) => update('lowTemperatureCelsius', event.target.value)} type="number" value={sample.lowTemperatureCelsius} /></label>
         <label><span>Nhiệt độ cao (°C)</span><input inputMode="decimal" onChange={(event) => update('highTemperatureCelsius', event.target.value)} type="number" value={sample.highTemperatureCelsius} /></label>
         <label><span>Khả năng mưa (%)</span><input inputMode="numeric" max="100" min="0" onChange={(event) => update('rainChancePercent', event.target.value)} type="number" value={sample.rainChancePercent} /></label>
-        <label><span>Ngôn ngữ kết quả</span><select onChange={(event) => update('locale', event.target.value as 'vi' | 'en')} value={sample.locale}><option value="vi">Tiếng Việt</option><option value="en">English</option></select></label>
+        <label><span>Ngôn ngữ kết quả</span><select onChange={(event) => update('locale', event.target.value as 'vi' | 'en')} value={sample.locale}><option value="vi">Tiếng Việt</option><option value="en">Tiếng Anh</option></select></label>
       </div>
 
       {disabledReason ? <p className="preview-note"><CircleAlert size={16} /> {disabledReason}</p> : null}
@@ -101,17 +100,17 @@ export function PackingRulePreview({
       {preview.error ? <PreviewError error={preview.error} /> : null}
       <button className="button button--primary button--wide" disabled={Boolean(disabledReason) || preview.isPending} onClick={runPreview} type="button">
         {preview.isPending ? <RefreshCw className="spin" size={18} /> : <Beaker size={18} />}
-        {preview.isPending ? 'Đang chạy mẫu…' : 'Chạy preview'}
+        {preview.isPending ? 'Đang chạy mẫu…' : 'Chạy xem trước'}
       </button>
 
       {preview.data ? (
         <div className="preview-result" aria-live="polite">
           <header>
-            <div><p className="eyebrow">KẾT QUẢ</p><strong>{preview.data.categories.reduce((total, category) => total + category.items.length, 0)} vật dụng</strong></div>
+            <div><strong>{preview.data.categories.reduce((total, category) => total + category.items.length, 0)} vật dụng</strong></div>
             <span><CloudRain size={15} /> {weatherStatus(preview.data.weatherStatus)}</span>
           </header>
           {preview.data.categories.length === 0 ? (
-            <div className="preview-result__empty"><PackageCheck size={24} /><strong>Rule không khớp mẫu này</strong><p>Điều chỉnh điều kiện mẫu hoặc kiểm tra lại điều kiện rule.</p></div>
+            <div className="preview-result__empty"><PackageCheck size={24} /><strong>Quy tắc không khớp mẫu này</strong><p>Điều chỉnh điều kiện mẫu hoặc kiểm tra lại điều kiện áp dụng.</p></div>
           ) : preview.data.categories.map((category) => (
             <section className="preview-category" key={category.clientKey}>
               <h4>{category.name}</h4>
@@ -135,9 +134,9 @@ function PreviewError({ error }: { error: Error }) {
   const apiError = error instanceof ApiError ? error : null;
   return (
     <div className="preview-error" role="alert">
-      <strong>Preview chưa chạy được.</strong>
+      <strong>Chưa chạy được xem trước.</strong>
       <span>{apiError?.detail ?? 'Máy chủ chưa tạo được kết quả mẫu.'}</span>
-      {apiError?.requestId ? <small>Request ID: {apiError.requestId}</small> : null}
+      {apiError?.requestId ? <small>Mã yêu cầu: {apiError.requestId}</small> : null}
     </div>
   );
 }
@@ -149,5 +148,5 @@ function optionalNumber(value: string): number | undefined {
 }
 
 function weatherStatus(status: 'FRESH' | 'CACHED' | 'UNAVAILABLE'): string {
-  return { FRESH: 'Có dữ liệu thời tiết', CACHED: 'Thời tiết cache', UNAVAILABLE: 'Không dùng thời tiết' }[status];
+  return { FRESH: 'Có dữ liệu thời tiết', CACHED: 'Thời tiết lưu tạm', UNAVAILABLE: 'Không dùng thời tiết' }[status];
 }

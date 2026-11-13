@@ -648,6 +648,29 @@ Trạng thái Phase 4C:
 - POST /admin/trip-suggestions/{id}/publish
 - POST /admin/trip-suggestions/{id}/archive
 
+Trạng thái Phase 4D:
+
+- Create tạo `DRAFT`; chỉ `PUBLISHED` xuất hiện ở hai endpoint user.
+- PATCH cập nhật draft hoặc published suggestion; nếu đang published thì nội dung mới có hiệu lực
+  ngay trên mobile. UI admin cảnh báo rõ vì suggestion chưa version hóa.
+- `ARCHIVED` là read-only và PATCH trả 409; archive loại nội dung khỏi list/detail user.
+- Publish/archive và mọi write khác bắt buộc cookie ADMIN cùng `x-csrf-token`.
+- Destination metadata dùng cùng transport shape với trip prefill; ảnh chỉ nhận URL `http(s)` và alt
+  song ngữ, không nhận base64 JSON.
+
+### Trips support và destination lookup
+
+- GET /admin/trips
+- GET /admin/locations/search
+
+`GET /admin/trips` nhận `search`, `status=UPCOMING|ACTIVE|PAST`, `page`, `pageSize`; search áp dụng
+cho tên chuyến đi, điểm đến và display name của owner. Response chỉ gồm ID/name/destination/date,
+trip type/timeline status, owner display name, member count, checklist progress aggregate cùng
+created/updated time. Không trả trip note, category hoặc checklist item.
+
+`GET /admin/locations/search` dùng provider location hiện có để editorial form lấy tọa độ/timezone;
+weather/provider lỗi không làm thay đổi trip suggestion đã nhập thủ công.
+
 ### Dashboard
 
 - GET /admin/dashboard/summary

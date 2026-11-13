@@ -1,5 +1,5 @@
 import type { ApiClient } from '@/data/remote/ApiClient';
-import type { ApiTrip } from '@/data/remote/apiTypes';
+import type { ApiTrip, ApiTripSuggestion } from '@/data/remote/apiTypes';
 import { parseCalendarDate } from '@/features/trips/domain/calendarDate';
 import type { Trip } from '@/features/trips/domain/trip';
 
@@ -8,6 +8,7 @@ import {
 } from './PackingSuggestionsRepository';
 import { RemoteChecklistRepository } from './RemoteChecklistRepository';
 import { RemoteTripRepository } from './RemoteTripRepository';
+import { RemoteTripSuggestionsRepository } from './TripSuggestionsRepository';
 import { RemoteWeatherRepository } from './RemoteWeatherRepository';
 
 const apiTrip: ApiTrip = {
@@ -41,6 +42,47 @@ function clientWith(request: jest.Mock): ApiClient {
 }
 
 describe('remote mobile repositories', () => {
+  test('maps published trip suggestions and requests the selected locale', async () => {
+    const apiSuggestion: ApiTripSuggestion = {
+      id: 'suggestion-1',
+      slug: 'da-lat-slow-weekend',
+      title: 'Đà Lạt chậm rãi',
+      summary: 'Một cuối tuần giữa rừng thông.',
+      image: { url: 'https://images.example/da-lat.jpg', alt: 'Rừng thông Đà Lạt' },
+      tags: ['nghỉ dưỡng', 'cuối tuần'],
+      tripPrefill: {
+        destination: { ...apiTrip.destination, label: 'Đà Lạt, Việt Nam' },
+        tripType: 'LEISURE',
+        suggestedDurationDays: 3,
+      },
+    };
+    const request = jest
+      .fn()
+      .mockResolvedValueOnce({ items: [apiSuggestion], page: 1, pageSize: 100, total: 1 })
+      .mockResolvedValueOnce(apiSuggestion);
+    const repository = new RemoteTripSuggestionsRepository(clientWith(request));
+
+    await expect(repository.list('vi')).resolves.toEqual([
+      expect.objectContaining({
+        slug: 'da-lat-slow-weekend',
+        destination: expect.objectContaining({ label: 'Đà Lạt, Việt Nam' }),
+        tripType: 'leisure',
+        suggestedDurationDays: 3,
+      }),
+    ]);
+    await expect(repository.getBySlug('da-lat-slow-weekend', 'en')).resolves.toMatchObject({
+      id: 'suggestion-1',
+    });
+    expect(request).toHaveBeenNthCalledWith(
+      1,
+      '/trip-suggestions?locale=vi&page=1&pageSize=100',
+    );
+    expect(request).toHaveBeenNthCalledWith(
+      2,
+      '/trip-suggestions/da-lat-slow-weekend?locale=en',
+    );
+  });
+
   test('maps trip DTOs and sends the remembered optimistic version on update', async () => {
     const request = jest
       .fn()

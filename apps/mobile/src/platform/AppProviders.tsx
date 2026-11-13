@@ -7,6 +7,7 @@ import { MembershipRepositoryProvider } from '@/data/repositories/MembershipRepo
 import { PackingSuggestionsRepositoryProvider } from '@/data/repositories/PackingSuggestionsRepositoryProvider';
 import { ReminderRepositoryProvider } from '@/data/repositories/ReminderRepositoryProvider';
 import { TripRepositoryProvider } from '@/data/repositories/TripRepositoryProvider';
+import { TripSuggestionsRepositoryProvider } from '@/data/repositories/TripSuggestionsRepositoryProvider';
 import { WeatherRepositoryProvider } from '@/data/repositories/WeatherRepositoryProvider';
 import { AppFeedbackProvider } from '@/design/feedback/AppFeedbackProvider';
 import { AppThemeProvider } from '@/design/theme/AppThemeProvider';
@@ -26,15 +27,17 @@ export function AppProviders({ children }: PropsWithChildren) {
                 <ApiClientProvider>
                   <AuthProvider>
                     <TripRepositoryProvider>
-                      <MembershipRepositoryProvider>
-                        <ChecklistRepositoryProvider>
-                          <PackingSuggestionsRepositoryProvider>
-                            <WeatherRepositoryProvider>
-                              <ReminderRepositoryProvider>{children}</ReminderRepositoryProvider>
-                            </WeatherRepositoryProvider>
-                          </PackingSuggestionsRepositoryProvider>
-                        </ChecklistRepositoryProvider>
-                      </MembershipRepositoryProvider>
+                      <TripSuggestionsRepositoryProvider>
+                        <MembershipRepositoryProvider>
+                          <ChecklistRepositoryProvider>
+                            <PackingSuggestionsRepositoryProvider>
+                              <WeatherRepositoryProvider>
+                                <ReminderRepositoryProvider>{children}</ReminderRepositoryProvider>
+                              </WeatherRepositoryProvider>
+                            </PackingSuggestionsRepositoryProvider>
+                          </ChecklistRepositoryProvider>
+                        </MembershipRepositoryProvider>
+                      </TripSuggestionsRepositoryProvider>
                     </TripRepositoryProvider>
                   </AuthProvider>
                 </ApiClientProvider>

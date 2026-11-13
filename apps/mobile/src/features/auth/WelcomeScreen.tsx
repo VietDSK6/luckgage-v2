@@ -30,9 +30,6 @@ export function WelcomeScreen() {
         </View>
 
         <View style={styles.hero}>
-          <Text style={[styles.eyebrow, { color: theme.colors.primary }]}>
-            {t('authWelcomeEyebrow')}
-          </Text>
           <View style={styles.titleRow}>
             <Text
               accessibilityRole="header"
@@ -40,7 +37,6 @@ export function WelcomeScreen() {
               {t('authWelcomeTitle')}
             </Text>
             <View style={[styles.mascotStage, { backgroundColor: theme.colors.primarySoft }]}>
-              <View style={[styles.mascotSun, { backgroundColor: theme.colors.sun }]} />
               <BrandLuki width={compact ? 104 : 118} />
             </View>
           </View>
@@ -48,24 +44,13 @@ export function WelcomeScreen() {
 
           <View
             style={[
-              styles.routeCard,
+              styles.benefitCard,
               { backgroundColor: theme.colors.surface, borderColor: theme.colors.outline },
             ]}>
-            <View style={[styles.routeTrack, { backgroundColor: theme.colors.outline }]} />
             {benefits.map((benefit, index) => (
               <View key={benefit} style={styles.benefitRow}>
-                <View
-                  style={[
-                    styles.benefitIcon,
-                    {
-                      backgroundColor: index === benefits.length - 1 ? theme.colors.accent : theme.colors.primarySoft,
-                    },
-                  ]}>
-                  <AppIcon
-                    color={index === benefits.length - 1 ? theme.colors.onWarm : theme.colors.primary}
-                    name={benefitIcons[index]}
-                    size={18}
-                  />
+                <View style={[styles.benefitIcon, { backgroundColor: theme.colors.primarySoft }]}>
+                  <AppIcon color={theme.colors.primary} name={benefitIcons[index]} size={18} />
                 </View>
                 <Text style={[styles.benefitText, { color: theme.colors.ink }]}>{benefit}</Text>
               </View>
@@ -100,8 +85,7 @@ const styles = StyleSheet.create({
   },
   topBar: { minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   hero: { flex: 1, justifyContent: 'center', paddingVertical: 28 },
-  eyebrow: { fontSize: 13, lineHeight: 18, fontWeight: '700', letterSpacing: 1.4 },
-  titleRow: { marginTop: 10, flexDirection: 'row', alignItems: 'center', gap: 4 },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   title: { flex: 1, maxWidth: 520, fontSize: 40, lineHeight: 46, fontWeight: '800', letterSpacing: -1 },
   titleCompact: { fontSize: 36, lineHeight: 42 },
   mascotStage: {
@@ -110,30 +94,17 @@ const styles = StyleSheet.create({
     borderRadius: 63,
     alignItems: 'center',
     justifyContent: 'center',
-    transform: [{ rotate: '3deg' }],
   },
-  mascotSun: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-  },
-  body: { marginTop: 14, maxWidth: 500, fontSize: 18, lineHeight: 27 },
-  routeCard: {
-    position: 'relative',
-    overflow: 'hidden',
-    marginTop: 32,
-    paddingHorizontal: 20,
-    paddingVertical: 22,
+  body: { marginTop: 12, maxWidth: 500, fontSize: 17, lineHeight: 26 },
+  benefitCard: {
+    marginTop: 28,
+    padding: 16,
     borderWidth: 1,
-    borderRadius: 24,
-    gap: 18,
+    borderRadius: 20,
+    gap: 12,
   },
-  routeTrack: { position: 'absolute', top: 34, bottom: 34, left: 39, width: 2 },
-  benefitRow: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 14 },
-  benefitIcon: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center' },
-  benefitText: { flex: 1, fontSize: 16, lineHeight: 23, fontWeight: '600' },
+  benefitRow: { minHeight: 40, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  benefitIcon: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
+  benefitText: { flex: 1, fontSize: 16, lineHeight: 22, fontWeight: '600' },
   actions: { gap: 12 },
 });

@@ -290,3 +290,54 @@ export class TripsPageDto {
   @ApiProperty({ type: Number })
   totalPages!: number;
 }
+
+export class AdminTripsQueryDto {
+  @ApiPropertyOptional({ enum: TimelineStatus, enumName: 'TimelineStatus' })
+  @IsOptional()
+  @IsEnum(TimelineStatus)
+  status?: TimelineStatus;
+
+  @ApiPropertyOptional({ type: String, maxLength: 120 })
+  @IsOptional()
+  @IsString()
+  @MaxLength(120)
+  search?: string;
+
+  @ApiPropertyOptional({ type: Number, minimum: 1, default: 1 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  page = 1;
+
+  @ApiPropertyOptional({ type: Number, minimum: 1, maximum: 100, default: 20 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  pageSize = 20;
+}
+
+export class AdminTripSupportItemDto {
+  @ApiProperty({ type: String, format: 'uuid' }) id!: string;
+  @ApiProperty({ type: String }) name!: string;
+  @ApiProperty({ type: String }) destinationLabel!: string;
+  @ApiProperty({ type: String, format: 'date' }) startDate!: string;
+  @ApiProperty({ type: String, format: 'date' }) endDate!: string;
+  @ApiProperty({ enum: TripType, enumName: 'TripType' }) tripType!: TripType;
+  @ApiProperty({ enum: TimelineStatus, enumName: 'TimelineStatus' }) timelineStatus!: TimelineStatus;
+  @ApiProperty({ type: String }) ownerDisplayName!: string;
+  @ApiProperty({ type: Number }) memberCount!: number;
+  @ApiProperty({ type: () => ChecklistProgressDto }) checklistProgress!: ChecklistProgressDto;
+  @ApiProperty({ type: String, format: 'date-time' }) createdAt!: string;
+  @ApiProperty({ type: String, format: 'date-time' }) updatedAt!: string;
+}
+
+export class AdminTripsPageDto {
+  @ApiProperty({ type: () => [AdminTripSupportItemDto] }) items!: AdminTripSupportItemDto[];
+  @ApiProperty({ type: Number }) page!: number;
+  @ApiProperty({ type: Number }) pageSize!: number;
+  @ApiProperty({ type: Number }) totalItems!: number;
+  @ApiProperty({ type: Number }) totalPages!: number;
+}

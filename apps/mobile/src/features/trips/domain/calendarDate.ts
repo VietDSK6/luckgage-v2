@@ -38,6 +38,17 @@ export function calendarDateFromLocalDate(date: Date): CalendarDate {
   return `${year}-${month}-${day}` as CalendarDate;
 }
 
+export function calendarDateToLocalDate(value: string): Date {
+  const parsed = parseCalendarDate(value);
+
+  if (!parsed) {
+    return new Date();
+  }
+
+  const { year, month, day } = calendarDateParts(parsed);
+  return new Date(year, month - 1, day, 12, 0, 0, 0);
+}
+
 export function addCalendarDays(date: CalendarDate, amount: number): CalendarDate {
   const timestamp = calendarDateToUtcTimestamp(date) + amount * MILLISECONDS_PER_DAY;
   const nextDate = new Date(timestamp);

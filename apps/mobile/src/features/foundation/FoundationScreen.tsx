@@ -63,13 +63,9 @@ export function FoundationScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.content}>
           <View style={styles.headingRow}>
-            <View style={styles.headingCopy}>
-              <AppText tone="primary" variant="eyebrow">{t('settingsEyebrow')}</AppText>
-              <AppText accessibilityRole="header" variant="display">{t('settingsScreenTitle')}</AppText>
-            </View>
-            <BrandMark size={52} />
+            <AppText accessibilityRole="header" style={styles.headingTitle} variant="display">{t('settingsScreenTitle')}</AppText>
+            <BrandMark size={48} />
           </View>
-          <AppText style={styles.screenBody} tone="muted">{t('settingsScreenBody')}</AppText>
 
           <View style={[styles.profile, { backgroundColor: theme.colors.surface, borderColor: theme.colors.outline }]}>
             <View style={[styles.avatar, { backgroundColor: theme.colors.primarySoft }]}>
@@ -102,7 +98,6 @@ export function FoundationScreen() {
               </View>
               <View style={styles.aboutCopy}>
                 <AppText style={{ color: theme.colors.primary }} variant="bodyStrong">luckgage</AppText>
-                <AppText variant="bodySmall">{t('settingsAboutBody')}</AppText>
                 <AppText tone="muted" variant="caption">
                   {t('settingsVersion', { version: Constants.expoConfig?.version ?? '0.1.0' })}
                 </AppText>
@@ -151,8 +146,7 @@ const styles = StyleSheet.create({
   scrollContent: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 40 },
   content: { width: '100%', maxWidth: 640, alignSelf: 'center' },
   headingRow: { minHeight: 56, flexDirection: 'row', alignItems: 'center', gap: 16 },
-  headingCopy: { flex: 1, gap: 4 },
-  screenBody: { maxWidth: 460, marginTop: 8 },
+  headingTitle: { flex: 1 },
   profile: { minHeight: 76, marginTop: 24, borderWidth: 1, borderRadius: 20, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 12 },
   avatar: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
   profileCopy: { flex: 1, gap: 2 },

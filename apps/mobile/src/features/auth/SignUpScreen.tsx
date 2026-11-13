@@ -61,7 +61,6 @@ export function SignUpScreen() {
   return (
     <AuthFrame
       body={t('authSignUpBody')}
-      eyebrow={t('authSignUpEyebrow')}
       footer={
         <AppButton
           disabled={submitting}

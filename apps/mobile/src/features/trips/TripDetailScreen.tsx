@@ -236,7 +236,6 @@ export function TripDetailScreen({ tripId }: { tripId: string }) {
       <AppPageHeader
         actionIcon={trip.currentUserRole === 'owner' ? 'more' : undefined}
         actionLabel={trip.currentUserRole === 'owner' ? t('commonMore') : undefined}
-        eyebrow={t('tripDetailLabel')}
         onAction={trip.currentUserRole === 'owner' ? () => void openTripActions() : undefined}
         onBack={goBack}
         title={trip.name}

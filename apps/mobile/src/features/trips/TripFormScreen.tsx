@@ -1,3 +1,4 @@
+import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import {
@@ -15,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { TripRepositoryError } from '@/data/repositories/TripRepository';
 import { useTripRepository } from '@/data/repositories/TripRepositoryProvider';
+import { useTripSuggestionsRepository } from '@/data/repositories/TripSuggestionsRepositoryProvider';
 import { AppButton } from '@/design/components/AppButton';
 import { AppIcon } from '@/design/components/AppIcon';
 import { AppPageHeader } from '@/design/components/AppPageHeader';
@@ -22,11 +24,15 @@ import { useAppTheme } from '@/design/theme/AppThemeProvider';
 import type { AppTheme } from '@/design/tokens';
 import { useI18n } from '@/i18n/I18nProvider';
 import { usePreferences } from '@/platform/preferences/PreferencesProvider';
+import { suggestionToTripDraft } from '@/features/trip-suggestions/domain/tripSuggestion';
 
 import {
   addCalendarDays,
   calendarDateFromLocalDate,
+  calendarDateToLocalDate,
+  compareCalendarDates,
   formatCalendarDate,
+  parseCalendarDate,
 } from './domain/calendarDate';
 import {
   getTripDurationDays,
@@ -41,8 +47,9 @@ import { tripTypeMessageKeys } from './tripPresentation';
 
 type FormStep = 1 | 2 | 3;
 
-export function TripFormScreen({ tripId }: { tripId?: string }) {
+export function TripFormScreen({ tripId, suggestionSlug }: { tripId?: string; suggestionSlug?: string }) {
   const repository = useTripRepository();
+  const suggestionsRepository = useTripSuggestionsRepository();
   const router = useRouter();
   const { theme } = useAppTheme();
   const { t } = useI18n();
@@ -58,9 +65,10 @@ export function TripFormScreen({ tripId }: { tripId?: string }) {
   }));
   const [step, setStep] = useState<FormStep>(1);
   const [errors, setErrors] = useState<TripDraftErrors>({});
-  const [isLoading, setIsLoading] = useState(Boolean(tripId));
+  const [isLoading, setIsLoading] = useState(Boolean(tripId || suggestionSlug));
   const [isSaving, setIsSaving] = useState(false);
-  const [loadError, setLoadError] = useState<'notFound' | 'storage' | null>(null);
+  const [loadError, setLoadError] = useState<'notFound' | 'suggestionNotFound' | 'storage' | null>(null);
+  const [prefillTitle, setPrefillTitle] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<'generic' | 'conflict' | null>(null);
   const [destinationSuggestions, setDestinationSuggestions] = useState<TripDestination[]>([]);
   const [destinationSearchState, setDestinationSearchState] = useState<
@@ -131,6 +139,34 @@ export function TripFormScreen({ tripId }: { tripId?: string }) {
     };
   }, [repository, tripId]);
 
+  useEffect(() => {
+    if (tripId || !suggestionSlug) return;
+
+    let active = true;
+    suggestionsRepository
+      .getBySlug(suggestionSlug, language)
+      .then((suggestion) => {
+        if (!active) return;
+        if (!suggestion) {
+          setLoadError('suggestionNotFound');
+          return;
+        }
+        setDraft(suggestionToTripDraft(suggestion, today));
+        setPrefillTitle(suggestion.title);
+        setLoadError(null);
+      })
+      .catch(() => {
+        if (active) setLoadError('storage');
+      })
+      .finally(() => {
+        if (active) setIsLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [language, suggestionSlug, suggestionsRepository, today, tripId]);
+
   const goBack = () => {
     if (step > 1) {
       setStep((current) => (current === 3 ? 2 : 1));
@@ -149,11 +185,21 @@ export function TripFormScreen({ tripId }: { tripId?: string }) {
       setDestinationSuggestions([]);
       setDestinationSearchState('idle');
     }
-    setDraft((current) => ({
-      ...current,
-      [key]: value,
-      ...(key === 'destination' ? { destinationDetails: undefined } : {}),
-    }));
+    setDraft((current) => {
+      const next = {
+        ...current,
+        [key]: value,
+        ...(key === 'destination' ? { destinationDetails: undefined } : {}),
+      };
+      if (key === 'startDate' && typeof value === 'string') {
+        const nextStart = parseCalendarDate(value);
+        const currentEnd = parseCalendarDate(current.endDate);
+        if (nextStart && currentEnd && compareCalendarDates(nextStart, currentEnd) > 0) {
+          next.endDate = nextStart;
+        }
+      }
+      return next;
+    });
     setSaveError(null);
     setErrors((current) => {
       if (key === 'destination') {
@@ -234,7 +280,11 @@ export function TripFormScreen({ tripId }: { tripId?: string }) {
         <AppPageHeader onBack={goBack} title={screenTitle} />
         <View style={styles.centerState}>
           <Text accessibilityRole="alert" style={[styles.stateTitle, { color: theme.colors.ink }]}>
-            {loadError === 'notFound' ? t('tripNotFound') : t('tripLoadError')}
+            {loadError === 'notFound'
+              ? t('tripNotFound')
+              : loadError === 'suggestionNotFound'
+                ? t('suggestionNotFound')
+                : t('tripLoadError')}
           </Text>
           <AppButton label={t('commonBack')} onPress={goBack} variant="secondary" />
         </View>
@@ -246,7 +296,7 @@ export function TripFormScreen({ tripId }: { tripId?: string }) {
     <SafeAreaView
       edges={['top', 'right', 'bottom', 'left']}
       style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
-      <AppPageHeader eyebrow={t('tripFormStep', { current: step })} onBack={goBack} title={screenTitle} />
+      <AppPageHeader onBack={goBack} title={screenTitle} />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={8}
@@ -255,6 +305,14 @@ export function TripFormScreen({ tripId }: { tripId?: string }) {
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}>
+          {prefillTitle ? (
+            <View style={[styles.prefillNotice, { backgroundColor: theme.colors.primarySoft, borderColor: theme.colors.primary }]}>
+              <AppIcon color={theme.colors.primary} name="info" size={20} />
+              <Text style={[styles.prefillNoticeText, { color: theme.colors.primary }]}>
+                {t('suggestionPrefillNotice', { title: prefillTitle })}
+              </Text>
+            </View>
+          ) : null}
           <ProgressTrack label={t('tripFormStep', { current: step })} step={step} theme={theme} />
           {step === 1 ? (
             <WhereStep
@@ -262,6 +320,7 @@ export function TripFormScreen({ tripId }: { tripId?: string }) {
               destinationSuggestions={destinationSuggestions}
               draft={draft}
               errors={errors}
+              language={language}
               onChange={updateDraft}
               onSelectDestination={(destination) => {
                 setDraft((current) => ({
@@ -329,6 +388,7 @@ function WhereStep({
   destinationSuggestions,
   draft,
   errors,
+  language,
   onChange,
   onSelectDestination,
   theme,
@@ -337,25 +397,33 @@ function WhereStep({
   destinationSuggestions: TripDestination[];
   draft: TripDraft;
   errors: TripDraftErrors;
+  language: 'vi' | 'en';
   onChange: <Key extends keyof TripDraft>(key: Key, value: TripDraft[Key]) => void;
   onSelectDestination: (destination: TripDestination) => void;
   theme: AppTheme;
 }) {
   const { t } = useI18n();
+  const [activeDateField, setActiveDateField] = useState<'startDate' | 'endDate' | null>(null);
+
+  const handleDateChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
+    if (Platform.OS !== 'ios') {
+      setActiveDateField(null);
+    }
+    if (event.type === 'dismissed' || !selectedDate || !activeDateField) {
+      return;
+    }
+    onChange(activeDateField, calendarDateFromLocalDate(selectedDate));
+  };
+
+  const toggleDatePicker = (field: 'startDate' | 'endDate') => {
+    setActiveDateField((current) => (current === field ? null : field));
+  };
 
   return (
     <View>
       <Text accessibilityRole="header" style={[styles.stepTitle, { color: theme.colors.ink }]}>
         {t('tripFormWhereTitle')}
       </Text>
-      <Text style={[styles.stepBody, { color: theme.colors.inkMuted }]}>{t('tripFormWhereBody')}</Text>
-      <LabeledInput
-        label={t('tripNameLabel')}
-        onChangeText={(value) => onChange('name', value)}
-        placeholder={t('tripNamePlaceholder')}
-        theme={theme}
-        value={draft.name}
-      />
       <LabeledInput
         error={errors.destination ? t('tripDestinationRequired') : undefined}
         label={t('tripDestinationLabel')}
@@ -399,32 +467,86 @@ function WhereStep({
         </View>
       ) : null}
       <View style={styles.dateRow}>
-        <LabeledInput
+        <DatePickerField
+          active={activeDateField === 'startDate'}
           error={errors.startDate ? t('tripDateInvalid') : undefined}
-          keyboardType="numbers-and-punctuation"
           label={t('tripStartDateLabel')}
-          onChangeText={(value) => onChange('startDate', value)}
+          language={language}
+          onPress={() => toggleDatePicker('startDate')}
           placeholder={t('tripDatePlaceholder')}
           style={styles.dateField}
           theme={theme}
           value={draft.startDate}
         />
-        <LabeledInput
+        <DatePickerField
+          active={activeDateField === 'endDate'}
           error={errors.endDate ? t('tripDateInvalid') : undefined}
-          keyboardType="numbers-and-punctuation"
           label={t('tripEndDateLabel')}
-          onChangeText={(value) => onChange('endDate', value)}
+          language={language}
+          onPress={() => toggleDatePicker('endDate')}
           placeholder={t('tripDatePlaceholder')}
           style={styles.dateField}
           theme={theme}
           value={draft.endDate}
         />
       </View>
+      {activeDateField ? (
+        Platform.OS === 'ios' ? (
+          <View
+            style={[
+              styles.datePickerCard,
+              { backgroundColor: theme.colors.surface, borderColor: theme.colors.outline },
+            ]}>
+            <View style={[styles.datePickerHeader, { borderBottomColor: theme.colors.outline }]}>
+              <Text style={[styles.datePickerTitle, { color: theme.colors.ink }]}>
+                {activeDateField === 'startDate' ? t('tripStartDateLabel') : t('tripEndDateLabel')}
+              </Text>
+              <Pressable
+                accessibilityRole="button"
+                hitSlop={8}
+                onPress={() => setActiveDateField(null)}>
+                <Text style={[styles.datePickerClose, { color: theme.colors.primary }]}>
+                  {t('commonClose')}
+                </Text>
+              </Pressable>
+            </View>
+            <DateTimePicker
+              accentColor={theme.colors.primary}
+              display="inline"
+              locale={language === 'vi' ? 'vi-VN' : 'en-US'}
+              minimumDate={
+                activeDateField === 'endDate' ? calendarDateToLocalDate(draft.startDate) : undefined
+              }
+              mode="date"
+              onChange={handleDateChange}
+              themeVariant={theme.colorScheme}
+              value={calendarDateToLocalDate(draft[activeDateField])}
+            />
+          </View>
+        ) : (
+          <DateTimePicker
+            display="default"
+            minimumDate={
+              activeDateField === 'endDate' ? calendarDateToLocalDate(draft.startDate) : undefined
+            }
+            mode="date"
+            onChange={handleDateChange}
+            value={calendarDateToLocalDate(draft[activeDateField])}
+          />
+        )
+      ) : null}
       {errors.dateRange ? (
         <Text accessibilityRole="alert" style={[styles.fieldError, { color: theme.colors.danger }]}>
           {t('tripDateReversed')}
         </Text>
       ) : null}
+      <LabeledInput
+        label={t('tripNameLabel')}
+        onChangeText={(value) => onChange('name', value)}
+        placeholder={t('tripNamePlaceholder')}
+        theme={theme}
+        value={draft.name}
+      />
     </View>
   );
 }
@@ -446,8 +568,7 @@ function StyleStep({
         {t('tripFormStyleTitle')}
       </Text>
       <Text style={[styles.stepBody, { color: theme.colors.inkMuted }]}>{t('tripFormStyleBody')}</Text>
-      <Text style={[styles.inputLabel, { color: theme.colors.ink }]}>{t('tripTypeLabel')}</Text>
-      <View style={styles.chips}>
+      <View accessibilityLabel={t('tripTypeLabel')} style={styles.chips}>
         {tripTypes.map((tripType) => {
           const selected = draft.tripType === tripType;
           return (
@@ -511,7 +632,6 @@ function ReviewStep({
       </Text>
       <Text style={[styles.stepBody, { color: theme.colors.inkMuted }]}>{t('tripFormReviewBody')}</Text>
       <View style={[styles.reviewTag, { backgroundColor: theme.colors.surface, borderColor: theme.colors.outline }]}>
-        <View style={[styles.reviewHole, { backgroundColor: theme.colors.background, borderColor: theme.colors.sun }]} />
         <Text style={[styles.reviewDestination, { color: theme.colors.ink }]}>
           {validation.value.destination}
         </Text>
@@ -552,6 +672,69 @@ function ReviewRow({ label, theme, value }: { label: string; theme: AppTheme; va
     <View style={styles.reviewRow}>
       <Text style={[styles.reviewLabel, { color: theme.colors.inkMuted }]}>{label}</Text>
       <Text style={[styles.reviewValue, { color: theme.colors.ink }]}>{value}</Text>
+    </View>
+  );
+}
+
+function DatePickerField({
+  active,
+  error,
+  label,
+  language,
+  onPress,
+  placeholder,
+  style,
+  theme,
+  value,
+}: {
+  active: boolean;
+  error?: string;
+  label: string;
+  language: 'vi' | 'en';
+  onPress: () => void;
+  placeholder: string;
+  style?: object;
+  theme: AppTheme;
+  value: string;
+}) {
+  const parsed = parseCalendarDate(value);
+  const displayValue = parsed ? formatCalendarDate(parsed, language) : value || placeholder;
+
+  return (
+    <View style={[styles.inputGroup, style]}>
+      <Text style={[styles.inputLabel, { color: theme.colors.ink }]}>{label}</Text>
+      <Pressable
+        accessibilityLabel={label}
+        accessibilityRole="button"
+        accessibilityState={{ expanded: active }}
+        onPress={onPress}
+        style={({ pressed }) => [
+          styles.dateButton,
+          {
+            backgroundColor: theme.colors.surface,
+            borderColor: error
+              ? theme.colors.danger
+              : active
+                ? theme.colors.primary
+                : theme.colors.outlineStrong,
+          },
+          pressed ? styles.pressed : null,
+        ]}>
+        <AppIcon color={theme.colors.primary} name="calendar" size={18} />
+        <Text
+          numberOfLines={1}
+          style={[
+            styles.dateButtonText,
+            { color: parsed ? theme.colors.ink : theme.colors.inkMuted },
+          ]}>
+          {displayValue}
+        </Text>
+      </Pressable>
+      {error ? (
+        <Text accessibilityRole="alert" style={[styles.fieldError, { color: theme.colors.danger }]}>
+          {error}
+        </Text>
+      ) : null}
     </View>
   );
 }
@@ -612,6 +795,8 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1 },
   keyboardView: { flex: 1 },
   content: { width: '100%', maxWidth: 620, alignSelf: 'center', paddingHorizontal: 20, paddingBottom: 32 },
+  prefillNotice: { marginTop: 8, marginBottom: 16, borderWidth: 1, borderRadius: 16, padding: 14, flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
+  prefillNoticeText: { minWidth: 0, flex: 1, fontSize: 13, lineHeight: 19, fontWeight: '700' },
   progressTrack: { flexDirection: 'row', gap: 6, marginTop: 8, marginBottom: 32 },
   progressSegment: { flex: 1, height: 4, borderRadius: 2 },
   stepTitle: { fontSize: 30, lineHeight: 37, fontWeight: '800', letterSpacing: -0.5 },
@@ -627,13 +812,46 @@ const styles = StyleSheet.create({
   destinationSuggestionMeta: { marginTop: 2, fontSize: 12, lineHeight: 17, fontWeight: '600' },
   dateRow: { flexDirection: 'row', gap: 12 },
   dateField: { flex: 1 },
+  dateButton: {
+    minHeight: 52,
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  dateButtonText: {
+    flex: 1,
+    fontSize: 15,
+    lineHeight: 21,
+    fontWeight: '600',
+    fontVariant: ['tabular-nums'],
+  },
+  datePickerCard: {
+    marginTop: 12,
+    borderWidth: 1,
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingBottom: 8,
+    overflow: 'hidden',
+  },
+  datePickerHeader: {
+    minHeight: 44,
+    paddingHorizontal: 4,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  datePickerTitle: { fontSize: 14, lineHeight: 20, fontWeight: '800' },
+  datePickerClose: { fontSize: 14, lineHeight: 20, fontWeight: '800' },
   fieldError: { fontSize: 13, lineHeight: 19, fontWeight: '600' },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10 },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 24 },
   chip: { minHeight: 48, borderWidth: 1, borderRadius: 24, paddingHorizontal: 16, flexDirection: 'row', gap: 6, alignItems: 'center', justifyContent: 'center' },
   chipText: { fontSize: 14, lineHeight: 20, fontWeight: '700' },
-  reviewTag: { position: 'relative', overflow: 'hidden', marginTop: 28, borderWidth: 1, borderRadius: 28, padding: 24 },
-  reviewHole: { position: 'absolute', top: 20, right: 20, width: 18, height: 18, borderRadius: 9, borderWidth: 5 },
-  reviewDestination: { paddingRight: 30, fontSize: 30, lineHeight: 37, fontWeight: '800' },
+  reviewTag: { marginTop: 28, borderWidth: 1, borderRadius: 20, padding: 20 },
+  reviewDestination: { fontSize: 26, lineHeight: 32, fontWeight: '800' },
   reviewName: { marginTop: 4, fontSize: 16, lineHeight: 22 },
   reviewDivider: { height: 1, marginVertical: 22 },
   reviewRow: { marginBottom: 16, gap: 3 },

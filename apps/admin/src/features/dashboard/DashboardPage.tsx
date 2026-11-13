@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import {
+  ArrowRight,
   BookOpenCheck,
   CalendarCheck2,
   CircleAlert,
-  CircleCheck,
   ListChecks,
   MapPinned,
   RefreshCw,
@@ -41,86 +41,90 @@ export function DashboardPage() {
     <div className="dashboard-page">
       <section className="dashboard-intro" aria-labelledby="dashboard-title">
         <div>
-          <p className="eyebrow">NHỊP VẬN HÀNH</p>
-          <h2 id="dashboard-title">Một lượt nhìn.<br />Đủ để điều phối.</h2>
+          <h2 id="dashboard-title">Tổng quan hệ thống</h2>
+          <p className="dashboard-timestamp">
+            Cập nhật <time dateTime={data.generatedAt}>{formatDateTime(data.generatedAt)}</time>
+          </p>
         </div>
-        <div className="dashboard-freshness">
-          <span><CircleCheck aria-hidden="true" size={17} /> Dữ liệu trực tiếp từ server</span>
-          <time dateTime={data.generatedAt}>Cập nhật {formatDateTime(data.generatedAt)}</time>
-          <button
-            aria-label="Làm mới dashboard"
-            className="button button--quiet"
-            disabled={summary.isFetching}
-            onClick={() => void summary.refetch()}
-            type="button">
-            <RefreshCw className={summary.isFetching ? 'spin' : undefined} size={17} />
-            Làm mới
-          </button>
-        </div>
+        <button
+          aria-label="Làm mới dashboard"
+          className="button button--quiet"
+          disabled={summary.isFetching}
+          onClick={() => void summary.refetch()}
+          type="button">
+          <RefreshCw className={summary.isFetching ? 'spin' : undefined} size={16} />
+          Làm mới
+        </button>
       </section>
 
-      <section className="dashboard-ledger" aria-label="Chỉ số vận hành">
-        <div className="ledger-lead">
-          <span className="ledger-lead__index">01</span>
-          <div>
-            <p>TÀI KHOẢN</p>
-            <strong>{data.totalUsers.toLocaleString('vi-VN')}</strong>
-            <span>người dùng trong hệ thống</span>
-          </div>
-          <UsersRound aria-hidden="true" size={30} />
-        </div>
-        <div className="ledger-details">
-          <MetricLine icon={UserRoundCheck} label="Đang hoạt động" value={data.activeUsers} />
-          <MetricLine icon={UserRoundX} label="Đang tạm khóa" value={data.suspendedUsers} tone="danger" />
-          <Link className="ledger-link" to="/users">Quản lý người dùng <Route size={17} /></Link>
-        </div>
-      </section>
-
-      <section className="operations-grid" aria-label="Chuyến đi và nội dung">
-        <div className="operations-section">
-          <div className="operations-section__heading">
-            <span>02</span>
-            <div><p className="eyebrow">CHUYẾN ĐI</p><h3>Hoạt động hôm nay</h3></div>
-          </div>
+      <section className="dashboard-grid" aria-label="Chỉ số hệ thống">
+        <article className="dashboard-card">
+          <header className="dashboard-card__header">
+            <div>
+              <h3>Người dùng</h3>
+              <strong>{data.totalUsers.toLocaleString('vi-VN')}</strong>
+            </div>
+            <span className="dashboard-card__icon" aria-hidden="true">
+              <UsersRound size={20} />
+            </span>
+          </header>
           <dl className="operations-list">
-            <MetricDefinition icon={MapPinned} label="Tổng chuyến đi" value={data.totalTrips} />
-            <MetricDefinition icon={CalendarCheck2} label="Đang diễn ra" value={data.activeTrips} />
-            <MetricDefinition icon={Route} label="Lượt tham gia 7 ngày" value={data.joinsLast7Days} />
+            <MetricDefinition icon={UserRoundCheck} label="Đang hoạt động" value={data.activeUsers} />
+            <MetricDefinition
+              icon={UserRoundX}
+              label="Đang tạm khóa"
+              tone={data.suspendedUsers > 0 ? 'danger' : undefined}
+              value={data.suspendedUsers}
+            />
           </dl>
-        </div>
+          <Link className="dashboard-card__link" to="/users">
+            Quản lý người dùng <ArrowRight size={16} />
+          </Link>
+        </article>
 
-        <div className="operations-section operations-section--ink">
-          <div className="operations-section__heading">
-            <span>03</span>
-            <div><p className="eyebrow eyebrow--light">NỘI DUNG ĐÃ XUẤT BẢN</p><h3>Sẵn sàng cho mobile</h3></div>
-          </div>
+        <article className="dashboard-card">
+          <header className="dashboard-card__header">
+            <div>
+              <h3>Chuyến đi</h3>
+              <strong>{data.totalTrips.toLocaleString('vi-VN')}</strong>
+            </div>
+            <span className="dashboard-card__icon" aria-hidden="true">
+              <MapPinned size={20} />
+            </span>
+          </header>
           <dl className="operations-list">
-            <MetricDefinition icon={ListChecks} label="Bộ quy tắc hành lý" value={data.publishedPackingRules} />
+            <MetricDefinition icon={CalendarCheck2} label="Đang diễn ra" value={data.activeTrips} />
+            <MetricDefinition icon={Route} label="Tham gia 7 ngày qua" value={data.joinsLast7Days} />
+          </dl>
+          <Link className="dashboard-card__link" to="/trips">
+            Xem chuyến đi <ArrowRight size={16} />
+          </Link>
+        </article>
+
+        <article className="dashboard-card">
+          <header className="dashboard-card__header">
+            <div>
+              <h3>Nội dung đã xuất bản</h3>
+              <strong>{(data.publishedPackingRules + data.publishedTripSuggestions).toLocaleString('vi-VN')}</strong>
+            </div>
+            <span className="dashboard-card__icon" aria-hidden="true">
+              <ListChecks size={20} />
+            </span>
+          </header>
+          <dl className="operations-list">
+            <MetricDefinition icon={ListChecks} label="Quy tắc hành lý" value={data.publishedPackingRules} />
             <MetricDefinition icon={BookOpenCheck} label="Gợi ý chuyến đi" value={data.publishedTripSuggestions} />
           </dl>
-          <p className="operations-note">Nội dung draft không được tính vào số liệu này.</p>
-        </div>
+          <div className="dashboard-card__links">
+            <Link className="dashboard-card__link" to="/packing-rules">
+              Quy tắc hành lý <ArrowRight size={16} />
+            </Link>
+            <Link className="dashboard-card__link" to="/trip-suggestions">
+              Gợi ý chuyến đi <ArrowRight size={16} />
+            </Link>
+          </div>
+        </article>
       </section>
-    </div>
-  );
-}
-
-function MetricLine({
-  icon: Icon,
-  label,
-  tone,
-  value,
-}: {
-  icon: typeof UserRoundCheck;
-  label: string;
-  tone?: 'danger';
-  value: number;
-}) {
-  return (
-    <div className={`metric-line${tone ? ` metric-line--${tone}` : ''}`}>
-      <Icon aria-hidden="true" size={20} />
-      <span>{label}</span>
-      <strong>{value.toLocaleString('vi-VN')}</strong>
     </div>
   );
 }
@@ -128,15 +132,17 @@ function MetricLine({
 function MetricDefinition({
   icon: Icon,
   label,
+  tone,
   value,
 }: {
   icon: typeof MapPinned;
   label: string;
+  tone?: 'danger' | undefined;
   value: number;
 }) {
   return (
-    <div>
-      <dt><Icon aria-hidden="true" size={18} /> {label}</dt>
+    <div className={tone ? `metric-row metric-row--${tone}` : 'metric-row'}>
+      <dt><Icon aria-hidden="true" size={16} /> {label}</dt>
       <dd>{value.toLocaleString('vi-VN')}</dd>
     </div>
   );
@@ -146,8 +152,11 @@ function DashboardSkeleton() {
   return (
     <div aria-label="Đang tải dashboard" className="dashboard-skeleton" role="status">
       <span className="skeleton skeleton--title" />
-      <span className="skeleton skeleton--ledger" />
-      <div><span className="skeleton" /><span className="skeleton" /></div>
+      <div className="dashboard-grid">
+        <span className="skeleton skeleton--ledger" />
+        <span className="skeleton skeleton--ledger" />
+        <span className="skeleton skeleton--ledger" />
+      </div>
     </div>
   );
 }
@@ -164,13 +173,12 @@ function DashboardError({
   const apiError = error instanceof ApiError ? error : null;
   return (
     <section className="data-error" aria-labelledby="dashboard-error-title">
-      <CircleAlert aria-hidden="true" size={30} />
-      <p className="eyebrow">DASHBOARD TẠM GIÁN ĐOẠN</p>
-      <h2 id="dashboard-error-title">Chưa đọc được nhịp vận hành</h2>
-      <p>{apiError?.detail ?? 'Máy chủ chưa trả được dữ liệu dashboard. Hãy thử lại.'}</p>
+      <CircleAlert aria-hidden="true" size={28} />
+      <h2 id="dashboard-error-title">Chưa tải được dữ liệu tổng quan</h2>
+      <p>{apiError?.detail ?? 'Kiểm tra kết nối rồi thử lại.'}</p>
       {apiError?.requestId ? <small>Request ID: {apiError.requestId}</small> : null}
       <button className="button button--primary" disabled={isRetrying} onClick={onRetry} type="button">
-        <RefreshCw size={18} /> {isRetrying ? 'Đang tải lại…' : 'Tải lại dashboard'}
+        <RefreshCw size={16} /> {isRetrying ? 'Đang tải lại…' : 'Tải lại'}
       </button>
     </section>
   );

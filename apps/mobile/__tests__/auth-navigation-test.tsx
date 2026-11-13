@@ -39,8 +39,8 @@ describe('authentication navigation', () => {
     const user = userEvent.setup();
     await renderRouter(routes, { initialUrl: '/welcome' });
 
-    await user.press(await screen.findByRole('button', { name: 'Bắt đầu với luckgage' }));
-    expect(await screen.findByText('Tạo chỗ cho chuyến đi mới')).toBeTruthy();
+    await user.press(await screen.findByRole('button', { name: 'Bắt đầu' }));
+    expect(await screen.findByRole('header', { name: 'Tạo tài khoản' })).toBeTruthy();
 
     await user.press(screen.getByRole('button', { name: 'Tạo tài khoản' }));
 

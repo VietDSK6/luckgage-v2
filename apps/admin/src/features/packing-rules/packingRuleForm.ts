@@ -110,13 +110,13 @@ export function packingRuleToForm(rule: PackingRule): PackingRuleFormState {
 export function validatePackingRuleForm(form: PackingRuleFormState): PackingRuleFormErrors {
   const errors: PackingRuleFormErrors = {};
   if (!/^[a-z0-9-]{1,80}$/.test(form.key.trim())) {
-    errors.key = 'Key dùng 1–80 ký tự thường, số hoặc dấu gạch ngang.';
+    errors.key = 'Mã quy tắc dùng 1–80 ký tự thường, số hoặc dấu gạch ngang.';
   }
   if (!withinLength(form.name, 1, 120)) errors.name = 'Tên quy tắc cần từ 1 đến 120 ký tự.';
 
   const priority = parseInteger(form.priority);
   if (priority === null || priority < 0 || priority > 10_000) {
-    errors.priority = 'Priority cần là số nguyên từ 0 đến 10.000.';
+    errors.priority = 'Độ ưu tiên cần là số nguyên từ 0 đến 10.000.';
   }
 
   validateOptionalRange(errors, 'minDays', form.minDays, 1, Number.MAX_SAFE_INTEGER, true);
@@ -124,7 +124,7 @@ export function validatePackingRuleForm(form: PackingRuleFormState): PackingRule
   validateOptionalNumber(errors, 'minTempC', form.minTempC);
   validateOptionalNumber(errors, 'maxTempC', form.maxTempC);
   validateOptionalRange(errors, 'minRainPercent', form.minRainPercent, 0, 100, true);
-  if (form.activityKey.trim().length > 60) errors.activityKey = 'Activity key tối đa 60 ký tự.';
+  if (form.activityKey.trim().length > 60) errors.activityKey = 'Mã hoạt động tối đa 60 ký tự.';
 
   const minDays = parseOptionalNumber(form.minDays);
   const maxDays = parseOptionalNumber(form.maxDays);
@@ -145,8 +145,8 @@ export function validatePackingRuleForm(form: PackingRuleFormState): PackingRule
   const itemKeys = new Set<string>();
   form.items.forEach((item, index) => {
     const prefix = `items.${index}`;
-    validateStableKey(errors, `${prefix}.categoryKey`, item.categoryKey, 80, 'Category key');
-    validateStableKey(errors, `${prefix}.itemKey`, item.itemKey, 100, 'Item key');
+    validateStableKey(errors, `${prefix}.categoryKey`, item.categoryKey, 80, 'Mã nhóm');
+    validateStableKey(errors, `${prefix}.itemKey`, item.itemKey, 100, 'Mã vật dụng');
     validateText(errors, `${prefix}.categoryNameVi`, item.categoryNameVi, 80, 'Tên nhóm tiếng Việt');
     validateText(errors, `${prefix}.categoryNameEn`, item.categoryNameEn, 80, 'Tên nhóm tiếng Anh');
     validateText(errors, `${prefix}.itemNameVi`, item.itemNameVi, 120, 'Tên vật dụng tiếng Việt');
@@ -160,7 +160,7 @@ export function validatePackingRuleForm(form: PackingRuleFormState): PackingRule
 
     const combinedKey = `${item.categoryKey.trim()}:${item.itemKey.trim()}`;
     if (itemKeys.has(combinedKey)) {
-      errors[`${prefix}.itemKey`] = 'Category key và item key không được trùng trong cùng quy tắc.';
+      errors[`${prefix}.itemKey`] = 'Mã nhóm và mã vật dụng không được trùng trong cùng quy tắc.';
     }
     itemKeys.add(combinedKey);
   });

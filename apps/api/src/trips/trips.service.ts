@@ -10,8 +10,10 @@ import {
 import { PrismaService } from '../database/prisma.service.js';
 import { TripMemberRole } from '../generated/prisma/enums.js';
 import { MembershipsService, tripNotFound } from '../memberships/memberships.service.js';
-import { toTripDetail, toTripListItem } from './trip-presentation.js';
+import { getTimelineStatus, toTripDetail, toTripListItem } from './trip-presentation.js';
 import type {
+  AdminTripsPageDto,
+  AdminTripsQueryDto,
   ChecklistProgressDto,
   CreateTripDto,
   MemberPreviewDto,
@@ -76,6 +78,78 @@ export class TripsService {
           today,
         ),
       ),
+      page: query.page,
+      pageSize: query.pageSize,
+      totalItems,
+      totalPages: Math.ceil(totalItems / query.pageSize),
+    };
+  }
+
+  async listAdmin(query: AdminTripsQueryDto): Promise<AdminTripsPageDto> {
+    const today = currentUtcCalendarDate();
+    const calendarFilter = buildTimelineFilter(query.status, calendarDateToDate(today));
+    const search = query.search?.trim();
+    const where = {
+      ...calendarFilter,
+      ...(search
+        ? {
+            OR: [
+              { name: { contains: search, mode: 'insensitive' as const } },
+              { destinationLabel: { contains: search, mode: 'insensitive' as const } },
+              {
+                members: {
+                  some: {
+                    role: TripMemberRole.OWNER,
+                    removedAt: null,
+                    user: { displayName: { contains: search, mode: 'insensitive' as const } },
+                  },
+                },
+              },
+            ],
+          }
+        : {}),
+    };
+    const [trips, totalItems] = await this.prisma.$transaction([
+      this.prisma.trip.findMany({
+        where,
+        orderBy: [{ updatedAt: 'desc' }, { createdAt: 'desc' }],
+        skip: (query.page - 1) * query.pageSize,
+        take: query.pageSize,
+        include: {
+          members: {
+            where: { removedAt: null },
+            select: {
+              role: true,
+              user: { select: { displayName: true } },
+            },
+          },
+        },
+      }),
+      this.prisma.trip.count({ where }),
+    ]);
+    const progress = await this.getProgressByTripIds(trips.map((trip) => trip.id));
+    return {
+      items: trips.map((trip) => {
+        const startDate = dateToCalendarDate(trip.startDate);
+        const endDate = dateToCalendarDate(trip.endDate);
+        return {
+          id: trip.id,
+          name: trip.name,
+          destinationLabel: trip.destinationLabel,
+          startDate,
+          endDate,
+          tripType: trip.tripType,
+          timelineStatus: getTimelineStatus(startDate, endDate, today),
+          ownerDisplayName:
+            trip.members.find((member) => member.role === TripMemberRole.OWNER)?.user.displayName ??
+            'Unknown owner',
+          memberCount: trip.members.length,
+          checklistProgress:
+            progress.get(trip.id) ?? calculateChecklistProgress(0, 0),
+          createdAt: trip.createdAt.toISOString(),
+          updatedAt: trip.updatedAt.toISOString(),
+        };
+      }),
       page: query.page,
       pageSize: query.pageSize,
       totalItems,

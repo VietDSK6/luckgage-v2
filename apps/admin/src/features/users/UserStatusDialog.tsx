@@ -37,7 +37,7 @@ export function UserStatusDialog({ busy, error, onClose, onConfirm, open, user }
       onClose={onClose}
       ref={dialogRef}>
       <div className={`status-dialog__mark${suspending ? ' status-dialog__mark--danger' : ''}`}>
-        {suspending ? <ShieldAlert size={26} /> : <CircleCheck size={26} />}
+        {suspending ? <ShieldAlert size={22} /> : <CircleCheck size={22} />}
       </div>
       <button
         aria-label="Đóng xác nhận"
@@ -45,16 +45,15 @@ export function UserStatusDialog({ busy, error, onClose, onConfirm, open, user }
         disabled={busy}
         onClick={() => dialogRef.current?.close()}
         type="button">
-        <X size={20} />
+        <X size={18} />
       </button>
-      <p className="eyebrow">XÁC NHẬN TRẠNG THÁI</p>
       <h2 id="status-dialog-title">
         {suspending ? 'Tạm khóa tài khoản này?' : 'Mở lại tài khoản này?'}
       </h2>
       <p id="status-dialog-description">
         {suspending
-          ? `${user.displayName} sẽ bị đăng xuất khỏi mọi phiên và không thể đăng nhập cho tới khi được mở lại. Dữ liệu chuyến đi vẫn được giữ nguyên.`
-          : `${user.displayName} có thể đăng nhập và tiếp tục dùng các chuyến đi hiện có sau khi được mở lại.`}
+          ? `${user.displayName} sẽ bị đăng xuất khỏi mọi phiên. Dữ liệu chuyến đi vẫn giữ nguyên.`
+          : `${user.displayName} có thể đăng nhập trở lại ngay sau khi mở khóa.`}
       </p>
       <div className="status-dialog__user">
         <strong>{user.displayName}</strong>
@@ -73,14 +72,14 @@ export function UserStatusDialog({ busy, error, onClose, onConfirm, open, user }
           disabled={busy}
           onClick={() => dialogRef.current?.close()}
           type="button">
-          Giữ nguyên trạng thái
+          Hủy
         </button>
         <button
           className={`button ${suspending ? 'button--danger' : 'button--primary'}`}
           disabled={busy}
           onClick={() => onConfirm(nextStatus)}
           type="button">
-          {suspending ? <UserRoundX size={18} /> : <UserRoundCheck size={18} />}
+          {suspending ? <UserRoundX size={16} /> : <UserRoundCheck size={16} />}
           {busy ? 'Đang cập nhật…' : suspending ? 'Tạm khóa tài khoản' : 'Mở lại tài khoản'}
         </button>
       </div>

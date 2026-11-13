@@ -15,7 +15,7 @@ import { AppButton } from '@/design/components/AppButton';
 import { AppIcon } from '@/design/components/AppIcon';
 import { BrandLuki, BrandMark } from '@/design/components/BrandLuki';
 import { useAppTheme } from '@/design/theme/AppThemeProvider';
-import type { AppTheme } from '@/design/tokens';
+import { radius, spacing, typography, type AppTheme } from '@/design/tokens';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { useI18n } from '@/i18n/I18nProvider';
 import { usePreferences } from '@/platform/preferences/PreferencesProvider';
@@ -124,6 +124,7 @@ export function TripsHubScreen() {
           !isLoading && trips.length === 0 && !hasError ? (
             <EmptyJourney
               onCreate={() => router.push('/trip/new')}
+              onExplore={() => router.push('/trip/suggestions')}
               onJoin={() => router.push('/trip/join')}
               theme={theme}
             />
@@ -133,15 +134,11 @@ export function TripsHubScreen() {
           <View>
             <View style={styles.topRow}>
               <View style={styles.headingBlock}>
-                <Text style={[styles.eyebrow, { color: theme.colors.primary }]}>{t('tripsEyebrow')}</Text>
                 <Text style={[styles.greeting, { color: theme.colors.inkMuted }]}>
                   {t('tripsGreeting', { name: user?.displayName.split(/\s+/)[0] ?? 'traveler' })}
                 </Text>
                 <Text accessibilityRole="header" style={[styles.title, { color: theme.colors.ink }]}>
                   {t('tripsTitle')}
-                </Text>
-                <Text style={[styles.subtitle, { color: theme.colors.inkMuted }]}>
-                  {t('tripsSubtitle')}
                 </Text>
               </View>
               <BrandMark size={48} />
@@ -160,20 +157,23 @@ export function TripsHubScreen() {
               />
             ) : null}
             {trips.length > 0 ? (
-              <View style={styles.tripActions}>
-                <AppButton
-                  icon="create"
-                  label={t('tripsCreate')}
-                  onPress={() => router.push('/trip/new')}
-                  style={styles.tripAction}
-                />
-                <AppButton
-                  icon="join"
-                  label={t('tripsJoin')}
-                  onPress={() => router.push('/trip/join')}
-                  style={styles.tripAction}
-                  variant="secondary"
-                />
+              <View>
+                <View style={styles.tripActions}>
+                  <AppButton
+                    icon="create"
+                    label={t('tripsCreate')}
+                    onPress={() => router.push('/trip/new')}
+                    style={styles.tripAction}
+                  />
+                  <AppButton
+                    icon="join"
+                    label={t('tripsJoin')}
+                    onPress={() => router.push('/trip/join')}
+                    style={styles.tripAction}
+                    variant="secondary"
+                  />
+                </View>
+                <ExploreSuggestions onPress={() => router.push('/trip/suggestions')} theme={theme} />
               </View>
             ) : null}
             {hasError && trips.length > 0 ? (
@@ -248,12 +248,6 @@ function TripHeroCard({
         { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary },
         pressed ? styles.pressed : null,
       ]}>
-      <View
-        style={[
-          styles.heroHole,
-          { backgroundColor: theme.colors.background, borderColor: theme.colors.primarySoft },
-        ]}
-      />
       <Text style={[styles.heroStatus, { color: theme.colors.background }]}>{status.toUpperCase()}</Text>
       <Text style={[styles.heroDestination, { color: theme.colors.background }]}>
         {trip.destination}
@@ -342,10 +336,12 @@ function TripCompactRow({
 
 function EmptyJourney({
   onCreate,
+  onExplore,
   onJoin,
   theme,
 }: {
   onCreate: () => void;
+  onExplore: () => void;
   onJoin: () => void;
   theme: AppTheme;
 }) {
@@ -371,7 +367,28 @@ function EmptyJourney({
           variant="secondary"
         />
       </View>
+      <ExploreSuggestions onPress={onExplore} theme={theme} />
     </View>
+  );
+}
+
+function ExploreSuggestions({ onPress, theme }: { onPress: () => void; theme: AppTheme }) {
+  const { t } = useI18n();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.explore,
+        { backgroundColor: theme.colors.surface, borderColor: theme.colors.outline },
+        pressed ? styles.pressed : null,
+      ]}>
+      <View style={[styles.exploreIcon, { backgroundColor: theme.colors.sun }]}>
+        <AppIcon color={theme.colors.onWarm} name="mapPin" size={19} />
+      </View>
+      <Text style={[styles.exploreTitle, { color: theme.colors.ink }]}>{t('tripsExplore')}</Text>
+      <AppIcon color={theme.colors.primary} name="arrowRight" size={20} />
+    </Pressable>
   );
 }
 
@@ -416,12 +433,13 @@ const styles = StyleSheet.create({
   },
   topRow: { flexDirection: 'row', alignItems: 'center', gap: 16 },
   headingBlock: { flex: 1 },
-  eyebrow: { fontSize: 12, lineHeight: 16, fontWeight: '800', letterSpacing: 1.5 },
-  greeting: { marginTop: 4, fontSize: 14, lineHeight: 20, fontWeight: '700' },
+  greeting: { fontSize: 14, lineHeight: 20, fontWeight: '700' },
   title: { marginTop: 2, fontSize: 32, lineHeight: 38, fontWeight: '900', letterSpacing: -0.5 },
-  subtitle: { marginTop: 4, fontSize: 14, lineHeight: 20, maxWidth: 440 },
   tripActions: { marginTop: 12, flexDirection: 'row', gap: 8 },
   tripAction: { minWidth: 0, flex: 1, paddingHorizontal: 10 },
+  explore: { alignSelf: 'stretch', minHeight: 56, marginTop: spacing.x3, borderWidth: 1, borderRadius: radius.panel, paddingHorizontal: spacing.x4, flexDirection: 'row', alignItems: 'center', gap: spacing.x3 },
+  exploreIcon: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  exploreTitle: { ...typography.label, minWidth: 0, flex: 1 },
   hero: {
     position: 'relative',
     overflow: 'hidden',
@@ -430,15 +448,6 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 20,
     borderWidth: 1,
-  },
-  heroHole: {
-    position: 'absolute',
-    top: 22,
-    right: 22,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    borderWidth: 4,
   },
   heroStatus: { fontSize: 12, lineHeight: 16, fontWeight: '900', letterSpacing: 1.4 },
   heroDestination: { marginTop: 20, fontSize: 30, lineHeight: 36, fontWeight: '900' },

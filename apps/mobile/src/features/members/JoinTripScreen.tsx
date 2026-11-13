@@ -80,7 +80,7 @@ export function JoinTripScreen() {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
-      <AppPageHeader eyebrow={t('joinEyebrow')} onBack={goBack} title={t('joinTitle')} />
+      <AppPageHeader onBack={goBack} title={t('joinTitle')} />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.safeArea}>

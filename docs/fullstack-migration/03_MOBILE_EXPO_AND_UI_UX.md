@@ -141,6 +141,8 @@ mobile phải có thêm tab.
   trip/[tripId]/checklist
   trip/[tripId]/packing-studio
   trip/[tripId]/members
+  trip/suggestions
+  trip/suggestions/[slug]
 ~~~
 
 `Trips` và `Settings` thuộc một Expo Router Tabs navigator để đổi destination không dùng Stack
@@ -149,6 +151,11 @@ active chuyển trạng thái trong 180 ms, không slide ngang. Bottom bar custo
 gồm cả bottom safe area. Các route `trip/*` vẫn thuộc Stack cha để giữ transition theo chiều sâu.
 
 Route chỉ nhận ID hoặc mode ngắn. Không truyền full trip/checklist object trong route params.
+
+Trạng thái Phase 4D: Trips Hub có entry “Khám phá gợi ý” nhưng không thêm tab Discover. Danh sách
+và detail đọc nội dung localized đã publish từ API. CTA ở detail truyền duy nhất `slug` sang
+`trip/new`; form tự tải lại suggestion rồi prefill destination metadata, type và duration vào draft
+có thể sửa. Mở suggestion không ghi trip và vẫn cần người dùng review/save rõ ràng.
 
 ## 6. Core flow
 

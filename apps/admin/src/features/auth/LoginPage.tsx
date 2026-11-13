@@ -44,44 +44,35 @@ export function LoginPage() {
       <section className="login-story" aria-labelledby="login-story-title">
         <BrandMark />
         <div className="login-story__content">
-          <p className="eyebrow eyebrow--light">TRAVEL OPERATIONS</p>
-          <h1 id="login-story-title">Giữ mọi hành trình đi đúng đường.</h1>
-          <p>
-            Một bàn điều phối bình tĩnh để quản lý tài khoản và nội dung mà người dùng sẽ mang theo
-            trong chuyến đi tiếp theo.
-          </p>
+          <h1 id="login-story-title">Quản trị hệ thống luckgage</h1>
+          <p>Quản lý tài khoản, quy tắc gợi ý hành lý và điểm đến xuất bản trên ứng dụng.</p>
         </div>
-        <ol className="route-manifest" aria-label="Ba lớp bảo vệ quản trị">
+        <ul className="route-manifest" aria-label="Bảo mật phiên quản trị">
           <li>
             <span><KeyRound size={17} /></span>
-            <div><strong>Phiên riêng cho admin</strong><small>Cookie HttpOnly, không lưu token dài hạn trong trình duyệt.</small></div>
+            <div><strong>Cookie bảo mật</strong><small>Không lưu mã xác thực dài hạn trong trình duyệt.</small></div>
           </li>
           <li>
             <span><ShieldCheck size={17} /></span>
-            <div><strong>Quyền được kiểm tra ở server</strong><small>Giao diện không phải ranh giới bảo mật.</small></div>
+            <div><strong>Phân quyền tại máy chủ</strong><small>Mọi thao tác đều yêu cầu quyền quản trị viên hợp lệ.</small></div>
           </li>
           <li>
             <span><Route size={17} /></span>
-            <div><strong>Mọi thay đổi có dấu vết</strong><small>Request ID đi cùng lỗi để hỗ trợ và đối soát.</small></div>
+            <div><strong>Đối soát bằng mã yêu cầu</strong><small>Mọi lỗi phản hồi đều kèm mã truy vết.</small></div>
           </li>
-        </ol>
+        </ul>
       </section>
 
       <section className="login-panel" aria-labelledby="login-title">
         <div className="login-panel__inner">
-          <div className="login-ticket" aria-hidden="true">
-            <span>ADMIN ACCESS</span>
-            <span>LG · 04A</span>
-          </div>
-          <p className="eyebrow">CHÀO MỪNG TRỞ LẠI</p>
-          <h2 id="login-title">Mở control desk</h2>
-          <p className="login-panel__lead">Dùng tài khoản có quyền ADMIN đã được seed trên API.</p>
+          <h2 id="login-title">Đăng nhập quản trị</h2>
+          <p className="login-panel__lead">Sử dụng tài khoản quản trị viên.</p>
 
           {submitError ? (
             <div className="form-alert" role="alert">
               <strong>{loginErrorTitle(submitError)}</strong>
               <span>{loginErrorMessage(submitError)}</span>
-              {submitError.requestId ? <small>Request ID: {submitError.requestId}</small> : null}
+              {submitError.requestId ? <small>Mã yêu cầu: {submitError.requestId}</small> : null}
             </div>
           ) : null}
 
@@ -118,7 +109,7 @@ export function LoginPage() {
                     )
                   }
                   onChange={(event) => setPassword(event.target.value)}
-                  placeholder="Nhập mật khẩu quản trị"
+                  placeholder="Nhập mật khẩu"
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                 />
@@ -127,21 +118,17 @@ export function LoginPage() {
                   className="icon-button"
                   onClick={() => setShowPassword((current) => !current)}
                   type="button">
-                  {showPassword ? <EyeOff size={19} /> : <Eye size={19} />}
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
               {errors.password ? <span className="field__error" id="password-error">{errors.password}</span> : null}
             </div>
 
             <button className="button button--primary button--wide" disabled={isSubmitting} type="submit">
-              <LogIn size={19} />
-              {isSubmitting ? 'Đang mở phiên…' : 'Mở control desk'}
+              <LogIn size={18} />
+              {isSubmitting ? 'Đang đăng nhập…' : 'Đăng nhập'}
             </button>
           </form>
-
-          <p className="login-footnote">
-            Tài khoản USER không thể truy cập dù thay đổi URL hoặc request ở trình duyệt.
-          </p>
         </div>
       </section>
     </main>
@@ -185,7 +172,7 @@ function fieldErrors(error: ApiError): FormErrors {
 function loginErrorTitle(error: ApiError): string {
   if (error.code === 'RATE_LIMITED') return 'Thử đăng nhập quá nhiều lần';
   if (error.code === 'NETWORK_ERROR') return 'Chưa kết nối được API';
-  return 'Chưa mở được phiên quản trị';
+  return 'Chưa đăng nhập được';
 }
 
 function loginErrorMessage(error: ApiError): string {

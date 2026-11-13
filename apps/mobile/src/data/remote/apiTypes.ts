@@ -113,6 +113,30 @@ export type ApiTripsPage = {
   totalPages: number;
 };
 
+export type ApiTripSuggestion = {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string;
+  image: {
+    url: string;
+    alt: string;
+  };
+  tags: string[];
+  tripPrefill: {
+    destination: ApiDestination;
+    tripType: ApiTripType | null;
+    suggestedDurationDays: number;
+  };
+};
+
+export type ApiTripSuggestionsPage = {
+  items: ApiTripSuggestion[];
+  page: number;
+  pageSize: number;
+  total: number;
+};
+
 export type ApiChecklistItem = {
   id: string;
   name: string;

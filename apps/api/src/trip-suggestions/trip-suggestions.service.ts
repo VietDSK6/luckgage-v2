@@ -98,6 +98,13 @@ export class TripSuggestionsService {
       });
     }
     const existing = await this.requireSuggestion(id);
+    if (existing.status === ContentStatus.ARCHIVED) {
+      throw new ConflictException({
+        code: 'TRIP_SUGGESTION_ARCHIVED',
+        title: 'Conflict',
+        detail: 'Archived trip suggestions cannot be edited.',
+      });
+    }
     validateCoordinates({
       latitude:
         input.latitude === undefined

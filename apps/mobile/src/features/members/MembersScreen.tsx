@@ -204,7 +204,7 @@ export function MembersScreen({ tripId }: { tripId: string }) {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
-      <AppPageHeader eyebrow={t('membersEyebrow')} onBack={goBack} title={trip.name} />
+      <AppPageHeader onBack={goBack} title={trip.name} />
       <ScrollView
         contentContainerStyle={styles.content}
         refreshControl={

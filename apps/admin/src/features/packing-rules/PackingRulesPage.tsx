@@ -61,26 +61,24 @@ export function PackingRulesPage() {
     <div className="packing-rules-page">
       <section className="page-heading" aria-labelledby="packing-rules-title">
         <div>
-          <p className="eyebrow">PACKING CONTENT</p>
           <h2 id="packing-rules-title">Quy tắc hành lý</h2>
-          <p>Mỗi dòng là một revision có dấu vết riêng. Chỉ revision đã xuất bản mới đi vào gợi ý trên mobile.</p>
         </div>
         <Link className="button button--primary" to="/packing-rules/new"><Plus size={18} /> Tạo quy tắc</Link>
       </section>
 
       <section className="rule-filters" aria-label="Bộ lọc quy tắc hành lý">
         <form className="user-search" key={search} onSubmit={submitSearch}>
-          <label htmlFor="rule-search">Tìm theo tên hoặc rule key</label>
+          <label htmlFor="rule-search">Tìm theo tên hoặc mã quy tắc</label>
           <div>
             <Search aria-hidden="true" size={19} />
             <input defaultValue={search} id="rule-search" name="search" placeholder="Ví dụ: rainy-weather" type="search" />
-            <button className="button button--primary" type="submit">Tìm revision</button>
+            <button className="button button--primary" type="submit">Tìm kiếm</button>
           </div>
         </form>
         <label className="rule-status-filter">
           <span>Trạng thái</span>
           <select onChange={(event) => updateParams({ status: event.target.value || null })} value={status ?? ''}>
-            <option value="">Tất cả revision</option>
+            <option value="">Tất cả trạng thái</option>
             <option value="DRAFT">Bản nháp</option>
             <option value="PUBLISHED">Đã xuất bản</option>
             <option value="ARCHIVED">Đã lưu trữ</option>
@@ -98,8 +96,8 @@ export function PackingRulesPage() {
       {rules.isSuccess && visibleRules.length === 0 ? (
         <section className="users-empty">
           <ListChecks aria-hidden="true" size={30} />
-          <h3>{rules.data.items.length === 0 ? 'Chưa có quy tắc hành lý' : 'Không có revision phù hợp'}</h3>
-          <p>{rules.data.items.length === 0 ? 'Tạo rule đầu tiên rồi preview với một chuyến đi mẫu.' : 'Thử bớt bộ lọc hoặc dùng rule key khác.'}</p>
+          <h3>{rules.data.items.length === 0 ? 'Chưa có quy tắc hành lý' : 'Không có quy tắc phù hợp'}</h3>
+          <p>{rules.data.items.length === 0 ? 'Tạo quy tắc đầu tiên để thử nghiệm với chuyến đi mẫu.' : 'Thử xóa bộ lọc hoặc tìm bằng từ khóa khác.'}</p>
           {rules.data.items.length === 0 ? (
             <Link className="button button--primary" to="/packing-rules/new"><Plus size={17} /> Tạo quy tắc</Link>
           ) : (
@@ -114,7 +112,7 @@ export function PackingRulesPage() {
 
 function RulesLedger({ rules }: { rules: PackingRule[] }) {
   return (
-    <section className="rule-ledger" aria-label="Danh sách revision quy tắc">
+    <section className="rule-ledger" aria-label="Danh sách phiên bản quy tắc">
       <div className="rule-ledger__head" aria-hidden="true">
         <span>Quy tắc</span><span>Điều kiện</span><span>Đầu ra</span><span>Cập nhật</span><span />
       </div>
@@ -129,9 +127,9 @@ function RulesLedger({ rules }: { rules: PackingRule[] }) {
             <code>{rule.key}</code>
           </div>
           <p data-label="Điều kiện">{packingRuleConditionSummary(rule)}</p>
-          <p data-label="Đầu ra"><strong>{rule.items.length}</strong> vật dụng · priority {rule.priority}</p>
+          <p data-label="Đầu ra"><strong>{rule.items.length}</strong> vật dụng · ưu tiên {rule.priority}</p>
           <p data-label="Cập nhật"><time dateTime={rule.updatedAt}>{formatRuleDate(rule.updatedAt)}</time>{rule.publishedAt ? <small>Xuất bản {formatRuleDate(rule.publishedAt)}</small> : null}</p>
-          <Link aria-label={`Mở ${rule.name} phiên bản ${rule.version}`} className="button button--quiet" to={`/packing-rules/${rule.id}`}>Mở workbench</Link>
+          <Link aria-label={`Mở ${rule.name} phiên bản ${rule.version}`} className="button button--quiet" to={`/packing-rules/${rule.id}`}>Chỉnh sửa</Link>
         </article>
       ))}
     </section>
@@ -147,10 +145,9 @@ function RulesError({ error, onRetry }: { error: Error; onRetry: () => void }) {
   return (
     <section className="data-error data-error--compact">
       <CircleAlert aria-hidden="true" size={30} />
-      <p className="eyebrow">RULE LEDGER TẠM GIÁN ĐOẠN</p>
-      <h3>Chưa đọc được revision</h3>
+      <h3>Chưa tải được danh sách quy tắc</h3>
       <p>{apiError?.detail ?? 'Máy chủ chưa trả được danh sách quy tắc.'}</p>
-      {apiError?.requestId ? <small>Request ID: {apiError.requestId}</small> : null}
+      {apiError?.requestId ? <small>Mã yêu cầu: {apiError.requestId}</small> : null}
       <button className="button button--primary" onClick={onRetry} type="button"><RefreshCw size={17} /> Tải lại</button>
     </section>
   );

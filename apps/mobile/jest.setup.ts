@@ -34,6 +34,11 @@ jest.mock('expo-clipboard', () => ({
   setStringAsync: jest.fn(async () => undefined),
 }));
 
+jest.mock('@react-native-community/datetimepicker', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
 jest.mock('lucide-react-native', () => {
   const MockIcon = () => null;
 

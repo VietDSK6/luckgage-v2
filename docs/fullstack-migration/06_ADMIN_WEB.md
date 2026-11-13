@@ -183,6 +183,12 @@ Publish cần confirm và hiển thị version mới. Published revision không 
 
 ## 8. Trip suggestion management
 
+Trạng thái Phase 4D: đã thay placeholder bằng editorial desk responsive. List có search/status trên
+URL và card ảnh; workbench có field song ngữ có cấu trúc, destination lookup, validation client +
+server, dirty-form guard, preview card mobile VI/EN và dialog riêng cho publish/archive. Published
+content lưu mới sẽ thay đổi trực tiếp dữ liệu mobile nên UI hiển thị cảnh báo; archived content là
+read-only.
+
 ### List
 
 - Thumbnail.
@@ -213,6 +219,10 @@ Publish requirements:
 
 ## 9. Trips support view
 
+Trạng thái Phase 4D: đã nối list thật có search/status/pagination server-side và layout table/card
+theo viewport. Privacy seal phản ánh contract: admin chỉ thấy owner display name, member count và
+checklist progress aggregate; ghi chú, category và item không được gửi xuống client.
+
 MVP chỉ cần:
 
 - Trip ID/name/destination/date.
@@ -229,8 +239,8 @@ biến admin thành công cụ đọc dữ liệu riêng tư.
 Foundation được dựng tại `apps/admin` bằng Vite, React và TypeScript strict.
 Admin auth dùng HttpOnly cookie của API; endpoint restore session trả user cùng CSRF token và client
 chỉ giữ token đó trong memory. Router bảo vệ toàn bộ shell, API client chuẩn hóa Problem Details,
-field errors và request ID. Dashboard/users/packing rules đã dùng API thật; trip suggestions và
-trips support vẫn là placeholder có chủ đích cho đến Phase 4D.
+field errors và request ID. Dashboard/users/packing rules/trip suggestions/trips support đều dùng
+API thật; server state được cache và invalidation bằng TanStack Query.
 
 ~~~text
 apps/admin/src/

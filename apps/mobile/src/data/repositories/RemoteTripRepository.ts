@@ -1,5 +1,6 @@
 import { ApiClient, ApiClientError } from '@/data/remote/ApiClient';
 import type {
+  ApiDestination,
   ApiLocationsResponse,
   ApiLocation,
   ApiTrip,
@@ -182,7 +183,7 @@ export function mapApiTrip(payload: ApiTrip): Trip {
 function mapTrip(payload: ApiTrip): Trip {
   const startDate = parseCalendarDate(payload?.startDate);
   const endDate = parseCalendarDate(payload?.endDate);
-  const tripType = domainTripTypes[payload?.tripType];
+  const tripType = mapApiTripType(payload?.tripType);
   const updatedAt = Date.parse(payload?.updatedAt);
   const currentUserRole =
     payload?.currentUserRole === 'OWNER'
@@ -211,7 +212,7 @@ function mapTrip(payload: ApiTrip): Trip {
     id: payload.id,
     name: payload.name,
     destination: payload.destination.label,
-    destinationDetails: mapDestination(payload.destination),
+    destinationDetails: mapApiDestination(payload.destination),
     startDate,
     endDate,
     tripType,
@@ -236,7 +237,11 @@ function mapTrip(payload: ApiTrip): Trip {
   };
 }
 
-function mapDestination(payload: ApiTrip['destination']): TripDestination {
+export function mapApiTripType(payload: ApiTripType | null | undefined): TripType | null {
+  return payload ? domainTripTypes[payload] ?? null : null;
+}
+
+export function mapApiDestination(payload: ApiDestination): TripDestination {
   if (
     !payload?.label ||
     (payload.latitude !== null && !Number.isFinite(payload.latitude)) ||
@@ -257,7 +262,7 @@ function mapDestination(payload: ApiTrip['destination']): TripDestination {
 }
 
 function mapLocation(payload: ApiLocation): TripDestination {
-  return mapDestination({ ...payload, providerPlaceId: payload.id });
+  return mapApiDestination({ ...payload, providerPlaceId: payload.id });
 }
 
 function assertTripsPage(payload: ApiTripsPage): void {

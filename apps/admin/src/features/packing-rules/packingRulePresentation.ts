@@ -7,7 +7,7 @@ const tripTypeLabels: Record<TripType, string> = {
   BEACH: 'Biển',
   HIKING: 'Leo núi',
   CITY_TRIP: 'Thành phố',
-  ROAD_TRIP: 'Road trip',
+  ROAD_TRIP: 'Đường bộ',
   INTERNATIONAL: 'Quốc tế',
   OTHER: 'Khác',
 };

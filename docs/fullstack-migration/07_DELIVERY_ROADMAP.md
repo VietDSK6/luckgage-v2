@@ -225,11 +225,11 @@ invalidation.
 - Publish/archive/version.
 - End-to-end mobile verification.
 
-Trạng thái triển khai: hoàn thành, chờ QA. Admin có revision ledger, structured editor song ngữ,
+Trạng thái triển khai: hoàn thành và đã QA. Admin có revision ledger, structured editor song ngữ,
 sample-trip preview, dirty-state guard và confirm dialog cho publish/archive. Published rule chỉ sinh
 DRAFT version mới khi edit; publish thay revision active theo transaction. Integration test xác minh
 chuỗi admin preview → publish version mới → mobile nhận đúng `matchedRules.version` → archive →
-mobile không còn nhận rule. Phase 4D chưa bắt đầu.
+mobile không còn nhận rule.
 
 ### 4D. Trip suggestions/trips
 
@@ -238,6 +238,13 @@ mobile không còn nhận rule. Phase 4D chưa bắt đầu.
 - Trips support list.
 
 Gate: admin publish thay đổi dữ liệu user thấy mà không sửa database thủ công.
+
+Trạng thái triển khai: hoàn thành, chờ QA. Admin có editorial list/workbench song ngữ, destination
+lookup, mobile-card preview, dirty guard và publish/archive confirmation. Mobile đọc list/detail đã
+publish, rồi chỉ prefill draft sau CTA rõ ràng; không tự tạo trip. Trips support dùng search,
+timeline filter và pagination server-side, chỉ trả aggregate privacy-safe. Integration test bao phủ
+admin create/publish/update → mobile đọc nội dung localized → archive làm nội dung biến mất, đồng
+thời xác minh support response không chứa note/checklist detail. Phase 5 chưa bắt đầu.
 
 ## 7. Phase 5 — Hardening, deploy, rehearsal
 

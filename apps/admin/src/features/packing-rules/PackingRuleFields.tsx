@@ -23,10 +23,10 @@ export function PackingRuleFields({ disabled, errors, form, keyLocked, onChange 
   return (
     <div className="rule-form-sections">
       <fieldset className="rule-section" disabled={disabled}>
-        <legend><span>01</span><div><small>IDENTITY</small>Rule identity</div></legend>
-        <p>Rule key gom các revision cùng một dòng lịch sử. Sau khi tạo, key được khóa.</p>
+        <legend>Định danh quy tắc</legend>
+        <p>Mã quy tắc gom các phiên bản cùng một dòng lịch sử và sẽ khóa sau khi tạo.</p>
         <div className="rule-fields rule-fields--identity">
-          <RuleField error={errors.key} label="Rule key" hint="chữ thường, số và dấu gạch ngang">
+          <RuleField error={errors.key} label="Mã quy tắc" hint="chữ thường, số và dấu gạch ngang">
             <input
               aria-invalid={Boolean(errors.key)}
               disabled={keyLocked || disabled}
@@ -35,18 +35,18 @@ export function PackingRuleFields({ disabled, errors, form, keyLocked, onChange 
               value={form.key}
             />
           </RuleField>
-          <RuleField error={errors.name} label="Tên nội bộ">
+          <RuleField error={errors.name} label="Tên quy tắc">
             <input aria-invalid={Boolean(errors.name)} onChange={(event) => update('name', event.target.value)} placeholder="Đồ dùng khi trời mưa" value={form.name} />
           </RuleField>
-          <RuleField error={errors.priority} label="Priority" hint="số nhỏ chạy trước">
+          <RuleField error={errors.priority} label="Độ ưu tiên" hint="số nhỏ chạy trước">
             <input aria-invalid={Boolean(errors.priority)} inputMode="numeric" min="0" onChange={(event) => update('priority', event.target.value)} type="number" value={form.priority} />
           </RuleField>
         </div>
       </fieldset>
 
       <fieldset className="rule-section" disabled={disabled}>
-        <legend><span>02</span><div><small>MATCH CONDITIONS</small>Khi nào rule chạy?</div></legend>
-        <p>Để trống điều kiện không cần thiết. Một chuyến đi phải thỏa tất cả điều kiện đã nhập.</p>
+        <legend>Điều kiện áp dụng</legend>
+        <p>Để trống điều kiện không cần thiết. Chuyến đi phải thỏa tất cả điều kiện đã nhập.</p>
         <div className="rule-fields rule-fields--conditions">
           <RuleField label="Loại chuyến đi">
             <select onChange={(event) => update('tripType', event.target.value as PackingRuleFormState['tripType'])} value={form.tripType}>
@@ -69,29 +69,29 @@ export function PackingRuleFields({ disabled, errors, form, keyLocked, onChange 
           <RuleField error={errors.minRainPercent} label="Khả năng mưa tối thiểu (%)">
             <input aria-invalid={Boolean(errors.minRainPercent)} inputMode="numeric" max="100" min="0" onChange={(event) => update('minRainPercent', event.target.value)} type="number" value={form.minRainPercent} />
           </RuleField>
-          <RuleField error={errors.activityKey} label="Activity key" hint="khớp một hoạt động trong chuyến đi">
+          <RuleField error={errors.activityKey} label="Mã hoạt động" hint="khớp một hoạt động trong chuyến đi">
             <input aria-invalid={Boolean(errors.activityKey)} onChange={(event) => update('activityKey', event.target.value)} placeholder="hiking" value={form.activityKey} />
           </RuleField>
         </div>
       </fieldset>
 
       <fieldset className="rule-section" disabled={disabled}>
-        <legend><span>03</span><div><small>EXPLANATION</small>Vì sao được gợi ý?</div></legend>
-        <p>Người dùng nhìn thấy lý do này trong preview. Hai ngôn ngữ là bắt buộc.</p>
+        <legend>Lý do gợi ý</legend>
+        <p>Hiển thị cho người dùng khi xem gợi ý hành lý (bắt buộc hai ngôn ngữ).</p>
         <div className="rule-fields rule-fields--copy">
           <RuleField error={errors.reasonVi} label="Lý do tiếng Việt">
             <textarea aria-invalid={Boolean(errors.reasonVi)} maxLength={240} onChange={(event) => update('reasonVi', event.target.value)} rows={3} value={form.reasonVi} />
           </RuleField>
-          <RuleField error={errors.reasonEn} label="Reason in English">
+          <RuleField error={errors.reasonEn} label="Lý do tiếng Anh">
             <textarea aria-invalid={Boolean(errors.reasonEn)} maxLength={240} onChange={(event) => update('reasonEn', event.target.value)} rows={3} value={form.reasonEn} />
           </RuleField>
         </div>
       </fieldset>
 
       <fieldset className="rule-section rule-section--output" disabled={disabled}>
-        <legend><span>04</span><div><small>OUTPUT ITEMS</small>Rule thêm gì?</div></legend>
+        <legend>Vật dụng đầu ra</legend>
         <div className="rule-section__intro">
-          <p>Thứ tự bên dưới cũng là thứ tự hiển thị trong preview. Category key + item key phải duy nhất.</p>
+          <p>Mã nhóm và mã vật dụng không được trùng lặp trong cùng một quy tắc.</p>
           <button className="button button--secondary" disabled={disabled || form.items.length >= 50} onClick={() => update('items', [...form.items, emptyPackingRuleItem()])} type="button">
             <PackagePlus size={17} /> Thêm vật dụng
           </button>
@@ -118,22 +118,22 @@ export function PackingRuleFields({ disabled, errors, form, keyLocked, onChange 
                 </div>
               </header>
               <div className="rule-fields rule-fields--item">
-                <RuleField error={errors[`items.${index}.categoryKey`]} label="Category key">
+                <RuleField error={errors[`items.${index}.categoryKey`]} label="Mã nhóm">
                   <input aria-invalid={Boolean(errors[`items.${index}.categoryKey`])} onChange={(event) => updateItem(item.clientId, { categoryKey: event.target.value })} placeholder="weather" value={item.categoryKey} />
                 </RuleField>
-                <RuleField error={errors[`items.${index}.itemKey`]} label="Item key">
+                <RuleField error={errors[`items.${index}.itemKey`]} label="Mã vật dụng">
                   <input aria-invalid={Boolean(errors[`items.${index}.itemKey`])} onChange={(event) => updateItem(item.clientId, { itemKey: event.target.value })} placeholder="rain-jacket" value={item.itemKey} />
                 </RuleField>
                 <RuleField error={errors[`items.${index}.categoryNameVi`]} label="Tên nhóm · VI">
                   <input aria-invalid={Boolean(errors[`items.${index}.categoryNameVi`])} onChange={(event) => updateItem(item.clientId, { categoryNameVi: event.target.value })} value={item.categoryNameVi} />
                 </RuleField>
-                <RuleField error={errors[`items.${index}.categoryNameEn`]} label="Category name · EN">
+                <RuleField error={errors[`items.${index}.categoryNameEn`]} label="Tên nhóm · EN">
                   <input aria-invalid={Boolean(errors[`items.${index}.categoryNameEn`])} onChange={(event) => updateItem(item.clientId, { categoryNameEn: event.target.value })} value={item.categoryNameEn} />
                 </RuleField>
                 <RuleField error={errors[`items.${index}.itemNameVi`]} label="Tên vật dụng · VI">
                   <input aria-invalid={Boolean(errors[`items.${index}.itemNameVi`])} onChange={(event) => updateItem(item.clientId, { itemNameVi: event.target.value })} value={item.itemNameVi} />
                 </RuleField>
-                <RuleField error={errors[`items.${index}.itemNameEn`]} label="Item name · EN">
+                <RuleField error={errors[`items.${index}.itemNameEn`]} label="Tên vật dụng · EN">
                   <input aria-invalid={Boolean(errors[`items.${index}.itemNameEn`])} onChange={(event) => updateItem(item.clientId, { itemNameEn: event.target.value })} value={item.itemNameEn} />
                 </RuleField>
                 <RuleField label="Cách tính số lượng">
@@ -148,7 +148,7 @@ export function PackingRuleFields({ disabled, errors, form, keyLocked, onChange 
                 <RuleField error={errors[`items.${index}.noteVi`]} label="Ghi chú · VI" optional>
                   <textarea aria-invalid={Boolean(errors[`items.${index}.noteVi`])} maxLength={500} onChange={(event) => updateItem(item.clientId, { noteVi: event.target.value })} rows={2} value={item.noteVi} />
                 </RuleField>
-                <RuleField error={errors[`items.${index}.noteEn`]} label="Note · EN" optional>
+                <RuleField error={errors[`items.${index}.noteEn`]} label="Ghi chú · EN" optional>
                   <textarea aria-invalid={Boolean(errors[`items.${index}.noteEn`])} maxLength={500} onChange={(event) => updateItem(item.clientId, { noteEn: event.target.value })} rows={2} value={item.noteEn} />
                 </RuleField>
               </div>

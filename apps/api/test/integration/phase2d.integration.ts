@@ -250,21 +250,64 @@ describe('Phase 2D packing, weather, and trip suggestions integration', () => {
       .post(`/api/v1/admin/trip-suggestions/${created.body.id}/publish`)
       .set('x-csrf-token', admin.csrfToken)
       .expect(200);
+    await admin.agent
+      .patch(`/api/v1/admin/trip-suggestions/${created.body.id}`)
+      .set('x-csrf-token', admin.csrfToken)
+      .send({ titleEn: 'Updated Da Lat pick' })
+      .expect(200)
+      .expect(({ body }) => {
+        expect(body).toMatchObject({ status: 'PUBLISHED', titleEn: 'Updated Da Lat pick' });
+      });
     const detail = await api(user)
       .get('/api/v1/trip-suggestions/test-da-lat')
       .query({ locale: 'en' })
       .expect(200);
     expect(detail.body).toMatchObject({
-      title: 'Test Da Lat',
+      title: 'Updated Da Lat pick',
       image: { alt: 'Da Lat hills' },
       tripPrefill: { tripType: 'LEISURE', suggestedDurationDays: 3 },
     });
+
+    const tripId = await createTrip(user, 'Support-safe Da Lat trip');
+    const category = await api(user)
+      .post(`/api/v1/trips/${tripId}/checklist/categories`)
+      .send({ name: 'Private packing category' })
+      .expect(201);
+    await api(user)
+      .post(`/api/v1/checklist-categories/${category.body.id}/items`)
+      .send({ name: 'Private checklist item', quantity: 1 })
+      .expect(201);
+    const supportList = await admin.agent
+      .get('/api/v1/admin/trips')
+      .query({ search: 'Support-safe', page: 1, pageSize: 20 })
+      .expect(200);
+    expect(supportList.body.items).toHaveLength(1);
+    expect(supportList.body.items[0]).toMatchObject({
+      id: tripId,
+      ownerDisplayName: 'Phase 2D',
+      memberCount: 1,
+      checklistProgress: { packedItems: 0, totalItems: 1, percentage: 0 },
+    });
+    expect(supportList.body.items[0]).not.toHaveProperty('note');
+    expect(supportList.body.items[0]).not.toHaveProperty('categories');
+    expect(supportList.body.items[0]).not.toHaveProperty('items');
+
+    const locations = await admin.agent
+      .get('/api/v1/admin/locations/search')
+      .query({ q: 'Da Lat', locale: 'en' })
+      .expect(200);
+    expect(locations.body.items).toEqual([]);
 
     await admin.agent
       .post(`/api/v1/admin/trip-suggestions/${created.body.id}/archive`)
       .set('x-csrf-token', admin.csrfToken)
       .expect(200);
     await api(user).get('/api/v1/trip-suggestions/test-da-lat').expect(404);
+    await admin.agent
+      .patch(`/api/v1/admin/trip-suggestions/${created.body.id}`)
+      .set('x-csrf-token', admin.csrfToken)
+      .send({ titleEn: 'Must remain archived' })
+      .expect(409);
   });
 
   function api(session: Session) {

@@ -145,15 +145,20 @@ bundle smoke test vì tên export có thể thay đổi.
 
 ## 7. Motif giao diện
 
-- **Luggage tag:** hero/card có một lỗ thẻ hoặc crop rõ ràng, không thêm notch giả vào mọi card.
-- **Route line:** đường mảnh nối các bước hoặc mốc, luôn đi cùng label/icon.
+- **Luggage tag:** motif sống trong Luki và minh hoạ brand; card/form UI không vẽ thêm lỗ thẻ giả.
+- **Route line:** đường mảnh nối các bước hoặc mốc, luôn đi cùng label/icon; không dùng làm trang trí.
 - **Travel sticker:** coral/yellow là accent nhỏ, có thể xoay 2–4 độ; không xoay text dài.
-- **Editorial hierarchy:** một display title, body dễ đọc, eyebrow uppercase ngắn.
+- **Editorial hierarchy:** một display title, body dễ đọc. Eyebrow chỉ dùng khi mang thông tin
+  (vd. tên section phía trên tên chuyến đi, trạng thái); không dùng eyebrow trang trí.
 - **Screen-print texture:** chỉ có trong minh hoạ Luki; component UI vẫn phẳng và sắc nét.
+
+Mọi thay đổi UI phải qua checklist "unslop" trong `.agents/rules/unslop-design.md`.
 
 ## 8. Giọng điệu
 
 Copy ngắn, cụ thể, đồng hành và không đổ lỗi. Ưu tiên nói điều người dùng có thể làm tiếp theo.
+Tiêu đề nói thẳng màn hình làm gì (≤ 8 từ), không dùng câu hỏi bay bổng. Bỏ câu mô tả nếu bỏ đi
+mà người dùng vẫn hiểu. Không đưa chi tiết kỹ thuật (định dạng ngày, nguồn dữ liệu) vào copy.
 
 | Tránh | Dùng |
 |---|---|
@@ -161,6 +166,7 @@ Copy ngắn, cụ thể, đồng hành và không đổ lỗi. Ưu tiên nói đ
 | “Generate bằng AI” | “Tạo gợi ý theo quy tắc chuyến đi” |
 | “Bạn chưa nhập đủ dữ liệu” | “Thêm ngày về để tiếp tục” |
 | “Success!” | “Đã thêm 6 món vào checklist” |
+| “Đi đâu tiếp?” + câu thơ phía dưới | “Chuyến đi của bạn” |
 
 ## 9. Component contract
 

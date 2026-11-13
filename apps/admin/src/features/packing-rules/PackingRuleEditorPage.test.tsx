@@ -71,10 +71,10 @@ describe('PackingRuleEditorPage', () => {
 
     expect(await screen.findByRole('heading', { name: 'Đồ dùng khi trời mưa' })).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Xuất bản' }));
-    expect(screen.getByRole('heading', { name: 'Xuất bản revision này?' })).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Xuất bản revision' }));
+    expect(screen.getByRole('heading', { name: 'Xuất bản phiên bản này?' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Xuất bản phiên bản' }));
 
-    expect(await screen.findByText('Revision v2 đã xuất bản và đang được mobile sử dụng.')).toBeInTheDocument();
+    expect(await screen.findByText('Phiên bản v2 đã xuất bản và đang áp dụng trên ứng dụng.')).toBeInTheDocument();
     expect(publish).toHaveBeenCalledWith(ruleId, session.csrfToken);
   });
 });

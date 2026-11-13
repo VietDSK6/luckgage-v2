@@ -15,6 +15,7 @@ import {
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiCookieAuth,
   ApiConflictResponse,
   ApiCreatedResponse,
   ApiForbiddenResponse,
@@ -26,11 +27,15 @@ import {
   ApiUnprocessableEntityResponse,
 } from '@nestjs/swagger';
 
-import { CurrentUser } from '../auth/auth.decorators.js';
-import { JwtAuthGuard } from '../auth/auth.guards.js';
+import { CurrentUser, Roles } from '../auth/auth.decorators.js';
+import { AdminSessionGuard } from '../auth/admin-session.js';
+import { JwtAuthGuard, RolesGuard } from '../auth/auth.guards.js';
 import type { AuthPrincipal } from '../auth/auth.types.js';
+import { UserRole } from '../generated/prisma/enums.js';
 import { ProblemDetailsDto } from '../http/problem-details.dto.js';
 import {
+  AdminTripsPageDto,
+  AdminTripsQueryDto,
   CreateTripDto,
   TripDetailDto,
   TripsPageDto,
@@ -101,5 +106,21 @@ export class TripsController {
     @Param('tripId', new ParseUUIDPipe()) tripId: string,
   ): Promise<void> {
     await this.tripsService.delete(user.userId, tripId);
+  }
+}
+
+@ApiTags('admin-trips')
+@ApiCookieAuth('adminSession')
+@Controller('admin/trips')
+@Roles(UserRole.ADMIN)
+@UseGuards(AdminSessionGuard, RolesGuard)
+export class AdminTripsController {
+  constructor(@Inject(TripsService) private readonly tripsService: TripsService) {}
+
+  @Get()
+  @ApiOperation({ summary: 'List privacy-safe trip support aggregates' })
+  @ApiOkResponse({ type: AdminTripsPageDto })
+  list(@Query() query: AdminTripsQueryDto): Promise<AdminTripsPageDto> {
+    return this.tripsService.listAdmin(query);
   }
 }

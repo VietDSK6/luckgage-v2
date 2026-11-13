@@ -1,5 +1,4 @@
 import {
-  BookOpenText,
   ChevronRight,
   CircleUserRound,
   LayoutDashboard,
@@ -28,12 +27,12 @@ const navigation: Array<{ icon: LucideIcon; label: string; to: string }> = [
   { icon: Plane, label: 'Chuyến đi', to: '/trips' },
 ];
 
-const routeTitles: Record<string, { eyebrow: string; title: string }> = {
-  '/dashboard': { eyebrow: 'CONTROL DESK', title: 'Tổng quan' },
-  '/users': { eyebrow: 'ACCOUNT CONTROL', title: 'Người dùng' },
-  '/packing-rules': { eyebrow: 'PACKING CONTENT', title: 'Quy tắc hành lý' },
-  '/trip-suggestions': { eyebrow: 'EDITORIAL DESK', title: 'Gợi ý chuyến đi' },
-  '/trips': { eyebrow: 'SUPPORT VIEW', title: 'Chuyến đi' },
+const routeTitles: Record<string, string> = {
+  '/dashboard': 'Tổng quan',
+  '/users': 'Người dùng',
+  '/packing-rules': 'Quy tắc hành lý',
+  '/trip-suggestions': 'Gợi ý chuyến đi',
+  '/trips': 'Chuyến đi',
 };
 
 export function AdminLayout() {
@@ -43,7 +42,7 @@ export function AdminLayout() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [logoutError, setLogoutError] = useState<ApiError | null>(null);
-  const route = useMemo(() => resolveRouteTitle(location.pathname), [location.pathname]);
+  const routeTitle = useMemo(() => resolveRouteTitle(location.pathname), [location.pathname]);
 
   const submitLogout = async () => {
     setIsLoggingOut(true);
@@ -88,27 +87,18 @@ export function AdminLayout() {
         </div>
 
         <nav className="sidebar__nav" aria-label="Điều hướng quản trị">
-          <p className="sidebar__label">KHÔNG GIAN LÀM VIỆC</p>
           {navigation.map(({ icon: Icon, label, to }) => (
             <NavLink
               className={({ isActive }) => `nav-item${isActive ? ' nav-item--active' : ''}`}
               key={to}
               onClick={() => setMenuOpen(false)}
               to={to}>
-              <Icon aria-hidden="true" size={19} />
+              <Icon aria-hidden="true" size={18} />
               <span>{label}</span>
-              <ChevronRight aria-hidden="true" className="nav-item__arrow" size={16} />
+              <ChevronRight aria-hidden="true" className="nav-item__arrow" size={15} />
             </NavLink>
           ))}
         </nav>
-
-        <div className="sidebar__note">
-          <BookOpenText aria-hidden="true" size={18} />
-          <div>
-            <strong>Quyền riêng tư trước tiên</strong>
-            <span>Admin chỉ thấy dữ liệu hỗ trợ và tổng hợp cần thiết.</span>
-          </div>
-        </div>
       </aside>
 
       <div className="workspace">
@@ -120,12 +110,9 @@ export function AdminLayout() {
               className="icon-button topbar__menu"
               onClick={() => setMenuOpen(true)}
               type="button">
-              <Menu size={21} />
+              <Menu size={20} />
             </button>
-            <div>
-              <p className="eyebrow">{route.eyebrow}</p>
-              <h1>{route.title}</h1>
-            </div>
+            <h1>{routeTitle}</h1>
           </div>
           <div className="topbar__account">
             <span className={`environment environment--${adminConfig.environment}`}>
@@ -137,14 +124,14 @@ export function AdminLayout() {
               <span>{user?.email}</span>
             </div>
             <span className="account-avatar" aria-hidden="true">
-              <CircleUserRound size={22} />
+              <CircleUserRound size={20} />
             </span>
             <button
               className="button button--quiet topbar__logout"
               disabled={isLoggingOut}
               onClick={() => void submitLogout()}
               type="button">
-              <LogOut size={17} />
+              <LogOut size={16} />
               {isLoggingOut ? 'Đang đóng…' : 'Đăng xuất'}
             </button>
           </div>
@@ -167,18 +154,20 @@ export function AdminLayout() {
 
 function environmentLabel(environment: string): string {
   return {
-    local: 'LOCAL',
-    demo: 'DEMO',
-    staging: 'STAGING',
-    production: 'PRODUCTION',
+    local: 'Nội bộ',
+    demo: 'Thử nghiệm',
+    staging: 'Tiền sản xuất',
+    production: 'Chính thức',
   }[environment] ?? environment.toUpperCase();
 }
 
-function resolveRouteTitle(pathname: string): { eyebrow: string; title: string } {
-  if (pathname.startsWith('/users/')) return { eyebrow: 'ACCOUNT DOSSIER', title: 'Chi tiết người dùng' };
-  if (pathname === '/packing-rules/new') return { eyebrow: 'PACKING CONTENT', title: 'Tạo quy tắc' };
-  if (pathname.startsWith('/packing-rules/')) return { eyebrow: 'PACKING CONTENT', title: 'Rule workbench' };
-  return routeTitles[pathname] ?? { eyebrow: 'LUCKGAGE ADMIN', title: 'Không gian quản trị' };
+function resolveRouteTitle(pathname: string): string {
+  if (pathname.startsWith('/users/')) return 'Chi tiết người dùng';
+  if (pathname === '/packing-rules/new') return 'Tạo quy tắc';
+  if (pathname.startsWith('/packing-rules/')) return 'Chi tiết quy tắc';
+  if (pathname === '/trip-suggestions/new') return 'Tạo gợi ý';
+  if (pathname.startsWith('/trip-suggestions/')) return 'Chi tiết gợi ý';
+  return routeTitles[pathname] ?? 'Quản trị';
 }
 
 function useMediaQuery(query: string): boolean {

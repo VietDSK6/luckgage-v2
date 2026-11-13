@@ -64,7 +64,6 @@ export function SignInScreen() {
   return (
     <AuthFrame
       body={t('authSignInBody')}
-      eyebrow={t('authSignInEyebrow')}
       footer={
         <AppButton
           disabled={submitting}

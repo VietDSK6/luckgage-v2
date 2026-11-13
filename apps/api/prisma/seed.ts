@@ -112,7 +112,7 @@ async function seedPackingRules(): Promise<void> {
     where: { key_version: { key: 'baseline-essentials', version: 1 } },
     create: {
       key: 'baseline-essentials',
-      name: 'Baseline travel essentials',
+      name: 'Đồ dùng thiết yếu cơ bản',
       version: 1,
       priority: 10,
       status: ContentStatus.PUBLISHED,
@@ -122,7 +122,7 @@ async function seedPackingRules(): Promise<void> {
       items: { create: baseItems },
     },
     update: {
-      name: 'Baseline travel essentials',
+      name: 'Đồ dùng thiết yếu cơ bản',
       priority: 10,
       status: ContentStatus.PUBLISHED,
       reasonVi: 'Đồ thiết yếu cho mọi chuyến đi',

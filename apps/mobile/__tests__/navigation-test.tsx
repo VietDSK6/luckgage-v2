@@ -264,8 +264,8 @@ describe('app navigation', () => {
       'trip/new': NewTripRoute,
     });
 
-    expect(await screen.findByText('Đi đâu tiếp?')).toBeTruthy();
-    expect(screen.getByText('Chiếc thẻ đầu tiên vẫn đang để trống')).toBeTruthy();
+    expect(await screen.findByText('Chuyến đi của bạn')).toBeTruthy();
+    expect(screen.getByText('Chưa có chuyến đi nào')).toBeTruthy();
 
     await user.press(screen.getByRole('tab', { name: 'Cài đặt' }));
     expect(await screen.findByRole('header', { name: 'Cài đặt' })).toBeTruthy();
@@ -292,16 +292,16 @@ describe('app navigation', () => {
       { initialUrl: '/trip/new' },
     );
 
-    expect(await screen.findByText('Đi đâu, khi nào?')).toBeTruthy();
+    expect(await screen.findByText('Điểm đến & lịch trình')).toBeTruthy();
     await user.press(screen.getByRole('button', { name: 'Tiếp tục' }));
     expect(await screen.findByText('Hãy nhập điểm đến.')).toBeTruthy();
 
     await user.type(screen.getByLabelText('Điểm đến'), 'Hội An');
     await user.press(screen.getByRole('button', { name: 'Tiếp tục' }));
-    expect(await screen.findByText('Chuyến đi mang màu gì?')).toBeTruthy();
+    expect(await screen.findByRole('header', { name: 'Kiểu chuyến đi' })).toBeTruthy();
 
     await user.press(screen.getByRole('button', { name: 'Xem lại chuyến đi' }));
-    expect(await screen.findByText('Kiểm tra thẻ hành trình')).toBeTruthy();
+    expect(await screen.findByRole('header', { name: 'Xem lại chuyến đi' })).toBeTruthy();
     expect(screen.getAllByText('Hội An').length).toBeGreaterThan(0);
   });
 
@@ -323,7 +323,7 @@ describe('app navigation', () => {
     await user.press(await screen.findByRole('button', { name: 'Xem lại chuyến đi' }));
     await user.press(await screen.findByRole('button', { name: 'Lưu chuyến đi' }));
 
-    expect(await screen.findByText('TRIP COMMAND CENTER')).toBeTruthy();
+    expect(await screen.findByText('Sẵn sàng hành lý')).toBeTruthy();
     expect(screen.getAllByText('Hội An').length).toBeGreaterThan(0);
     expect(fetchMock).toHaveBeenCalledWith(
       expect.stringMatching(/\/api\/v1\/trips$/),
@@ -350,7 +350,7 @@ describe('app navigation', () => {
     await user.press(await screen.findByRole('button', { name: 'Xem lại chuyến đi' }));
     await user.press(await screen.findByRole('button', { name: 'Lưu thay đổi' }));
 
-    expect(await screen.findByText('TRIP COMMAND CENTER')).toBeTruthy();
+    expect(await screen.findByText('Sẵn sàng hành lý')).toBeTruthy();
     expect(fetchMock).toHaveBeenCalledWith(
       expect.stringMatching(/\/api\/v1\/trips\/trip-1$/),
       expect.objectContaining({ method: 'PATCH' }),
@@ -378,7 +378,7 @@ describe('app navigation', () => {
     await waitFor(() => {
       expect(serverTrip).toBeNull();
     });
-    expect(await screen.findByText('Đi đâu tiếp?')).toBeTruthy();
+    expect(await screen.findByText('Chuyến đi của bạn')).toBeTruthy();
   });
 
   test('creates a checklist category, quick-adds an item, and packs it', async () => {
@@ -395,7 +395,7 @@ describe('app navigation', () => {
       { initialUrl: '/trip/trip-1/checklist' },
     );
 
-    expect(await screen.findByText('Bắt đầu từ một ngăn hành lý')).toBeTruthy();
+    expect(await screen.findByText('Danh sách đang trống')).toBeTruthy();
     await user.type(screen.getByPlaceholderText('Ví dụ: Quần áo'), 'Tài liệu');
     await user.press(screen.getByRole('button', { name: 'Thêm danh mục' }));
 
@@ -433,11 +433,11 @@ describe('app navigation', () => {
     const idInput = screen.getByDisplayValue('Giấy tờ tùy thân');
     await user.clear(idInput);
     await user.type(idInput, 'CCCD');
-    await user.press(screen.getByRole('button', { name: /Thêm \d+ món vào checklist/ }));
-    expect(await screen.findByRole('header', { name: 'Xác nhận thêm vào checklist?' })).toBeTruthy();
+    await user.press(screen.getByRole('button', { name: /Thêm \d+ món vào danh sách/ }));
+    expect(await screen.findByRole('header', { name: 'Xác nhận thêm vào danh sách?' })).toBeTruthy();
     await user.press(screen.getByRole('button', { name: /Xác nhận thêm \d+ món/ }));
 
-    expect(await screen.findByText('Đã nối thêm vào checklist')).toBeTruthy();
+    expect(await screen.findByText('Đã thêm vào danh sách hành lý')).toBeTruthy();
     expect(appliedPackingRequest).toEqual({
       categories: [
         {
@@ -464,12 +464,12 @@ describe('app navigation', () => {
     await user.type(await screen.findByLabelText('Mã tham gia'), 'luck-8k4m2p7q');
     await user.press(screen.getByRole('button', { name: 'Xem trước chuyến đi' }));
 
-    expect(await screen.findByText('THẺ MỜI ĐÃ XÁC THỰC')).toBeTruthy();
+    expect(await screen.findByText('MÃ HỢP LỆ')).toBeTruthy();
     expect(screen.getByText('Luckgage Demo')).toBeTruthy();
     expect(serverTrip).toBeNull();
 
     await user.press(screen.getByRole('button', { name: 'Xác nhận tham gia' }));
-    expect(await screen.findByText('TRIP COMMAND CENTER')).toBeTruthy();
+    expect(await screen.findByText('Sẵn sàng hành lý')).toBeTruthy();
     expect(serverTrip?.currentUserRole).toBe('MEMBER');
     expect(fetchMock).toHaveBeenCalledWith(
       expect.stringMatching(/\/api\/v1\/trip-invites\/join$/),

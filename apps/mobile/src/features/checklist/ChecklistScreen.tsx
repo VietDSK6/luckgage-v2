@@ -401,7 +401,7 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.safeArea}>
-        <AppPageHeader eyebrow={t('checklistEyebrow')} onBack={goBack} title={trip.name} />
+        <AppPageHeader onBack={goBack} title={trip.name} />
 
         <View
           accessibilityLabel={t('checklistProgress', { packed: progress.packed, total: progress.total })}
@@ -510,10 +510,8 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
 
           {categories.length === 0 ? (
             <View style={styles.emptyState}>
-              <View style={[styles.emptyTag, { backgroundColor: theme.colors.surface, borderColor: theme.colors.outline }]}>
-                <View style={[styles.emptyTagHole, { borderColor: theme.colors.primary }]} />
-                <View style={[styles.emptyTagLine, { backgroundColor: theme.colors.outline }]} />
-                <View style={[styles.emptyTagLineShort, { backgroundColor: theme.colors.outline }]} />
+              <View style={[styles.emptyIconCircle, { backgroundColor: theme.colors.primarySoft }]}>
+                <AppIcon color={theme.colors.primary} name="checklist" size={32} />
               </View>
               <Text accessibilityRole="header" style={[styles.emptyTitle, { color: theme.colors.ink }]}>
                 {t('checklistEmptyTitle')}
@@ -842,11 +840,8 @@ const styles = StyleSheet.create({
   errorBanner: { borderWidth: 1, borderRadius: 12, padding: 14, marginBottom: 16 },
   errorText: { fontSize: 14, lineHeight: 20, fontWeight: '700' },
   emptyState: { alignItems: 'center', paddingVertical: 28, paddingHorizontal: 12 },
-  emptyTag: { width: 150, height: 112, borderWidth: 1, borderRadius: 24, padding: 22, transform: [{ rotate: '-4deg' }] },
-  emptyTagHole: { width: 18, height: 18, borderRadius: 9, borderWidth: 3 },
-  emptyTagLine: { width: 92, height: 5, borderRadius: 3, marginTop: 18 },
-  emptyTagLineShort: { width: 58, height: 5, borderRadius: 3, marginTop: 10 },
-  emptyTitle: { marginTop: 28, fontSize: 24, lineHeight: 31, fontWeight: '900', textAlign: 'center' },
+  emptyIconCircle: { width: 64, height: 64, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  emptyTitle: { marginTop: 18, fontSize: 22, lineHeight: 28, fontWeight: '900', textAlign: 'center' },
   emptyBody: { maxWidth: 410, marginTop: 8, fontSize: 16, lineHeight: 24, textAlign: 'center' },
   noMatches: { paddingVertical: 40, fontSize: 16, lineHeight: 24, textAlign: 'center' },
   categoryList: { gap: 16 },

@@ -28,9 +28,7 @@ function SessionLoading() {
       <div className="session-state__mark" aria-hidden="true">
         <LoaderCircle className="spin" size={24} />
       </div>
-      <p className="eyebrow">CONTROL DESK</p>
-      <h1>Đang kiểm tra phiên quản trị</h1>
-      <p>luckgage đang nối lại phiên bảo mật trên trình duyệt này.</p>
+      <h1>Đang kiểm tra phiên…</h1>
     </main>
   );
 }
@@ -42,13 +40,12 @@ function SessionRecovery() {
       <div className="session-state__mark session-state__mark--danger" aria-hidden="true">
         <ShieldAlert size={24} />
       </div>
-      <p className="eyebrow">CHƯA KẾT NỐI ĐƯỢC</p>
       <h1 id="session-error-title">Không thể kiểm tra phiên</h1>
-      <p>{error?.detail ?? 'Kiểm tra API rồi thử kết nối lại.'}</p>
+      <p>{error?.detail ?? 'Kiểm tra kết nối API rồi thử lại.'}</p>
       {error?.requestId ? <p className="request-id">Request ID: {error.requestId}</p> : null}
       <button className="button button--primary" onClick={() => void retrySession()} type="button">
         <RotateCcw size={18} />
-        Kết nối lại
+        Thử lại
       </button>
     </main>
   );

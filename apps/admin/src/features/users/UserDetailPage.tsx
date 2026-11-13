@@ -44,14 +44,13 @@ export function UserDetailPage() {
     const apiError = detail.error instanceof ApiError ? detail.error : null;
     return (
       <section className="data-error">
-        <CircleAlert aria-hidden="true" size={30} />
-        <p className="eyebrow">ACCOUNT LOOKUP</p>
+        <CircleAlert aria-hidden="true" size={28} />
         <h2>Chưa mở được hồ sơ</h2>
         <p>{apiError?.status === 404 ? 'Tài khoản này không còn tồn tại.' : apiError?.detail ?? 'Hãy thử tải lại hồ sơ.'}</p>
         {apiError?.requestId ? <small>Request ID: {apiError.requestId}</small> : null}
         <div className="data-error__actions">
-          <Link className="button button--quiet" to="/users"><ArrowLeft size={17} /> Về danh sách</Link>
-          <button className="button button--primary" onClick={() => void detail.refetch()} type="button"><RefreshCw size={17} /> Tải lại</button>
+          <Link className="button button--quiet" to="/users"><ArrowLeft size={16} /> Danh sách người dùng</Link>
+          <button className="button button--primary" onClick={() => void detail.refetch()} type="button"><RefreshCw size={16} /> Tải lại</button>
         </div>
       </section>
     );
@@ -65,7 +64,7 @@ export function UserDetailPage() {
       {
         onSuccess: () => {
           setDialogOpen(false);
-          setNotice(status === 'SUSPENDED' ? 'Tài khoản đã được tạm khóa.' : 'Tài khoản đã được mở lại.');
+          setNotice(status === 'SUSPENDED' ? 'Đã tạm khóa tài khoản.' : 'Đã mở lại tài khoản.');
         },
       },
     );
@@ -73,19 +72,18 @@ export function UserDetailPage() {
 
   return (
     <div className="user-detail-page">
-      <Link className="back-link" to="/users"><ArrowLeft size={17} /> Danh sách người dùng</Link>
+      <Link className="back-link" to="/users"><ArrowLeft size={16} /> Danh sách người dùng</Link>
 
-      {notice ? <div className="action-notice" role="status"><UserRoundCheck size={19} /><span>{notice}</span><button onClick={() => setNotice(null)} type="button">Đóng</button></div> : null}
+      {notice ? <div className="action-notice" role="status"><UserRoundCheck size={18} /><span>{notice}</span><button onClick={() => setNotice(null)} type="button">Đóng</button></div> : null}
       <section className="profile-hero" aria-labelledby="user-detail-title">
         <span className="profile-hero__avatar" aria-hidden="true">{initials(managedUser.displayName)}</span>
         <div className="profile-hero__identity">
-          <p className="eyebrow">USER DOSSIER</p>
           <h2 id="user-detail-title">{managedUser.displayName}</h2>
           <a href={`mailto:${managedUser.email}`}>{managedUser.email}</a>
         </div>
         <div className="profile-hero__status">
           <span className={`status-badge status-badge--${managedUser.status.toLowerCase()}`}>
-            {managedUser.status === 'ACTIVE' ? <UserRoundCheck size={16} /> : <UserRoundX size={16} />}
+            {managedUser.status === 'ACTIVE' ? <UserRoundCheck size={15} /> : <UserRoundX size={15} />}
             {statusLabel(managedUser.status)}
           </span>
           <button
@@ -96,7 +94,7 @@ export function UserDetailPage() {
               setDialogOpen(true);
             }}
             type="button">
-            {managedUser.status === 'ACTIVE' ? <UserRoundX size={18} /> : <UserRoundCheck size={18} />}
+            {managedUser.status === 'ACTIVE' ? <UserRoundX size={16} /> : <UserRoundCheck size={16} />}
             {isSelf ? 'Tài khoản đang dùng' : managedUser.status === 'ACTIVE' ? 'Tạm khóa tài khoản' : 'Mở lại tài khoản'}
           </button>
         </div>
@@ -104,30 +102,29 @@ export function UserDetailPage() {
 
       <section className="user-detail-grid">
         <div className="profile-facts">
-          <div className="section-heading"><div><p className="eyebrow">HỒ SƠ CƠ BẢN</p><h3>Thông tin tài khoản</h3></div></div>
+          <h3>Thông tin tài khoản</h3>
           <dl>
-            <div><dt><ShieldCheck size={17} /> Vai trò</dt><dd>{roleLabel(managedUser.role)}</dd></div>
-            <div><dt><Languages size={17} /> Ngôn ngữ</dt><dd>{managedUser.locale === 'vi' ? 'Tiếng Việt' : 'English'}</dd></div>
-            <div><dt><CalendarDays size={17} /> Ngày tạo</dt><dd>{formatDateTime(managedUser.createdAt)}</dd></div>
-            <div><dt><Clock3 size={17} /> Cập nhật gần nhất</dt><dd>{formatDateTime(managedUser.updatedAt)}</dd></div>
-            <div><dt><LogIn size={17} /> Đăng nhập gần nhất</dt><dd>{formatDateTime(managedUser.lastLoginAt)}</dd></div>
+            <div><dt><ShieldCheck size={16} /> Vai trò</dt><dd>{roleLabel(managedUser.role)}</dd></div>
+            <div><dt><Languages size={16} /> Ngôn ngữ</dt><dd>{managedUser.locale === 'vi' ? 'Tiếng Việt' : 'Tiếng Anh'}</dd></div>
+            <div><dt><CalendarDays size={16} /> Ngày tạo</dt><dd>{formatDateTime(managedUser.createdAt)}</dd></div>
+            <div><dt><Clock3 size={16} /> Cập nhật gần nhất</dt><dd>{formatDateTime(managedUser.updatedAt)}</dd></div>
+            <div><dt><LogIn size={16} /> Đăng nhập gần nhất</dt><dd>{formatDateTime(managedUser.lastLoginAt)}</dd></div>
           </dl>
         </div>
 
         <aside className="account-scope">
-          <p className="eyebrow eyebrow--light">ACCOUNT SCOPE</p>
-          <h3>Dữ liệu tổng hợp, không đọc checklist riêng tư.</h3>
+          <h3>Hoạt động chuyến đi</h3>
           <dl>
-            <div><dt><Luggage size={18} /> Chuyến đi sở hữu</dt><dd>{managedUser.ownedTripCount}</dd></div>
-            <div><dt><UsersRound size={18} /> Membership đang hoạt động</dt><dd>{managedUser.activeMembershipCount}</dd></div>
+            <div><dt><Luggage size={16} /> Chuyến đi sở hữu</dt><dd>{managedUser.ownedTripCount}</dd></div>
+            <div><dt><UsersRound size={16} /> Nhóm đang tham gia</dt><dd>{managedUser.activeMembershipCount}</dd></div>
           </dl>
         </aside>
       </section>
 
       <section className="session-strip" aria-labelledby="session-strip-title">
-        <div><p className="eyebrow">SESSION METADATA</p><h3 id="session-strip-title">Phiên xác thực</h3></div>
+        <h3 id="session-strip-title">Phiên đăng nhập</h3>
         <div><span>Phiên còn hiệu lực</span><strong>{managedUser.activeSessionCount}</strong></div>
-        <div><span>Hoạt động phiên gần nhất</span><strong>{formatDateTime(managedUser.lastSessionActivityAt)}</strong></div>
+        <div><span>Hoạt động gần nhất</span><strong>{formatDateTime(managedUser.lastSessionActivityAt)}</strong></div>
       </section>
 
       <UserStatusDialog

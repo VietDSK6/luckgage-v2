@@ -53,8 +53,8 @@ describe('AdminApp auth routing', () => {
       </MemoryRouter>,
     );
 
-    expect(await screen.findByRole('heading', { name: 'Mở control desk' })).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Mở control desk' }));
+    expect(await screen.findByRole('heading', { name: 'Đăng nhập quản trị' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Đăng nhập' }));
     expect(screen.getByText('Nhập email quản trị để tiếp tục.')).toBeInTheDocument();
     expect(screen.getByText('Nhập mật khẩu quản trị để tiếp tục.')).toBeInTheDocument();
 
@@ -64,11 +64,11 @@ describe('AdminApp auth routing', () => {
     await user.type(screen.getByLabelText('Mật khẩu'), 'admin-password');
     await user.tab();
     expect(screen.queryByText('Nhập mật khẩu quản trị để tiếp tục.')).not.toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Mở control desk' }));
+    await user.click(screen.getByRole('button', { name: 'Đăng nhập' }));
 
     expect(await screen.findByRole('heading', { name: 'Tổng quan' })).toBeInTheDocument();
     expect(
-      await screen.findByRole('heading', { name: /Một lượt nhìn.*Đủ để điều phối/ }),
+      await screen.findByRole('heading', { name: 'Tổng quan hệ thống' }),
     ).toBeInTheDocument();
     expect(loginSpy).toHaveBeenCalledWith({
       email: session.user.email,

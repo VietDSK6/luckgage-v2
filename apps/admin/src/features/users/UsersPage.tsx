@@ -69,8 +69,8 @@ export function UsersPage() {
           setDialogOpen(false);
           setNotice(
             status === 'SUSPENDED'
-              ? `Đã tạm khóa ${target.displayName}. Mọi phiên đăng nhập đã bị thu hồi.`
-              : `Đã mở lại ${target.displayName}. Tài khoản có thể đăng nhập trở lại.`,
+              ? `Đã tạm khóa ${target.displayName}.`
+              : `Đã mở lại ${target.displayName}.`,
           );
         },
       },
@@ -83,20 +83,18 @@ export function UsersPage() {
     <div className="users-page">
       <section className="page-heading" aria-labelledby="users-title">
         <div>
-          <p className="eyebrow">ACCOUNT CONTROL</p>
           <h2 id="users-title">Người dùng</h2>
-          <p>Tìm đúng tài khoản, xem đủ metadata và thay đổi trạng thái mà không đụng vào dữ liệu chuyến đi.</p>
         </div>
         <div className="page-heading__count">
-          <UsersRound aria-hidden="true" size={20} />
+          <UsersRound aria-hidden="true" size={18} />
           <strong>{users.data?.totalItems.toLocaleString('vi-VN') ?? '—'}</strong>
-          <span>kết quả</span>
+          <span>tài khoản</span>
         </div>
       </section>
 
       {notice ? (
         <div className="action-notice" role="status">
-          <CircleCheck aria-hidden="true" size={19} />
+          <CircleCheck aria-hidden="true" size={18} />
           <span>{notice}</span>
           <button onClick={() => setNotice(null)} type="button">Đóng</button>
         </div>
@@ -106,7 +104,7 @@ export function UsersPage() {
         <form className="user-search" key={filters.search ?? ''} onSubmit={submitSearch}>
           <label htmlFor="user-search">Tìm theo tên hoặc email</label>
           <div>
-            <Search aria-hidden="true" size={19} />
+            <Search aria-hidden="true" size={18} />
             <input
               defaultValue={filters.search}
               id="user-search"
@@ -154,7 +152,7 @@ export function UsersPage() {
               className="button button--quiet filter-reset"
               onClick={() => setSearchParams({}, { replace: true })}
               type="button">
-              <FilterX size={17} /> Xóa bộ lọc
+              <FilterX size={16} /> Xóa lọc
             </button>
           ) : null}
         </div>
@@ -166,11 +164,11 @@ export function UsersPage() {
       ) : null}
       {users.isSuccess && users.data.items.length === 0 ? (
         <section className="users-empty">
-          <Search aria-hidden="true" size={28} />
+          <Search aria-hidden="true" size={26} />
           <h3>Không có tài khoản phù hợp</h3>
-          <p>Thử bớt bộ lọc hoặc dùng email/tên khác.</p>
+          <p>Thử đổi từ khóa hoặc xóa bộ lọc.</p>
           <button className="button button--secondary" onClick={() => setSearchParams({}, { replace: true })} type="button">
-            Xem toàn bộ người dùng
+            Xóa bộ lọc
           </button>
         </section>
       ) : null}
@@ -178,7 +176,7 @@ export function UsersPage() {
         <>
           <div className={`users-table-wrap${users.isFetching ? ' users-table-wrap--updating' : ''}`}>
             <table className="users-table">
-              <caption>Danh sách tài khoản theo bộ lọc hiện tại</caption>
+              <caption>Danh sách tài khoản</caption>
               <thead>
                 <tr>
                   <th scope="col">Tài khoản</th>
@@ -186,7 +184,7 @@ export function UsersPage() {
                   <th scope="col">Trạng thái</th>
                   <th scope="col">Đăng nhập gần nhất</th>
                   <th scope="col">Ngày tạo</th>
-                  <th scope="col"><span className="visually-hidden">Hành động</span></th>
+                  <th scope="col"><span className="visually-hidden">Thao tác</span></th>
                 </tr>
               </thead>
               <tbody>
@@ -200,13 +198,13 @@ export function UsersPage() {
                           <div><strong>{managedUser.displayName}</strong><small>{managedUser.email}</small></div>
                         </div>
                       </td>
-                      <td data-label="Vai trò"><span className="role-label"><ShieldCheck size={15} /> {roleLabel(managedUser.role)}</span></td>
+                      <td data-label="Vai trò"><span className="role-label"><ShieldCheck size={14} /> {roleLabel(managedUser.role)}</span></td>
                       <td data-label="Trạng thái"><StatusBadge status={managedUser.status} /></td>
                       <td data-label="Đăng nhập gần nhất"><time dateTime={managedUser.lastLoginAt ?? undefined}>{formatDateTime(managedUser.lastLoginAt)}</time></td>
                       <td data-label="Ngày tạo"><time dateTime={managedUser.createdAt}>{formatDateTime(managedUser.createdAt)}</time></td>
-                      <td data-label="Hành động">
+                      <td data-label="Thao tác">
                         <div className="row-actions">
-                          <Link aria-label={`Xem ${managedUser.displayName}`} className="icon-button" to={`/users/${managedUser.id}`}><Eye size={18} /></Link>
+                          <Link aria-label={`Xem ${managedUser.displayName}`} className="icon-button" to={`/users/${managedUser.id}`}><Eye size={17} /></Link>
                           <button
                             aria-label={
                               isSelf
@@ -223,7 +221,7 @@ export function UsersPage() {
                               setDialogOpen(true);
                             }}
                             type="button">
-                            {managedUser.status === 'ACTIVE' ? <UserRoundX size={18} /> : <UserRoundCheck size={18} />}
+                            {managedUser.status === 'ACTIVE' ? <UserRoundX size={17} /> : <UserRoundCheck size={17} />}
                           </button>
                         </div>
                       </td>
@@ -239,7 +237,7 @@ export function UsersPage() {
               disabled={filters.page <= 1 || users.isFetching}
               onClick={() => updateParams({ page: String(filters.page - 1) })}
               type="button">
-              <ArrowLeft size={17} /> Trang trước
+              <ArrowLeft size={16} /> Trang trước
             </button>
             <span>Trang <strong>{users.data.page}</strong> / {Math.max(users.data.totalPages, 1)}</span>
             <button
@@ -247,7 +245,7 @@ export function UsersPage() {
               disabled={filters.page >= users.data.totalPages || users.isFetching}
               onClick={() => updateParams({ page: String(filters.page + 1) })}
               type="button">
-              Trang sau <ArrowRight size={17} />
+              Trang sau <ArrowRight size={16} />
             </button>
           </nav>
         </>
@@ -273,7 +271,7 @@ export function UsersPage() {
 function StatusBadge({ status }: { status: UserStatus }) {
   return (
     <span className={`status-badge status-badge--${status.toLowerCase()}`}>
-      {status === 'ACTIVE' ? <UserRoundCheck size={15} /> : <UserRoundX size={15} />}
+      {status === 'ACTIVE' ? <UserRoundCheck size={14} /> : <UserRoundX size={14} />}
       {statusLabel(status)}
     </span>
   );
@@ -293,10 +291,10 @@ function UsersError({ error, onRetry, retrying }: { error: Error; onRetry: () =>
     <section className="data-error data-error--compact">
       <CircleAlert aria-hidden="true" size={26} />
       <h3>Chưa tải được danh sách người dùng</h3>
-      <p>{apiError?.detail ?? 'Kiểm tra kết nối API rồi tải lại danh sách.'}</p>
+      <p>{apiError?.detail ?? 'Kiểm tra kết nối rồi thử lại.'}</p>
       {apiError?.requestId ? <small>Request ID: {apiError.requestId}</small> : null}
       <button className="button button--primary" disabled={retrying} onClick={onRetry} type="button">
-        <RefreshCw size={17} /> {retrying ? 'Đang tải lại…' : 'Tải lại danh sách'}
+        <RefreshCw size={16} /> {retrying ? 'Đang tải lại…' : 'Tải lại'}
       </button>
     </section>
   );

@@ -884,6 +884,33 @@
         ]
       }
     },
+    "/api/v1/admin/trips": {
+      "get": {
+        "operationId": "AdminTripsController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminTripsPageDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "summary": "List privacy-safe trip support aggregates",
+        "tags": [
+          "admin-trips"
+        ]
+      }
+    },
     "/api/v1/trips/{tripId}/checklist": {
       "get": {
         "operationId": "ChecklistsController_get",
@@ -1163,6 +1190,33 @@
         "summary": "Get fresh, cached, or unavailable weather without blocking trip flows",
         "tags": [
           "weather"
+        ]
+      }
+    },
+    "/api/v1/admin/locations/search": {
+      "get": {
+        "operationId": "AdminLocationsController_search",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocationsResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "summary": "Search normalized locations for admin content prefill",
+        "tags": [
+          "admin-locations"
         ]
       }
     },
@@ -2568,6 +2622,104 @@
           "ownerDisplayName",
           "memberCount",
           "expiresAt"
+        ]
+      },
+      "AdminTripSupportItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "destinationLabel": {
+            "type": "string"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "tripType": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TripType"
+              }
+            ]
+          },
+          "timelineStatus": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TimelineStatus"
+              }
+            ]
+          },
+          "ownerDisplayName": {
+            "type": "string"
+          },
+          "memberCount": {
+            "type": "number"
+          },
+          "checklistProgress": {
+            "$ref": "#/components/schemas/ChecklistProgressDto"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "destinationLabel",
+          "startDate",
+          "endDate",
+          "tripType",
+          "timelineStatus",
+          "ownerDisplayName",
+          "memberCount",
+          "checklistProgress",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "AdminTripsPageDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminTripSupportItemDto"
+            }
+          },
+          "page": {
+            "type": "number"
+          },
+          "pageSize": {
+            "type": "number"
+          },
+          "totalItems": {
+            "type": "number"
+          },
+          "totalPages": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "totalItems",
+          "totalPages"
         ]
       },
       "ChecklistItemDto": {

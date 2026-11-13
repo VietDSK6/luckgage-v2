@@ -17,6 +17,8 @@ hardening. Do not begin a later phase to fill gaps in the current one.
 - Checklist is the source of truth. Smart List must preview, allow edits, require confirmation,
   and append without silently overwriting existing items.
 - Weather is optional and must never block trip or checklist flows.
+- Every UI or copy change (mobile and admin) must pass `.agents/rules/unslop-design.md`; use the
+  `unslop-design` skill to audit screens.
 - Do not add dependencies, layers, shared packages, or generic abstractions without current use.
 - Treat every mobile build-time environment value as public; never commit secrets.
 - Verify the smallest relevant checks, then run `git diff --check` and inspect `git status`.
