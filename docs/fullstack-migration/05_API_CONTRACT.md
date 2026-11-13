@@ -603,7 +603,25 @@ Trả localized content và prefill object:
 
 Không tự tạo trip khi mở suggestion.
 
-## 10. Admin API
+## 10. Luki guides API — Phase 4E
+
+`GET /guides?locale=vi&page=1&pageSize=20` chỉ trả published, không trả sections. `GET
+/guides/{slug}?locale=vi` trả nội dung localized, sections và `isSaved` theo user. `GET
+/guides/saved?locale=vi` trả bài đã lưu còn published. `PUT /guides/{slug}/save` và `DELETE
+/guides/{slug}/save` là idempotent, yêu cầu bearer token. Bookmark gắn user/article, không dùng
+local-only storage. Khi article archived, public detail trả 404 và bài không còn trong saved list.
+
+Admin cookie + CSRF dùng `GET/POST /admin/guides`, `GET/PATCH /admin/guides/{id}`,
+`POST /admin/guides/{id}/publish`, `POST /admin/guides/{id}/archive` và
+`DELETE /admin/guides/{id}` cho draft/archived. Article có slug duy nhất,
+title/summary/cover URL + alt VI/EN, tags, sortOrder, optional `tripSuggestionId`, sections VI/EN.
+Section là discriminated union: `heading {text}`, `paragraph {text}`, `image {url,alt}`,
+`bulletList {items}` hoặc `callout {text}`; tối đa 30 sections/ngôn ngữ. Không nhận HTML/WebView.
+Publish yêu cầu cả hai ngôn ngữ có section hợp lệ. Published PATCH thay đổi public ngay; archived
+read-only. Public detail chỉ trả `relatedSuggestionSlug` nếu suggestion còn published.
+Xóa vĩnh viễn một draft/archived guide cũng xóa các bookmark của bài đó.
+
+## 11. Admin API
 
 ### Users
 
@@ -685,7 +703,7 @@ Trả aggregate không chứa checklist content:
 - publishedRules.
 - publishedTripSuggestions.
 
-## 11. Rate/size limits
+## 12. Rate/size limits
 
 Giới hạn cụ thể được benchmark, tối thiểu phải có:
 
@@ -696,7 +714,7 @@ Giới hạn cụ thể được benchmark, tối thiểu phải có:
 - pageSize: max 100.
 - Không nhận base64 image trong JSON; admin dùng URL hoặc upload flow riêng khi được chốt.
 
-## 12. OpenAPI workflow
+## 13. OpenAPI workflow
 
 1. Backend annotation/schema sinh OpenAPI JSON.
 2. CI validate spec.
@@ -706,7 +724,7 @@ Giới hạn cụ thể được benchmark, tối thiểu phải có:
 
 OpenAPI là contract transport; domain/UI model vẫn được map riêng.
 
-## 13. Contract test checklist
+## 14. Contract test checklist
 
 - Error shape giống nhau giữa modules.
 - Unauthorized là 401; insufficient permission là 403/404 theo policy.

@@ -46,6 +46,9 @@ Admin không mặc định được:
 /trip-suggestions
 /trip-suggestions/new
 /trip-suggestions/:suggestionId
+/guides
+/guides/new
+/guides/:guideId
 /trips
 /audit                         # Phase 4 nếu triển khai
 ~~~
@@ -234,7 +237,14 @@ MVP chỉ cần:
 Không mở checklist item detail mặc định. Mục đích là chứng minh quản lý/quan sát hệ thống, không
 biến admin thành công cụ đọc dữ liệu riêng tư.
 
-## 10. Frontend architecture
+## 10. Cẩm nang từ Luki
+
+Phase 4E thêm “Cẩm nang từ Luki” trong sidebar. Danh sách lọc trạng thái, editor nhập title,
+summary, cover + alt, tags và section VI/EN theo loại hữu hạn; có preview hai ngôn ngữ và xác
+nhận publish/archive và xóa vĩnh viễn draft/archived. Lưu bài published cập nhật nội dung mobile
+ngay, vì vậy editor cảnh báo rõ. Bài archived chỉ đọc.
+
+## 11. Frontend architecture
 
 Foundation được dựng tại `apps/admin` bằng Vite, React và TypeScript strict.
 Admin auth dùng HttpOnly cookie của API; endpoint restore session trả user cùng CSRF token và client
@@ -268,7 +278,7 @@ Nguyên tắc:
 - Table filter phản ánh trên URL query để refresh/share được.
 - Không đặt permission logic chỉ ở router client.
 
-## 11. Form behavior
+## 12. Form behavior
 
 - Dirty form cảnh báo khi rời trang.
 - Save draft và publish là hai hành động khác.
@@ -278,7 +288,7 @@ Nguyên tắc:
 - Destructive/archive có confirm.
 - Không confirm cho save draft thông thường.
 
-## 12. Accessibility và responsive
+## 13. Accessibility và responsive
 
 - Keyboard navigation đầy đủ.
 - Focus visible.
@@ -289,7 +299,7 @@ Nguyên tắc:
 - Contrast phù hợp.
 - Ở màn hình hẹp, table quan trọng chuyển thành card/list hoặc horizontal scroll có chủ đích.
 
-## 13. Admin test plan
+## 14. Admin test plan
 
 ### Unit/component
 
@@ -314,7 +324,7 @@ Nguyên tắc:
 4. Publish.
 5. Mobile generate nhận rule mới.
 
-## 14. Acceptance gate
+## 15. Acceptance gate
 
 - USER không mở được admin API dù sửa URL.
 - Admin session hết hạn quay về login, không mất draft nếu có thể lưu local tạm an toàn.
@@ -326,7 +336,7 @@ Nguyên tắc:
 - Web không lộ secret/token trong UI/log.
 - Keyboard và focus flow dùng được.
 
-## 15. Tài liệu chính thức
+## 16. Tài liệu chính thức
 
 - [Vite Getting Started](https://vite.dev/guide/)
 - [NestJS OpenAPI](https://docs.nestjs.com/openapi/introduction)

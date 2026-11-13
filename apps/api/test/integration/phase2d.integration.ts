@@ -310,6 +310,70 @@ describe('Phase 2D packing, weather, and trip suggestions integration', () => {
       .expect(409);
   });
 
+  it('publishes a bilingual guide, persists a bookmark, and hides archived content', async () => {
+    const admin = await createAdminAgent();
+    const reader = await register('phase4e-reader@example.com');
+    const suggestion = await admin.agent
+      .post('/api/v1/admin/trip-suggestions')
+      .set('x-csrf-token', admin.csrfToken)
+      .send(suggestionInput())
+      .expect(201);
+    await admin.agent
+      .post(`/api/v1/admin/trip-suggestions/${suggestion.body.id}/publish`)
+      .set('x-csrf-token', admin.csrfToken)
+      .expect(200);
+
+    const created = await admin.agent
+      .post('/api/v1/admin/guides')
+      .set('x-csrf-token', admin.csrfToken)
+      .send(guideInput(suggestion.body.id as string))
+      .expect(201);
+    expect((await api(reader).get('/api/v1/guides').expect(200)).body.totalItems).toBe(0);
+    await admin.agent
+      .post(`/api/v1/admin/guides/${created.body.id}/publish`)
+      .set('x-csrf-token', admin.csrfToken)
+      .expect(200);
+
+    const detail = await api(reader).get('/api/v1/guides/packing-for-da-lat').query({ locale: 'en' }).expect(200);
+    expect(detail.body).toMatchObject({
+      title: 'Pack for Da Lat',
+      coverAlt: 'A packed backpack',
+      relatedSuggestionSlug: 'test-da-lat',
+      sections: [{ type: 'heading', text: 'Before you leave' }],
+      isSaved: false,
+    });
+    await request(app.getHttpServer())
+      .put('/api/v1/guides/packing-for-da-lat/save')
+      .set('authorization', `Bearer ${reader.accessToken}`)
+      .expect(200);
+    const saved = await api(reader).get('/api/v1/guides/saved').expect(200);
+    expect(saved.body.items).toMatchObject([{ slug: 'packing-for-da-lat', isSaved: true }]);
+    expect((await prisma.savedGuide.count({ where: { userId: reader.user.id } }))).toBe(1);
+    const signedInAgain = await request(app.getHttpServer())
+      .post('/api/v1/auth/login')
+      .send({ email: 'phase4e-reader@example.com', password: 'integration-test-password' })
+      .expect(200);
+    expect((await api(signedInAgain.body as Session).get('/api/v1/guides/saved').expect(200)).body.items)
+      .toMatchObject([{ slug: 'packing-for-da-lat', isSaved: true }]);
+
+    await admin.agent
+      .post(`/api/v1/admin/trip-suggestions/${suggestion.body.id}/archive`)
+      .set('x-csrf-token', admin.csrfToken)
+      .expect(200);
+    expect((await api(reader).get('/api/v1/guides/packing-for-da-lat').expect(200)).body.relatedSuggestionSlug).toBeNull();
+    await admin.agent
+      .post(`/api/v1/admin/guides/${created.body.id}/archive`)
+      .set('x-csrf-token', admin.csrfToken)
+      .expect(200);
+    await api(reader).get('/api/v1/guides/packing-for-da-lat').expect(404);
+    expect((await api(reader).get('/api/v1/guides/saved').expect(200)).body.items).toEqual([]);
+    await admin.agent
+      .delete(`/api/v1/admin/guides/${created.body.id}`)
+      .set('x-csrf-token', admin.csrfToken)
+      .expect(200);
+    expect(await prisma.savedGuide.count({ where: { userId: reader.user.id } })).toBe(0);
+  });
+
   function api(session: Session) {
     return {
       get: (path: string) =>
@@ -416,6 +480,16 @@ function suggestionInput() {
   };
 }
 
+function guideInput(tripSuggestionId: string) {
+  return {
+    slug: 'packing-for-da-lat', titleVi: 'Đồ cho Đà Lạt', titleEn: 'Pack for Da Lat',
+    summaryVi: 'Mang đủ đồ cho chuyến đi.', summaryEn: 'Bring what you need.',
+    coverUrl: 'https://example.com/backpack.jpg', coverAltVi: 'Ba lô đã xếp', coverAltEn: 'A packed backpack',
+    tags: ['packing'], sectionsVi: [{ type: 'heading', text: 'Trước khi đi' }],
+    sectionsEn: [{ type: 'heading', text: 'Before you leave' }], tripSuggestionId, sortOrder: 0,
+  };
+}
+
 function offsetDate(days: number): string {
   return new Date(Date.now() + days * 86_400_000).toISOString().slice(0, 10);
 }
@@ -423,6 +497,7 @@ function offsetDate(days: number): string {
 async function clearData(prisma: PrismaService): Promise<void> {
   await prisma.trip.deleteMany();
   await prisma.packingRule.deleteMany();
+  await prisma.guide.deleteMany();
   await prisma.tripSuggestion.deleteMany();
   await prisma.authSession.deleteMany();
   await prisma.user.deleteMany();

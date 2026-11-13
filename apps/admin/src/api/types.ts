@@ -183,6 +183,22 @@ export type TripSuggestion = TripSuggestionInput & {
   updatedAt: string;
 };
 
+export type GuideSection =
+  | { type: 'heading' | 'paragraph' | 'callout'; text: string }
+  | { type: 'image'; url: string; alt: string }
+  | { type: 'bulletList'; items: string[] };
+
+export type GuideInput = {
+  slug: string; titleVi: string; titleEn: string; summaryVi: string; summaryEn: string;
+  coverUrl: string; coverAltVi: string; coverAltEn: string; tags: string[];
+  sectionsVi: GuideSection[]; sectionsEn: GuideSection[];
+  tripSuggestionId: string | null; sortOrder: number;
+};
+
+export type Guide = GuideInput & {
+  id: string; status: ContentStatus; publishedAt: string | null; updatedAt: string;
+};
+
 export type AdminTripSupportItem = {
   id: string;
   name: string;

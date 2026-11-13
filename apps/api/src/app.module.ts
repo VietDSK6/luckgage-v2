@@ -7,6 +7,7 @@ import { ChecklistsModule } from './checklists/checklists.module.js';
 import { validateEnvironment } from './config/environment.js';
 import { DatabaseModule } from './database/database.module.js';
 import { HealthModule } from './health/health.module.js';
+import { GuidesModule } from './guides/guides.module.js';
 import { RequestContextMiddleware } from './http/request-context.middleware.js';
 import { PackingModule } from './packing-suggestions/packing.module.js';
 import { TripSuggestionsModule } from './trip-suggestions/trip-suggestions.module.js';
@@ -30,6 +31,7 @@ import { WeatherModule } from './weather/weather.module.js';
     WeatherModule,
     PackingModule,
     TripSuggestionsModule,
+    GuidesModule,
     HealthModule,
   ],
 })

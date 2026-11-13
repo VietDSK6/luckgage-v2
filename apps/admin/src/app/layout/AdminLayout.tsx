@@ -1,4 +1,5 @@
 import {
+  BookOpen,
   ChevronRight,
   CircleUserRound,
   LayoutDashboard,
@@ -24,6 +25,7 @@ const navigation: Array<{ icon: LucideIcon; label: string; to: string }> = [
   { icon: UsersRound, label: 'Người dùng', to: '/users' },
   { icon: ListChecks, label: 'Quy tắc hành lý', to: '/packing-rules' },
   { icon: MapPinned, label: 'Gợi ý chuyến đi', to: '/trip-suggestions' },
+  { icon: BookOpen, label: 'Cẩm nang từ Luki', to: '/guides' },
   { icon: Plane, label: 'Chuyến đi', to: '/trips' },
 ];
 
@@ -32,6 +34,7 @@ const routeTitles: Record<string, string> = {
   '/users': 'Người dùng',
   '/packing-rules': 'Quy tắc hành lý',
   '/trip-suggestions': 'Gợi ý chuyến đi',
+  '/guides': 'Cẩm nang từ Luki',
   '/trips': 'Chuyến đi',
 };
 
@@ -167,6 +170,8 @@ function resolveRouteTitle(pathname: string): string {
   if (pathname.startsWith('/packing-rules/')) return 'Chi tiết quy tắc';
   if (pathname === '/trip-suggestions/new') return 'Tạo gợi ý';
   if (pathname.startsWith('/trip-suggestions/')) return 'Chi tiết gợi ý';
+  if (pathname === '/guides/new') return 'Tạo bài viết';
+  if (pathname.startsWith('/guides/')) return 'Biên tập bài viết';
   return routeTitles[pathname] ?? 'Quản trị';
 }
 

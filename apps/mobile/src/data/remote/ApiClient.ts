@@ -20,7 +20,7 @@ type ApiTrace = {
 type TracedResponse = { response: Response; trace: ApiTrace };
 
 export type ApiRequestOptions = {
-  method?: 'GET' | 'POST' | 'PATCH' | 'DELETE';
+  method?: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
   body?: unknown;
   headers?: Record<string, string>;
   authenticated?: boolean;

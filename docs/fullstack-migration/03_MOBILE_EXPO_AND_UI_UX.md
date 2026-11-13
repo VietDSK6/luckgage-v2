@@ -157,6 +157,12 @@ và detail đọc nội dung localized đã publish từ API. CTA ở detail tru
 `trip/new`; form tự tải lại suggestion rồi prefill destination metadata, type và duration vào draft
 có thể sửa. Mở suggestion không ghi trip và vẫn cần người dùng review/save rõ ràng.
 
+Phase 4E: thêm entry “Cẩm nang từ Luki” ở Trips Hub và route `trip/guides` cùng
+`trip/guides/[slug]`. List/detail đọc bài published; section heading, paragraph, image, bullet list,
+callout render bằng React Native. Detail có hành động lưu bài thứ cấp và CTA chính mở suggestion
+liên quan hoặc tạo trip. Nếu suggestion đã archive, CTA fallback tạo trip. Không thêm tab Discover
+trước khi có khoảng 12–20 bài thực.
+
 ## 6. Core flow
 
 ### 6.1. Onboarding và auth

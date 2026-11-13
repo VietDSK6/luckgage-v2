@@ -57,6 +57,7 @@ v2 được thiết kế lại theo ngôn ngữ “Travel Tag” giàu cá tính
 - Quản lý checklist của trip mà mình là thành viên.
 - Xem và áp dụng gợi ý hành lý.
 - Xem gợi ý chuyến đi đã được admin xuất bản.
+- Đọc và lưu cẩm nang đã xuất bản theo tài khoản.
 
 ### 3.3. Trip owner
 
@@ -72,6 +73,7 @@ Trip owner có toàn bộ quyền của user và thêm:
 - Truy cập web quản trị.
 - Xem, tìm kiếm, khóa/mở khóa tài khoản.
 - Quản lý trip suggestions.
+- Biên tập và xuất bản cẩm nang song ngữ.
 - Quản lý packing rules và packing items.
 - Xem thống kê tổng hợp.
 - Không xem mật khẩu, refresh token hoặc secret.
@@ -81,6 +83,7 @@ Trip owner có toàn bộ quyền của user và thêm:
 | Thuật ngữ | Định nghĩa |
 |---|---|
 | Trip suggestion | Nội dung địa điểm/ý tưởng chuyến đi do admin biên soạn và xuất bản. |
+| Luki guide | Bài cẩm nang có nội dung theo section, có thể liên kết một trip suggestion. |
 | Packing suggestion | Vật dụng được rule engine đề xuất từ thông tin trip, hoạt động và thời tiết. |
 | Checklist | Danh sách chuẩn mà người dùng thực sự dùng để chuẩn bị hành lý. |
 | Preview | Bản nháp gợi ý chưa được ghi vào checklist. |
@@ -146,20 +149,31 @@ Không tạo entity “luggage” riêng chỉ để đổi tên checklist. Chec
 - Chọn một suggestion có thể prefill form tạo trip; không tự tạo trip.
 - Cá nhân hóa bằng thuật toán hoặc AI nằm ngoài MVP.
 
-### 5.7. Thời tiết và địa điểm
+### 5.7. Cẩm nang từ Luki
+
+Phase 4E bổ sung cẩm nang Luki: admin tạo draft, sửa, xem trước VI/EN, publish, archive và xóa
+vĩnh viễn bài draft/archived. Bài viết gồm slug, tiêu đề, tóm tắt, ảnh bìa với alt, tags và các
+section có cấu trúc. Section chỉ
+gồm heading, paragraph, image, bullet list hoặc callout; mobile render native, không dùng HTML hay
+WebView. Bài có thể liên kết một Trip Suggestion đã publish. User có thể lưu/bỏ lưu bài trên server;
+bookmark gắn với tài khoản. CTA trên bài mở suggestion liên quan khi còn published, nếu không thì
+mở form tạo trip. Trips Hub dẫn tới “Cẩm nang từ Luki”; chưa có tab Discover trước khi có khoảng
+12–20 nội dung thực.
+
+### 5.8. Thời tiết và địa điểm
 
 - Tìm địa điểm và lấy forecast qua Open-Meteo.
 - Sau giai đoạn tích hợp, backend đứng giữa mobile và Open-Meteo để thống nhất mapping/cache.
 - Có cache với thời điểm tải; UI phải phân biệt fresh, cached và unavailable.
 - Weather failure không được rollback thao tác trip/checklist.
 
-### 5.8. Nhắc chuẩn bị
+### 5.9. Nhắc chuẩn bị
 
 - Mobile hỗ trợ local reminder trước ngày đi.
 - Push notification cho thay đổi cộng tác là giai đoạn sau, không phải điều kiện hoàn thành MVP.
 - Người dùng phải chủ động cấp quyền; từ chối quyền không chặn chức năng khác.
 
-### 5.9. Settings
+### 5.10. Settings
 
 - Theme sáng, tối hoặc theo hệ thống.
 - Tiếng Việt hoặc tiếng Anh.
@@ -167,7 +181,7 @@ Không tạo entity “luggage” riêng chỉ để đổi tên checklist. Chec
 - Đăng xuất.
 - Xóa tài khoản không nằm trong MVP nếu chưa chốt chính sách giữ/xóa dữ liệu.
 
-### 5.10. Admin web
+### 5.11. Admin web
 
 - Dashboard tổng hợp.
 - User management.

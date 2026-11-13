@@ -125,6 +125,7 @@ export function TripsHubScreen() {
             <EmptyJourney
               onCreate={() => router.push('/trip/new')}
               onExplore={() => router.push('/trip/suggestions')}
+              onGuides={() => router.push('/trip/guides')}
               onJoin={() => router.push('/trip/join')}
               theme={theme}
             />
@@ -174,6 +175,7 @@ export function TripsHubScreen() {
                   />
                 </View>
                 <ExploreSuggestions onPress={() => router.push('/trip/suggestions')} theme={theme} />
+                <ExploreSuggestions icon="book" onPress={() => router.push('/trip/guides')} theme={theme} title={t('guidesTitle')} />
               </View>
             ) : null}
             {hasError && trips.length > 0 ? (
@@ -337,11 +339,13 @@ function TripCompactRow({
 function EmptyJourney({
   onCreate,
   onExplore,
+  onGuides,
   onJoin,
   theme,
 }: {
   onCreate: () => void;
   onExplore: () => void;
+  onGuides: () => void;
   onJoin: () => void;
   theme: AppTheme;
 }) {
@@ -368,11 +372,12 @@ function EmptyJourney({
         />
       </View>
       <ExploreSuggestions onPress={onExplore} theme={theme} />
+      <ExploreSuggestions icon="book" onPress={onGuides} theme={theme} title={t('guidesTitle')} />
     </View>
   );
 }
 
-function ExploreSuggestions({ onPress, theme }: { onPress: () => void; theme: AppTheme }) {
+function ExploreSuggestions({ onPress, theme, title, icon = 'mapPin' }: { onPress: () => void; theme: AppTheme; title?: string; icon?: 'mapPin' | 'book' }) {
   const { t } = useI18n();
   return (
     <Pressable
@@ -384,9 +389,9 @@ function ExploreSuggestions({ onPress, theme }: { onPress: () => void; theme: Ap
         pressed ? styles.pressed : null,
       ]}>
       <View style={[styles.exploreIcon, { backgroundColor: theme.colors.sun }]}>
-        <AppIcon color={theme.colors.onWarm} name="mapPin" size={19} />
+        <AppIcon color={theme.colors.onWarm} name={icon} size={19} />
       </View>
-      <Text style={[styles.exploreTitle, { color: theme.colors.ink }]}>{t('tripsExplore')}</Text>
+      <Text style={[styles.exploreTitle, { color: theme.colors.ink }]}>{title ?? t('tripsExplore')}</Text>
       <AppIcon color={theme.colors.primary} name="arrowRight" size={20} />
     </Pressable>
   );

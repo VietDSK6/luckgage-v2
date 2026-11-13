@@ -3,7 +3,8 @@
 luckgage v2 combines an Expo mobile app, a self-hosted TypeScript REST API, PostgreSQL, and a React
 admin app. **Phase 1D local mobile scope, backend Phase 2A–2D, and mobile integration Phase 3A–3D
 are complete. Admin Phases 4A–4C are complete and QA-accepted; Phase 4D trip suggestions and the
-privacy-safe trips support view are implemented and awaiting QA.**
+privacy-safe trips support view are implemented and awaiting QA. Phase 4E Luki guides are implemented
+and awaiting PostgreSQL integration QA.**
 
 ## Sources of truth
 
@@ -159,3 +160,6 @@ Phase 4D replaces the remaining placeholders with a responsive editorial desk fo
 suggestions, a mobile-card preview, destination metadata lookup, confirmed publish/archive, and a
 paginated trip support ledger exposing only operational aggregates rather than notes or checklist
 content.
+Phase 4E adds a bilingual Luki guides editor with structured native sections, publish/archive,
+optional Trip Suggestion linking, and a mobile guide library with account-backed bookmarks. The
+guide library is entered from Trips Hub; Discover remains deferred until there are 12–20 real guides.

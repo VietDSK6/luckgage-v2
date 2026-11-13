@@ -9,6 +9,8 @@ import { AdminLayout } from '@/app/layout/AdminLayout';
 import { LoginPage } from '@/features/auth/LoginPage';
 import { DashboardPage } from '@/features/dashboard/DashboardPage';
 import { NotFoundPage } from '@/features/foundation/NotFoundPage';
+import { GuideEditorPage } from '@/features/guides/GuideEditorPage';
+import { GuidesPage } from '@/features/guides/GuidesPage';
 import { PackingRuleEditorPage } from '@/features/packing-rules/PackingRuleEditorPage';
 import { PackingRulesPage } from '@/features/packing-rules/PackingRulesPage';
 import { TripSuggestionEditorPage } from '@/features/trip-suggestions/TripSuggestionEditorPage';
@@ -52,6 +54,9 @@ export function AdminApp() {
               <Route element={<TripSuggestionEditorPage />} path="/trip-suggestions/new" />
               <Route element={<TripSuggestionEditorPage />} path="/trip-suggestions/:suggestionId" />
               <Route element={<TripsSupportPage />} path="/trips" />
+              <Route element={<GuidesPage />} path="/guides" />
+              <Route element={<GuideEditorPage />} path="/guides/new" />
+              <Route element={<GuideEditorPage />} path="/guides/:guideId" />
             </Route>
           </Route>
           <Route element={<Navigate replace to="/dashboard" />} path="/" />

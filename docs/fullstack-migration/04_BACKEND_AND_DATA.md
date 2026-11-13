@@ -9,6 +9,7 @@ Backend tồn tại để:
 - Cung cấp join flow.
 - Quản lý và chạy packing rules.
 - Phục vụ trip suggestions.
+- Phục vụ cẩm nang song ngữ và danh sách bài đã lưu theo user.
 - Chuẩn hóa location/weather.
 - Cho admin web dùng cùng một API.
 
@@ -82,6 +83,13 @@ Không trộn hai ORM trong cùng backend.
 - Admin CRUD/publish content.
 - User list/detail published content.
 - Prefill data cho create trip.
+
+### GuidesModule
+
+- Admin tạo/sửa bản nháp, xuất bản và lưu trữ bài viết song ngữ.
+- Kiểm tra cấu trúc section trước khi lưu; không nhận HTML hay WebView payload.
+- User đọc bài đã xuất bản và lưu/bỏ lưu bài theo tài khoản.
+- Chỉ trả liên kết Trip Suggestion khi suggestion còn được xuất bản.
 
 ### WeatherModule
 
@@ -360,7 +368,19 @@ policy mặc định lấy max, không cộng vô hạn.
 
 User API chỉ trả PUBLISHED.
 
-### 5.12. audit_logs
+### 5.12. guides và saved_guides
+
+- `guides`: slug duy nhất; title, summary, cover alt và section JSON có bản VI/EN; cover URL,
+  tags, sort order, trạng thái DRAFT/PUBLISHED/ARCHIVED, published_at và actor timestamps.
+- `trip_suggestion_id` nullable; liên kết chỉ hiện trong public detail khi suggestion PUBLISHED.
+- `sections_vi/en` là mảng có thứ tự gồm heading, paragraph, image (URL + alt), bulletList
+  hoặc callout. Server kiểm tra cấu trúc, giới hạn độ dài và chặn HTML.
+- `saved_guides`: khóa ghép user_id + guide_id, lưu bài riêng cho từng tài khoản; xóa user hoặc
+  guide sẽ xóa bản lưu liên quan.
+- Public list/detail và saved list chỉ trả bài PUBLISHED; archive ẩn bài nhưng giữ quan hệ đã lưu.
+- Xóa vĩnh viễn chỉ cho draft/archived guide; guide published phải archive trước.
+
+### 5.13. audit_logs
 
 Đưa vào Phase 4 nếu thời gian cho phép, tối thiểu cho:
 

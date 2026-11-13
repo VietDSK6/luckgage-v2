@@ -244,7 +244,26 @@ lookup, mobile-card preview, dirty guard và publish/archive confirmation. Mobil
 publish, rồi chỉ prefill draft sau CTA rõ ràng; không tự tạo trip. Trips support dùng search,
 timeline filter và pagination server-side, chỉ trả aggregate privacy-safe. Integration test bao phủ
 admin create/publish/update → mobile đọc nội dung localized → archive làm nội dung biến mất, đồng
-thời xác minh support response không chứa note/checklist detail. Phase 5 chưa bắt đầu.
+thời xác minh support response không chứa note/checklist detail. Integration test cần PostgreSQL
+riêng `_integration` trước khi chốt QA.
+
+### 4E. Cẩm nang từ Luki
+
+- Backend: article draft/published/archived, structured sections VI/EN, liên kết tùy chọn tới
+  Trip Suggestion và bookmark theo user.
+- Admin: danh sách, editor song ngữ, preview native-like, publish/archive/delete và cảnh báo khi sửa bản
+  đang xuất bản.
+- Mobile: entry trong Trips Hub, danh sách/detail native, lưu/bỏ lưu và CTA tới suggestion hoặc
+  form tạo trip. Không thêm tab Discover khi thư viện chưa có khoảng 12–20 bài thực.
+
+Gate: admin publish hiện trên mobile; article → suggestion → prefill trip chạy được; bookmark còn
+sau đăng nhập lại; archive ẩn bài khỏi public API. Integration test 4D và 4E chạy với database
+`_integration` riêng. Phase 5 chỉ bắt đầu sau gate này.
+
+Trạng thái triển khai: API, Prisma migration, admin editor và mobile list/detail/bookmark đã hoàn
+thành; typecheck, lint, unit tests, admin build, API build và Expo Android export đã qua. Đã thêm
+integration test cho publish → public detail → bookmark → archive. Gate database còn chờ chạy trên
+PostgreSQL `_integration` riêng; chưa bắt đầu Phase 5.
 
 ## 7. Phase 5 — Hardening, deploy, rehearsal
 

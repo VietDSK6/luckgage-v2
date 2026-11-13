@@ -1737,6 +1737,315 @@
         ]
       }
     },
+    "/api/v1/guides": {
+      "get": {
+        "operationId": "GuidesController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GuidePageDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "guides"
+        ]
+      }
+    },
+    "/api/v1/guides/saved": {
+      "get": {
+        "operationId": "GuidesController_saved",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GuidePageDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "guides"
+        ]
+      }
+    },
+    "/api/v1/guides/{slug}": {
+      "get": {
+        "operationId": "GuidesController_detail",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GuideDetailDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "guides"
+        ]
+      }
+    },
+    "/api/v1/guides/{slug}/save": {
+      "put": {
+        "operationId": "GuidesController_save",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "guides"
+        ]
+      },
+      "delete": {
+        "operationId": "GuidesController_unsave",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "guides"
+        ]
+      }
+    },
+    "/api/v1/admin/guides": {
+      "get": {
+        "operationId": "AdminGuidesController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminGuidePageDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "tags": [
+          "admin-guides"
+        ]
+      },
+      "post": {
+        "operationId": "AdminGuidesController_create",
+        "parameters": [
+          {
+            "name": "x-csrf-token",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "tags": [
+          "admin-guides"
+        ]
+      }
+    },
+    "/api/v1/admin/guides/{id}": {
+      "get": {
+        "operationId": "AdminGuidesController_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminGuideDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "tags": [
+          "admin-guides"
+        ]
+      },
+      "patch": {
+        "operationId": "AdminGuidesController_update",
+        "parameters": [
+          {
+            "name": "x-csrf-token",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "tags": [
+          "admin-guides"
+        ]
+      },
+      "delete": {
+        "operationId": "AdminGuidesController_delete",
+        "parameters": [
+          {
+            "name": "x-csrf-token",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "tags": [
+          "admin-guides"
+        ]
+      }
+    },
+    "/api/v1/admin/guides/{id}/publish": {
+      "post": {
+        "operationId": "AdminGuidesController_publish",
+        "parameters": [
+          {
+            "name": "x-csrf-token",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "tags": [
+          "admin-guides"
+        ]
+      }
+    },
+    "/api/v1/admin/guides/{id}/archive": {
+      "post": {
+        "operationId": "AdminGuidesController_archive",
+        "parameters": [
+          {
+            "name": "x-csrf-token",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "tags": [
+          "admin-guides"
+        ]
+      }
+    },
     "/api/v1/health/live": {
       "get": {
         "operationId": "HealthController_getLiveness",
@@ -3507,6 +3816,233 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/AdminTripSuggestionDto"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "GuideListItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "coverUrl": {
+            "type": "string"
+          },
+          "coverAlt": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "isSaved": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "title",
+          "summary",
+          "coverUrl",
+          "coverAlt",
+          "tags",
+          "isSaved"
+        ]
+      },
+      "GuidePageDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GuideListItemDto"
+            }
+          },
+          "page": {
+            "type": "number"
+          },
+          "pageSize": {
+            "type": "number"
+          },
+          "totalItems": {
+            "type": "number"
+          },
+          "totalPages": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "totalItems",
+          "totalPages"
+        ]
+      },
+      "GuideDetailDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "coverUrl": {
+            "type": "string"
+          },
+          "coverAlt": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "isSaved": {
+            "type": "boolean"
+          },
+          "sections": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "relatedSuggestionSlug": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "title",
+          "summary",
+          "coverUrl",
+          "coverAlt",
+          "tags",
+          "isSaved",
+          "sections"
+        ]
+      },
+      "AdminGuideDto": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string"
+          },
+          "titleVi": {
+            "type": "string"
+          },
+          "titleEn": {
+            "type": "string"
+          },
+          "summaryVi": {
+            "type": "string"
+          },
+          "summaryEn": {
+            "type": "string"
+          },
+          "coverUrl": {
+            "type": "string"
+          },
+          "coverAltVi": {
+            "type": "string"
+          },
+          "coverAltEn": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "sectionsVi": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "sectionsEn": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "tripSuggestionId": {
+            "type": "string",
+            "nullable": true
+          },
+          "sortOrder": {
+            "type": "number"
+          },
+          "id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "PUBLISHED",
+              "ARCHIVED"
+            ]
+          },
+          "publishedAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "slug",
+          "titleVi",
+          "titleEn",
+          "summaryVi",
+          "summaryEn",
+          "coverUrl",
+          "coverAltVi",
+          "coverAltEn",
+          "tags",
+          "sectionsVi",
+          "sectionsEn",
+          "id",
+          "status",
+          "updatedAt"
+        ]
+      },
+      "AdminGuidePageDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminGuideDto"
             }
           }
         },

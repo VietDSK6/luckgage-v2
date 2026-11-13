@@ -3,6 +3,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { ApiClientProvider } from '@/data/remote/ApiClientProvider';
 import { ChecklistRepositoryProvider } from '@/data/repositories/ChecklistRepositoryProvider';
+import { GuidesRepositoryProvider } from '@/data/repositories/GuidesRepositoryProvider';
 import { MembershipRepositoryProvider } from '@/data/repositories/MembershipRepositoryProvider';
 import { PackingSuggestionsRepositoryProvider } from '@/data/repositories/PackingSuggestionsRepositoryProvider';
 import { ReminderRepositoryProvider } from '@/data/repositories/ReminderRepositoryProvider';
@@ -28,15 +29,17 @@ export function AppProviders({ children }: PropsWithChildren) {
                   <AuthProvider>
                     <TripRepositoryProvider>
                       <TripSuggestionsRepositoryProvider>
-                        <MembershipRepositoryProvider>
-                          <ChecklistRepositoryProvider>
-                            <PackingSuggestionsRepositoryProvider>
-                              <WeatherRepositoryProvider>
-                                <ReminderRepositoryProvider>{children}</ReminderRepositoryProvider>
-                              </WeatherRepositoryProvider>
-                            </PackingSuggestionsRepositoryProvider>
-                          </ChecklistRepositoryProvider>
-                        </MembershipRepositoryProvider>
+                        <GuidesRepositoryProvider>
+                          <MembershipRepositoryProvider>
+                            <ChecklistRepositoryProvider>
+                              <PackingSuggestionsRepositoryProvider>
+                                <WeatherRepositoryProvider>
+                                  <ReminderRepositoryProvider>{children}</ReminderRepositoryProvider>
+                                </WeatherRepositoryProvider>
+                              </PackingSuggestionsRepositoryProvider>
+                            </ChecklistRepositoryProvider>
+                          </MembershipRepositoryProvider>
+                        </GuidesRepositoryProvider>
                       </TripSuggestionsRepositoryProvider>
                     </TripRepositoryProvider>
                   </AuthProvider>
