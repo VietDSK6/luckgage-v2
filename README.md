@@ -97,7 +97,8 @@ Expo SecureStore, access tokens stay in memory, and concurrent 401 responses sha
 Development builds log sanitized API request/response/error diagnostics to the Metro console;
 passwords, authorization values, and access/refresh tokens are redacted.
 
-Trips and Settings live in a nested Tabs navigator with the branded custom bottom bar, while trip
+Trips and Settings live in a nested Tabs navigator with the branded custom bottom bar. Its center QR
+action opens the join camera directly, while trip
 creation, join, detail, checklist, packing, and member flows remain in the parent Stack. Tab changes
 therefore avoid Stack slide transitions and retain each tab's navigation state.
 

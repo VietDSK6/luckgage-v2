@@ -1,4 +1,4 @@
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { CameraView, useCameraPermissions, type BarcodeScanningResult } from 'expo-camera';
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -32,6 +32,7 @@ import { usePreferences } from '@/platform/preferences/PreferencesProvider';
 import { parseScannedInviteCode } from './inviteQr';
 
 export function JoinTripScreen() {
+  const { scan } = useLocalSearchParams<{ scan?: string }>();
   const repository = useMembershipRepository();
   const router = useRouter();
   const { theme } = useAppTheme();
@@ -41,10 +42,20 @@ export function JoinTripScreen() {
   const [preview, setPreview] = useState<InvitePreview | null>(null);
   const [pending, setPending] = useState<'preview' | 'join' | null>(null);
   const [error, setError] = useState<MessageKey | null>(null);
-  const [scanning, setScanning] = useState(false);
+  const [scanning, setScanning] = useState(scan === '1');
   const [scanError, setScanError] = useState<MessageKey | null>(null);
   const [cameraPermission, requestCameraPermission, getCameraPermission] = useCameraPermissions();
   const scanLocked = useRef(false);
+  const requestedCameraForShortcut = useRef(false);
+
+  useEffect(() => {
+    if (scan !== '1' || !cameraPermission || cameraPermission.granted || !cameraPermission.canAskAgain || requestedCameraForShortcut.current) return;
+    requestedCameraForShortcut.current = true;
+    void requestCameraPermission().catch(() => {
+      setScanning(false);
+      setError('joinQrCameraError');
+    });
+  }, [cameraPermission, requestCameraPermission, scan]);
 
   useEffect(() => {
     if (!scanning) return;

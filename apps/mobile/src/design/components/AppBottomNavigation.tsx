@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Animated, Easing, Pressable, StyleSheet, View } from 'react-native';
+import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAppTheme } from '@/design/theme/AppThemeProvider';
@@ -13,9 +13,10 @@ export type AppTab = 'trips' | 'settings';
 type AppBottomNavigationProps = {
   active: AppTab;
   onSelect: (tab: AppTab) => void;
+  onScanQr: () => void;
 };
 
-export function AppBottomNavigation({ active, onSelect }: AppBottomNavigationProps) {
+export function AppBottomNavigation({ active, onSelect, onScanQr }: AppBottomNavigationProps) {
   const insets = useSafeAreaInsets();
   const { theme } = useAppTheme();
   const { t } = useI18n();
@@ -41,6 +42,16 @@ export function AppBottomNavigation({ active, onSelect }: AppBottomNavigationPro
           if (active !== 'trips') onSelect('trips');
         }}
       />
+      <Pressable
+        accessibilityLabel={t('navScanQr')}
+        accessibilityRole="button"
+        onPress={onScanQr}
+        style={({ pressed }) => [styles.item, pressed ? styles.pressed : null]}>
+        <View style={[styles.scanIcon, { backgroundColor: theme.colors.primary, borderRadius: theme.radius.pill, width: theme.spacing.x10, height: theme.spacing.x10 }]}>
+          <AppIcon color={theme.colors.background} name="qr" size={20} />
+        </View>
+        <Text style={[theme.typography.nav, { color: theme.colors.primary }]}>{t('navScanQr')}</Text>
+      </Pressable>
       <NavigationItem
         active={active === 'settings'}
         label={t('navSettings')}
@@ -140,6 +151,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 2,
   },
+  scanIcon: { alignItems: 'center', justifyContent: 'center' },
   icon: { width: 20, height: 20 },
   iconLayer: { position: 'absolute', inset: 0 },
   labelFrame: { position: 'relative' },

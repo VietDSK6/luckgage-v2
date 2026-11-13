@@ -21,7 +21,8 @@ nhân. Ghi kết quả, ảnh màn hình và lỗi vào tài liệu QA trước 
 - [ ] Smoke Phase 4D: admin publish suggestion, mobile đọc và mở form prefill; trips support chỉ
   hiển thị aggregate.
 - [ ] Owner tạo mã và cho user khác quét QR; user xem preview rồi mới xác nhận join. Kiểm tra QR
-  sai, camera bị từ chối, mã hết hạn hoặc bị thu hồi và nhập mã thủ công vẫn hoạt động.
+  sai, camera bị từ chối, mã hết hạn hoặc bị thu hồi và nhập mã thủ công vẫn hoạt động. Kiểm tra
+  nút QR giữa bottom nav mở thẳng camera từ cả Trips và Settings.
 
 Android AVD `Pixel_7` và iOS Simulator `iPhone 17` có sẵn nhưng chưa boot tại thời điểm preflight.
 Không có bằng chứng device smoke cho 4E trong repo.

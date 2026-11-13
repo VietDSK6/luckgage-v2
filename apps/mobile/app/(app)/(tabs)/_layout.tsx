@@ -1,10 +1,11 @@
-import { Tabs } from 'expo-router';
+import { Tabs, useRouter } from 'expo-router';
 
 import { AppBottomNavigation, type AppTab } from '@/design/components/AppBottomNavigation';
 import { useReducedMotion } from '@/design/hooks/useReducedMotion';
 import { useAppTheme } from '@/design/theme/AppThemeProvider';
 
 export default function MainTabsLayout() {
+  const router = useRouter();
   const { theme } = useAppTheme();
   const reducedMotion = useReducedMotion();
 
@@ -27,6 +28,7 @@ export default function MainTabsLayout() {
         return (
           <AppBottomNavigation
             active={active}
+            onScanQr={() => router.push({ pathname: '/trip/join', params: { scan: '1' } })}
             onSelect={(tab) => {
               const routeName = tab === 'trips' ? 'index' : 'settings';
               const route = state.routes.find((candidate) => candidate.name === routeName);

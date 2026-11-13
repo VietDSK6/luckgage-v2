@@ -105,9 +105,10 @@ implementation cho end user.
 
 ## 4. Information architecture
 
-Bottom navigation MVP giữ hai destination:
+Bottom navigation MVP giữ hai destination và một hành động nhanh ở giữa:
 
 - Trips.
+- Quét QR: mở camera trong luồng join, không phải tab nội dung.
 - Settings.
 
 Auth/onboarding nằm trước app shell. Create/join/detail/checklist/suggestions/members là nested
@@ -149,6 +150,8 @@ mobile phải có thêm tab.
 transition và giữ state của từng tab. Chuyển tab dùng crossfade 160 ms; icon, label và indicator
 active chuyển trạng thái trong 180 ms, không slide ngang. Bottom bar custom thuộc tabs layout, bao
 gồm cả bottom safe area. Các route `trip/*` vẫn thuộc Stack cha để giữ transition theo chiều sâu.
+Nút QR ở giữa bottom bar mở `trip/join?scan=1`; màn hình join khởi động camera và vẫn yêu cầu xem
+trước, xác nhận trước khi tạo membership.
 
 Route chỉ nhận ID hoặc mode ngắn. Không truyền full trip/checklist object trong route params.
 
