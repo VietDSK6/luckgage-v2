@@ -91,8 +91,14 @@ chứng khớp implementation.
 
 Các quyết định này không chặn công việc local 5A–5B. QA giao diện vẫn là gate của bản release.
 
-Quyết định hiện tại: **local trước, chưa chốt hosting**. Vì vậy phần CI/build artifact có thể
-chuẩn bị, còn deploy HTTPS/staging và kiểm tra cookie/CORS với origin thật vẫn chờ lựa chọn hạ tầng.
+Quyết định ban đầu là **local trước**; quyết định VPS dùng chung ngày 2026-11-14 bên dưới thay thế
+phần hosting. Deploy HTTPS và kiểm tra cookie/CORS với origin thật vẫn chờ cấu hình Cloudflare.
+
+Quyết định ngày 2026-11-14: người dùng chọn VPS dùng chung với Mini PaaS và PostgreSQL trên cùng
+máy cho bản demo. Cấu hình triển khai độc lập nằm ở [deploy/vps](../../deploy/vps/README.md).
+Hai hostname dự kiến là `luckgage-api.ai2p.id.vn` và `luckgage-admin.ai2p.id.vn`; Cloudflare Tunnel
+chưa có route riêng và admin chưa có tài khoản ban đầu. Vì vậy **chưa đạt gate staging HTTPS** và
+chưa kiểm tra được CORS/cookie trên origin thực. Mobile binary cũng chưa được build với API public.
 
 ## 4. Bằng chứng triển khai local
 
@@ -122,3 +128,14 @@ chuẩn bị, còn deploy HTTPS/staging và kiểm tra cookie/CORS với origin 
   JS export, typecheck, lint, OpenAPI check và admin build qua. Đây là code/build checks, không thay
   thế QA giao diện.
 - Security review local và các giới hạn staging: [11 — Security audit local](11_LOCAL_SECURITY_AUDIT.md).
+- VPS preflight ngày 2026-11-14: còn khoảng 2,6 GiB RAM khả dụng và 30 GB đĩa trống; cổng 8091,
+  8092 trống. Đã đưa snapshot nguồn hiện tại (bao gồm thay đổi UI chưa commit) lên thư mục
+  `/home/user/services/luckgage`, image tag `20261114-01-snapshot`, secret tạo trực tiếp trên VPS.
+  Compose project `luckgage-demo` tách khỏi Mini PaaS, chỉ bind loopback. PostgreSQL 17, migrate,
+  API và admin đều healthy; readiness API và `/health` admin trả 200. Đây là **internal staging**;
+  chưa công bố HTTPS. Dữ liệu VPS mới tạo chưa có admin hoặc demo seed.
+- Backup đầu tiên tại `backups/20261114-091148/luckgage.dump` trên VPS; restore thử vào database
+  riêng xác nhận đủ 5 migration, database thử đã dọn. Sau deploy còn khoảng 2,5 GiB RAM khả dụng,
+  29 GB đĩa trống; container API ~111 MiB, PostgreSQL ~31 MiB, admin ~3 MiB. Mini PaaS vẫn healthy
+  và endpoint public trả 200; `make smoke` của Mini PaaS đạt 9/9. Hai hostname luckgage hiện trả 502
+  vì chưa cấu hình route riêng trong Tunnel. Cần sao lưu **ngoài VPS** trước khi lưu dữ liệu khó tái tạo.

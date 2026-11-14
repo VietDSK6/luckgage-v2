@@ -12,6 +12,8 @@ apps/api/src/generated/
 **/.env
 **/.env.*
 !**/.env.example
+deploy/vps/app.env
+deploy/vps/secrets/
 
 apps/mobile/android/
 apps/mobile/ios/

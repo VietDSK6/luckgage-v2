@@ -1,0 +1,133 @@
+name: luckgage-demo
+
+x-service-logging: &service-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+x-api-environment: &api-environment
+  DATABASE_URL: postgresql://luckgage:${DB_PASSWORD:?Set DB_PASSWORD}@postgres:5432/luckgage?schema=public
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: luckgage
+      POSTGRES_USER: luckgage
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    command:
+      - postgres
+      - -c
+      - shared_buffers=64MB
+      - -c
+      - max_connections=30
+      - -c
+      - work_mem=2MB
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    shm_size: 64m
+    mem_limit: 384m
+    cpus: 0.35
+    pids_limit: 128
+    cap_drop: [ALL]
+    cap_add: [CHOWN, DAC_OVERRIDE, FOWNER, SETGID, SETUID]
+    security_opt: [no-new-privileges:true]
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U luckgage -d luckgage"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    logging: *service-logging
+
+  migrate:
+    image: local/luckgage-api:${RELEASE_TAG:?Set RELEASE_TAG}
+    build:
+      context: ./source
+      dockerfile: deploy/vps/Dockerfile.api
+    restart: "no"
+    init: true
+    env_file: app.env
+    environment: *api-environment
+    command: ["npm", "run", "db:migrate", "--workspace", "@luckgage/api"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    mem_limit: 256m
+    cpus: 0.35
+    pids_limit: 128
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=32m
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    logging: *service-logging
+
+  api:
+    image: local/luckgage-api:${RELEASE_TAG:?Set RELEASE_TAG}
+    build:
+      context: ./source
+      dockerfile: deploy/vps/Dockerfile.api
+    restart: unless-stopped
+    init: true
+    env_file: app.env
+    environment: *api-environment
+    ports:
+      - "127.0.0.1:8091:3000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    mem_limit: 512m
+    cpus: 0.75
+    pids_limit: 128
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:3000/api/v1/health/ready').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    logging: *service-logging
+
+  admin:
+    image: local/luckgage-admin:${RELEASE_TAG:?Set RELEASE_TAG}
+    build:
+      context: ./source
+      dockerfile: deploy/vps/Dockerfile.admin
+      args:
+        VITE_API_BASE_URL: ${API_ORIGIN:?Set API_ORIGIN}/api/v1
+    restart: unless-stopped
+    init: true
+    user: "101:101"
+    ports:
+      - "127.0.0.1:8092:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    mem_limit: 64m
+    cpus: 0.20
+    pids_limit: 64
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=16m,mode=1777
+      - /var/cache/nginx:rw,noexec,nosuid,size=16m,mode=1777
+      - /var/run:rw,noexec,nosuid,size=1m,mode=1777
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    healthcheck:
+      test: [CMD-SHELL, "wget -q -O /dev/null http://127.0.0.1:3000/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    logging: *service-logging
+
+volumes:
+  postgres_data:
