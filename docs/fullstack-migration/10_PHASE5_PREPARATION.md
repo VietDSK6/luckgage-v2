@@ -92,13 +92,14 @@ chứng khớp implementation.
 Các quyết định này không chặn công việc local 5A–5B. QA giao diện vẫn là gate của bản release.
 
 Quyết định ban đầu là **local trước**; quyết định VPS dùng chung ngày 2026-11-14 bên dưới thay thế
-phần hosting. Deploy HTTPS và kiểm tra cookie/CORS với origin thật vẫn chờ cấu hình Cloudflare.
+phần hosting. HTTPS và CORS preflight đã kiểm tra trên origin thật; đăng nhập/cookie còn chờ tài khoản
+admin.
 
 Quyết định ngày 2026-11-14: người dùng chọn VPS dùng chung với Mini PaaS và PostgreSQL trên cùng
 máy cho bản demo. Cấu hình triển khai độc lập nằm ở [deploy/vps](../../deploy/vps/README.md).
-Hai hostname dự kiến là `luckgage-api.ai2p.id.vn` và `luckgage-admin.ai2p.id.vn`; Cloudflare Tunnel
-chưa có route riêng và admin chưa có tài khoản ban đầu. Vì vậy **chưa đạt gate staging HTTPS** và
-chưa kiểm tra được CORS/cookie trên origin thực. Mobile binary cũng chưa được build với API public.
+Hai hostname `luckgage-api.ai2p.id.vn` và `luckgage-admin.ai2p.id.vn` đã có route riêng trong
+Cloudflare Tunnel và HTTPS health trả 200. Admin chưa có tài khoản ban đầu, nên chưa kiểm tra
+đăng nhập/cookie/CSRF trên origin thực. Mobile binary cũng chưa được build với API public.
 
 ## 4. Bằng chứng triển khai local
 
@@ -137,5 +138,10 @@ chưa kiểm tra được CORS/cookie trên origin thực. Mobile binary cũng c
 - Backup đầu tiên tại `backups/20261114-091148/luckgage.dump` trên VPS; restore thử vào database
   riêng xác nhận đủ 5 migration, database thử đã dọn. Sau deploy còn khoảng 2,5 GiB RAM khả dụng,
   29 GB đĩa trống; container API ~111 MiB, PostgreSQL ~31 MiB, admin ~3 MiB. Mini PaaS vẫn healthy
-  và endpoint public trả 200; `make smoke` của Mini PaaS đạt 9/9. Hai hostname luckgage hiện trả 502
-  vì chưa cấu hình route riêng trong Tunnel. Cần sao lưu **ngoài VPS** trước khi lưu dữ liệu khó tái tạo.
+  và endpoint public trả 200; `make smoke` của Mini PaaS đạt 9/9. Cần sao lưu **ngoài VPS** trước
+  khi lưu dữ liệu khó tái tạo.
+- Cloudflare Tunnel route bản 5 đặt API và admin trước `*.ai2p.id.vn`. Kiểm tra từ máy ngoài VPS:
+  API `/api/v1/health/ready` trả 200 với database/migration `up`; admin `/health` và `/login`
+  trả 200; CORS preflight từ admin origin trả 204, `Access-Control-Allow-Origin` đúng hostname và
+  `Access-Control-Allow-Credentials: true`. Đây là bằng chứng HTTPS và SPA fallback, chưa thay thế
+  đăng nhập admin thật hoặc mobile flow.
