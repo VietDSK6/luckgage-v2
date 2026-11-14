@@ -98,8 +98,8 @@ admin.
 Quyết định ngày 2026-11-14: người dùng chọn VPS dùng chung với Mini PaaS và PostgreSQL trên cùng
 máy cho bản demo. Cấu hình triển khai độc lập nằm ở [deploy/vps](../../deploy/vps/README.md).
 Hai hostname `luckgage-api.ai2p.id.vn` và `luckgage-admin.ai2p.id.vn` đã có route riêng trong
-Cloudflare Tunnel và HTTPS health trả 200. Admin chưa có tài khoản ban đầu, nên chưa kiểm tra
-đăng nhập/cookie/CSRF trên origin thực. Mobile binary cũng chưa được build với API public.
+Cloudflare Tunnel và HTTPS health trả 200. Tài khoản admin ban đầu đã được tạo; đăng nhập,
+cookie và CSRF qua HTTPS đã kiểm tra. Mobile binary vẫn chưa được build với API public.
 
 ## 4. Bằng chứng triển khai local
 
@@ -145,3 +145,10 @@ Cloudflare Tunnel và HTTPS health trả 200. Admin chưa có tài khoản ban �
   trả 200; CORS preflight từ admin origin trả 204, `Access-Control-Allow-Origin` đúng hostname và
   `Access-Control-Allow-Credentials: true`. Đây là bằng chứng HTTPS và SPA fallback, chưa thay thế
   đăng nhập admin thật hoặc mobile flow.
+- Tạo admin `vietm1a4@gmail.com` trên database VPS bằng script bootstrap riêng; mật khẩu ngẫu nhiên
+  chỉ lưu trong `secrets/admin-password` quyền 0600 ngoài Git, chờ người dùng nhận qua SSH. Thử
+  HTTP trên origin HTTPS thật: login 200 với quyền ADMIN, hai cookie có `Secure`, `SameSite=Strict`
+  và path admin; `me` trả 200; logout có CSRF trả 204; session cũ trả 401. Phiên dùng thử đã thu hồi.
+  Backup sau bootstrap tại `backups/20261114-092753/luckgage.dump` đã restore vào database riêng,
+  xác nhận admin ACTIVE rồi dọn database thử. Lượt thử đầu bằng Python urllib bị Cloudflare chặn
+  `error 1010` theo user agent; thử lại với header trình duyệt đã đạt. Chưa chạy browser UI QA.
