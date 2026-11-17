@@ -18,6 +18,7 @@
     "db:migrate:dev": "prisma migrate dev",
     "db:status": "prisma migrate status",
     "db:seed": "prisma db seed",
+    "db:seed:packing": "tsx src/packing-suggestions/seed-packing-rules.ts",
     "openapi:generate": "node --import tsx scripts/generate-openapi.ts",
     "openapi:check": "node --import tsx scripts/generate-openapi.ts --check"
   },

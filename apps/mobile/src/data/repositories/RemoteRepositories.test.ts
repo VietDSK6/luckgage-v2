@@ -168,6 +168,8 @@ describe('remote mobile repositories', () => {
               quantity: 1,
               note: null,
               isPacked: false,
+              isEssential: false,
+              assignedToUserId: null,
               position: 0,
               version: 4,
               createdAt: '2026-11-06T00:00:00.000Z',

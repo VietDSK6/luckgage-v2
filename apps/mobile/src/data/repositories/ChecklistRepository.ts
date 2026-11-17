@@ -2,6 +2,7 @@ import type {
   ChecklistCategory,
   ChecklistItem,
   ChecklistItemDraft,
+  ChecklistImportItemDraft,
 } from '@/features/checklist/domain/checklist';
 
 export type ChecklistRepositoryErrorCode =
@@ -33,4 +34,5 @@ export interface ChecklistRepository {
   setCategoryPacked(categoryId: string, isPacked: boolean): Promise<void>;
   deleteItem(itemId: string): Promise<ChecklistItem>;
   restoreItem(item: ChecklistItem): Promise<ChecklistItem>;
+  importFromTrip(targetTripId: string, sourceTripId: string, items: ChecklistImportItemDraft[]): Promise<ChecklistCategory[]>;
 }

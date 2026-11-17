@@ -289,13 +289,17 @@ Index trip_id + position.
 | name | text | 1–120 |
 | quantity | integer | 1–99 |
 | is_packed | boolean | default false |
+| is_essential | boolean | default false; Trip Detail nêu món quan trọng chưa xếp |
 | note | text nullable | giới hạn chiều dài |
 | position | integer | >= 0 |
 | version | integer | bắt đầu 1 |
 | created_by_user_id | UUID nullable | audit/collaboration |
+| assigned_to_user_id | UUID nullable | phải là thành viên active của trip khi giao; gỡ khi rời trip |
 | created_at/updated_at | timestamptz | bắt buộc |
 
-Index category_id + position. Không tạo unique name; người dùng được phép có hai item cùng tên.
+Index category_id + position và assigned_to_user_id. Không tạo unique name; người dùng được phép
+có hai item cùng tên. Nhập checklist từ trip khác tạo category/item mới trong một transaction,
+không sao chép packed, essential hoặc assignee.
 
 ### 5.8. weather_cache
 

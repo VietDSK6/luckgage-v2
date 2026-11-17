@@ -6,6 +6,7 @@ import {
   Platform,
   Pressable,
   RefreshControl,
+  Share,
   ScrollView,
   StyleSheet,
   Text,
@@ -16,6 +17,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ChecklistRepositoryError } from '@/data/repositories/ChecklistRepository';
 import { useChecklistRepository } from '@/data/repositories/ChecklistRepositoryProvider';
+import { useMembershipRepository } from '@/data/repositories/MembershipRepositoryProvider';
+import type { TripMember } from '@/data/repositories/MembershipRepository';
 import { useTripRepository } from '@/data/repositories/TripRepositoryProvider';
 import { AppButton } from '@/design/components/AppButton';
 import { AppBottomSheet } from '@/design/components/AppBottomSheet';
@@ -23,6 +26,7 @@ import { AppIcon } from '@/design/components/AppIcon';
 import { AppIconButton } from '@/design/components/AppIconButton';
 import { AppPageHeader } from '@/design/components/AppPageHeader';
 import { useAppFeedback } from '@/design/feedback/AppFeedbackProvider';
+import { useAuth } from '@/features/auth/AuthProvider';
 import { useAppTheme } from '@/design/theme/AppThemeProvider';
 import { useI18n } from '@/i18n/I18nProvider';
 import type { MessageKey } from '@/i18n/messages';
@@ -37,7 +41,7 @@ import {
 } from './domain/checklist';
 
 type ScreenState = 'loading' | 'content' | 'notFound' | 'error';
-type ItemEditor = { item: ChecklistItem; name: string; quantity: string; note: string };
+type ItemEditor = { item: ChecklistItem; name: string; quantity: string; note: string; isEssential: boolean; assignedToUserId: string | null };
 
 const filterKeys: Record<ChecklistFilter, MessageKey> = {
   all: 'checklistFilterAll',
@@ -47,16 +51,22 @@ const filterKeys: Record<ChecklistFilter, MessageKey> = {
 
 export function ChecklistScreen({ tripId }: { tripId: string }) {
   const checklistRepository = useChecklistRepository();
+  const membershipRepository = useMembershipRepository();
   const tripRepository = useTripRepository();
+  const { user } = useAuth();
   const router = useRouter();
   const { theme } = useAppTheme();
   const { t } = useI18n();
-  const { choose, confirm } = useAppFeedback();
+  const { choose, confirm, showToast } = useAppFeedback();
   const [screenState, setScreenState] = useState<ScreenState>('loading');
   const [trip, setTrip] = useState<Trip | null>(null);
   const [categories, setCategories] = useState<ChecklistCategory[]>([]);
+  const [members, setMembers] = useState<TripMember[]>([]);
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<ChecklistFilter>('all');
+  const [mineOnly, setMineOnly] = useState(false);
+  const [showSearchTools, setShowSearchTools] = useState(false);
+  const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
   const [editingCategoryName, setEditingCategoryName] = useState('');
@@ -89,6 +99,7 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
       }
       setTrip(nextTrip);
       setCategories(nextCategories);
+      void membershipRepository.listMembers(tripId).then(setMembers).catch(() => setMembers([]));
       setScreenState('content');
       if (!preserveMutationError) setMutationError(null);
       hasLoaded.current = true;
@@ -100,7 +111,7 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
     } finally {
       if (requestId === requestSequence.current) setIsRefreshing(false);
     }
-  }, [checklistRepository, tripId, tripRepository]);
+  }, [checklistRepository, membershipRepository, tripId, tripRepository]);
 
   useFocusEffect(
     useCallback(() => {
@@ -124,9 +135,16 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
 
   const progress = useMemo(() => getChecklistProgress(categories), [categories]);
   const visibleCategories = useMemo(
-    () => filterChecklist(categories, query, filter),
-    [categories, filter, query],
+    () => filterChecklist(categories, query, filter).map((category) => ({
+      ...category,
+      items: mineOnly ? category.items.filter((item) => item.assignedToUserId === user?.id) : category.items,
+    })).filter((category) => !mineOnly || category.items.length > 0),
+    [categories, filter, mineOnly, query, user?.id],
   );
+  const memberProgress = useMemo(() => members.map((member) => {
+    const items = categories.flatMap((category) => category.items).filter((item) => item.assignedToUserId === member.userId);
+    return { ...member, packed: items.filter((item) => item.isPacked).length, total: items.length };
+  }), [categories, members]);
 
   const beginOperation = (operation: string): boolean => {
     if (pendingOperation) return false;
@@ -153,6 +171,7 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
       const category = await checklistRepository.createCategory(tripId, name);
       setCategories((current) => [...current, category]);
       setNewCategoryName('');
+      setShowCategoryForm(false);
     } catch (error) {
       await handleMutationFailure(error);
     } finally {
@@ -317,6 +336,8 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
       name: item.name,
       quantity: String(item.quantity),
       note: item.note ?? '',
+      isEssential: item.isEssential,
+      assignedToUserId: item.assignedToUserId,
     });
   };
 
@@ -330,6 +351,8 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
         name: itemEditor.name,
         quantity,
         note: itemEditor.note,
+        isEssential: itemEditor.isEssential,
+        assignedToUserId: itemEditor.assignedToUserId,
       });
       setCategories((current) => updateItem(current, updated.id, () => updated));
       setItemEditor(null);
@@ -366,6 +389,24 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
       await handleMutationFailure(error);
     } finally {
       finishOperation();
+    }
+  };
+
+  const shareChecklist = async () => {
+    if (!trip) return;
+    try {
+      const lines = [trip.name, trip.destination, ''];
+      for (const category of categories) {
+        lines.push(category.name);
+        for (const item of category.items) {
+          const assignee = members.find((member) => member.userId === item.assignedToUserId);
+          lines.push(`${item.isPacked ? '✓' : '☐'} ${item.name}${item.quantity > 1 ? ` ×${item.quantity}` : ''}${item.isEssential ? ` · ${t('checklistEssential')}` : ''}${assignee ? ` · ${assignee.displayName}` : ''}`);
+        }
+        lines.push('');
+      }
+      await Share.share({ message: lines.join('\n').trim() });
+    } catch {
+      showToast({ message: t('checklistShareError'), tone: 'danger' });
     }
   };
 
@@ -451,8 +492,43 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
             </View>
           ) : null}
 
+          <View style={styles.featureActions}>
+            <AppButton label={t('checklistReuse')} onPress={() => router.push(`/trip/${tripId}/checklist/import`)} style={styles.flexButton} variant="secondary" />
+            <AppButton disabled={progress.total === 0} label={t('checklistShare')} onPress={() => void shareChecklist()} style={styles.flexButton} variant="ghost" />
+          </View>
+
+          {members.length > 1 && memberProgress.some((member) => member.total > 0) ? (
+            <View style={[styles.teamProgress, { borderColor: theme.colors.outline, backgroundColor: theme.colors.surface }]}>
+              <Text accessibilityRole="header" style={[styles.teamTitle, { color: theme.colors.ink }]}>{t('checklistTeamProgress')}</Text>
+              {memberProgress.filter((member) => member.total > 0).map((member) => (
+                <Text key={member.userId} style={[styles.teamLine, { color: theme.colors.inkMuted }]}>
+                  {member.displayName}: {t('checklistCategoryProgress', { packed: member.packed, total: member.total })}
+                </Text>
+              ))}
+            </View>
+          ) : null}
+
           {categories.length > 0 ? (
             <>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityState={{ expanded: showSearchTools }}
+                onPress={() => {
+                  if (showSearchTools) {
+                    setQuery('');
+                    setFilter('all');
+                    setMineOnly(false);
+                  }
+                  setShowSearchTools((current) => !current);
+                }}
+                style={styles.toolsToggle}>
+                <AppIcon color={theme.colors.primary} name="search" size={19} />
+                <Text style={[styles.toolsToggleText, { color: theme.colors.primary }]}>
+                  {t(showSearchTools ? 'checklistHideSearchTools' : 'checklistShowSearchTools')}
+                </Text>
+              </Pressable>
+              {showSearchTools ? (
+              <>
               <View style={[styles.searchBox, { backgroundColor: theme.colors.surface, borderColor: theme.colors.outlineStrong }]}>
                 <View style={styles.searchMark}>
                   <AppIcon color={theme.colors.primary} name="search" size={21} />
@@ -494,6 +570,16 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
                   );
                 })}
               </View>
+              <Pressable
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: mineOnly }}
+                onPress={() => setMineOnly((current) => !current)}
+                style={styles.mineToggle}>
+                <AppIcon color={theme.colors.primary} name={mineOnly ? 'check' : 'checklist'} size={18} />
+                <Text style={[styles.toolsToggleText, { color: theme.colors.primary }]}>{t('checklistMineOnly')}</Text>
+              </Pressable>
+              </>
+              ) : null}
             </>
           ) : null}
 
@@ -641,6 +727,11 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
                                   {item.note}
                                 </Text>
                               ) : null}
+                              {item.isEssential || item.assignedToUserId ? (
+                                <Text numberOfLines={1} style={[styles.itemNote, { color: theme.colors.primary }]}>
+                                  {[item.isEssential ? t('checklistEssential') : null, members.find((member) => member.userId === item.assignedToUserId)?.displayName].filter(Boolean).join(' · ')}
+                                </Text>
+                              ) : null}
                             </Pressable>
                             <View style={styles.disclosure}>
                               <AppIcon color={theme.colors.inkMuted} name="chevronRight" size={20} />
@@ -686,9 +777,23 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
           )}
 
           <View style={[styles.newCategory, { borderTopColor: theme.colors.outline }]}>
-            <Text accessibilityRole="header" style={[styles.newCategoryTitle, { color: theme.colors.ink }]}>
-              {t('checklistAddCategory')}
-            </Text>
+            {categories.length > 0 ? (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityState={{ expanded: showCategoryForm }}
+                onPress={() => setShowCategoryForm((current) => !current)}
+                style={styles.addCategoryToggle}>
+                <AppIcon color={theme.colors.primary} name={showCategoryForm ? 'close' : 'create'} size={19} />
+                <Text style={[styles.toolsToggleText, { color: theme.colors.primary }]}>
+                  {t(showCategoryForm ? 'commonClose' : 'checklistAddCategory')}
+                </Text>
+              </Pressable>
+            ) : (
+              <Text accessibilityRole="header" style={[styles.newCategoryTitle, { color: theme.colors.ink }]}>
+                {t('checklistAddCategory')}
+              </Text>
+            )}
+            {categories.length === 0 || showCategoryForm ? (
             <View style={styles.newCategoryRow}>
               <TextInput
                 onChangeText={setNewCategoryName}
@@ -706,6 +811,7 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
                 style={styles.newCategoryButton}
               />
             </View>
+            ) : null}
           </View>
         </ScrollView>
 
@@ -739,6 +845,32 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
                 style={[styles.input, styles.noteInput, { backgroundColor: theme.colors.background, borderColor: theme.colors.outlineStrong, color: theme.colors.ink }]}
                 value={itemEditor.note}
               />
+              <Pressable
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: itemEditor.isEssential }}
+                onPress={() => setItemEditor((current) => current ? { ...current, isEssential: !current.isEssential } : null)}
+                style={[styles.editorToggle, { borderColor: theme.colors.outlineStrong }]}>
+                <AppIcon color={theme.colors.primary} name={itemEditor.isEssential ? 'check' : 'checklist'} size={20} />
+                <Text style={[styles.fieldLabel, { color: theme.colors.ink }]}>{t('checklistEssential')}</Text>
+              </Pressable>
+              {members.length > 0 ? (
+                <>
+                  <FieldLabel label={t('checklistAssignee')} />
+                  <View style={styles.assigneeOptions}>
+                    {[{ userId: null, displayName: t('checklistUnassigned') }, ...members].map((member) => {
+                      const selected = itemEditor.assignedToUserId === member.userId;
+                      return <Pressable
+                        accessibilityRole="radio"
+                        accessibilityState={{ checked: selected }}
+                        key={member.userId ?? 'none'}
+                        onPress={() => setItemEditor((current) => current ? { ...current, assignedToUserId: member.userId } : null)}
+                        style={[styles.assigneeOption, { borderColor: selected ? theme.colors.primary : theme.colors.outlineStrong, backgroundColor: selected ? theme.colors.primarySoft : theme.colors.surface }]}>
+                        <Text style={[styles.assigneeText, { color: theme.colors.ink }]}>{member.displayName}</Text>
+                      </Pressable>;
+                    })}
+                  </View>
+                </>
+              ) : null}
               <View style={styles.editorActions}>
                 <AppButton
                   disabled={!itemEditor.name.trim() || Number(itemEditor.quantity) < 1}
@@ -746,12 +878,6 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
                   loading={pendingOperation === `item:edit:${itemEditor.item.id}`}
                   onPress={() => void saveItem()}
                   style={styles.editorSave}
-                />
-                <AppButton
-                  label={t('commonCancel')}
-                  onPress={() => setItemEditor(null)}
-                  style={styles.editorCancel}
-                  variant="ghost"
                 />
               </View>
               <AppButton label={t('checklistItemDelete')} onPress={() => void deleteItem(itemEditor.item)} variant="danger" />
@@ -826,6 +952,15 @@ const styles = StyleSheet.create({
   progressTrack: { height: 7, overflow: 'hidden', borderRadius: 4 },
   progressFill: { height: 7, borderRadius: 4 },
   content: { width: '100%', maxWidth: 640, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 16, paddingBottom: 120 },
+  featureActions: { flexDirection: 'row', gap: 8, marginBottom: 20 },
+  teamProgress: { borderWidth: 1, borderRadius: 16, padding: 16, gap: 4, marginBottom: 20 },
+  teamTitle: { fontSize: 16, lineHeight: 22, fontWeight: '800', marginBottom: 4 },
+  teamLine: { fontSize: 14, lineHeight: 20 },
+  mineToggle: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
+  editorToggle: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 10, borderWidth: 1, borderRadius: 12, paddingHorizontal: 14 },
+  assigneeOptions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  assigneeOption: { minHeight: 48, borderWidth: 1, borderRadius: 12, paddingHorizontal: 14, justifyContent: 'center' },
+  assigneeText: { fontSize: 14, lineHeight: 20, fontWeight: '700' },
   readyBanner: { flexDirection: 'row', alignItems: 'center', gap: 16, borderRadius: 20, padding: 18, marginBottom: 20 },
   readyStamp: { width: 48, alignItems: 'center', justifyContent: 'center' },
   readyCopy: { flex: 1, gap: 2 },
@@ -837,6 +972,8 @@ const styles = StyleSheet.create({
   filterRow: { flexDirection: 'row', gap: 8, marginTop: 8, marginBottom: 16 },
   filterChip: { minHeight: 48, flex: 1, borderWidth: 1, borderRadius: 24, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 10 },
   filterLabel: { fontSize: 13, lineHeight: 18, fontWeight: '800' },
+  toolsToggle: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
+  toolsToggleText: { fontSize: 14, lineHeight: 20, fontWeight: '700' },
   errorBanner: { borderWidth: 1, borderRadius: 12, padding: 14, marginBottom: 16 },
   errorText: { fontSize: 14, lineHeight: 20, fontWeight: '700' },
   emptyState: { alignItems: 'center', paddingVertical: 28, paddingHorizontal: 12 },
@@ -871,13 +1008,13 @@ const styles = StyleSheet.create({
   noteInput: { minHeight: 80, paddingTop: 12, textAlignVertical: 'top' },
   editorActions: { flexDirection: 'row', gap: 8, marginTop: 6 },
   editorSave: { flex: 1 },
-  editorCancel: { flex: 1 },
   quickAddRow: { minHeight: 60, flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 12, paddingVertical: 6 },
   quickAddInput: { flex: 1, minHeight: 48, fontSize: 15, lineHeight: 21 },
   quickAddButton: { width: 48, height: 48, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   disabled: { opacity: 0.4 },
   pressed: { opacity: 0.66, transform: [{ scale: 0.985 }] },
   newCategory: { marginTop: 24, paddingTop: 20, borderTopWidth: 1 },
+  addCategoryToggle: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 8 },
   newCategoryTitle: { fontSize: 20, lineHeight: 27, fontWeight: '900' },
   newCategoryRow: { gap: 10, marginTop: 12 },
   newCategoryInput: { minHeight: 52, borderWidth: 1, borderRadius: 14, paddingHorizontal: 16, fontSize: 16, lineHeight: 22 },

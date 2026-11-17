@@ -64,6 +64,7 @@ jest.mock('lucide-react-native', () => {
     Palette: MockIcon,
     Pencil: MockIcon,
     Plus: MockIcon,
+    QrCode: MockIcon,
     RotateCcw: MockIcon,
     Search: MockIcon,
     Settings2: MockIcon,

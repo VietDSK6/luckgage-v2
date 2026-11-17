@@ -35,7 +35,6 @@ import {
   parseCalendarDate,
 } from './domain/calendarDate';
 import {
-  getTripDurationDays,
   tripToDraft,
   tripTypes,
   type TripDraft,
@@ -168,7 +167,7 @@ export function TripFormScreen({ tripId, suggestionSlug }: { tripId?: string; su
   }, [language, suggestionSlug, suggestionsRepository, today, tripId]);
 
   const goBack = () => {
-    if (step > 1) {
+    if (!tripId && step > 1) {
       setStep((current) => (current === 3 ? 2 : 1));
       return;
     }
@@ -305,7 +304,7 @@ export function TripFormScreen({ tripId, suggestionSlug }: { tripId?: string; su
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}>
-          {prefillTitle ? (
+          {prefillTitle && step === 1 ? (
             <View style={[styles.prefillNotice, { backgroundColor: theme.colors.primarySoft, borderColor: theme.colors.primary }]}>
               <AppIcon color={theme.colors.primary} name="info" size={20} />
               <Text style={[styles.prefillNoticeText, { color: theme.colors.primary }]}>
@@ -313,8 +312,8 @@ export function TripFormScreen({ tripId, suggestionSlug }: { tripId?: string; su
               </Text>
             </View>
           ) : null}
-          <ProgressTrack label={t('tripFormStep', { current: step })} step={step} theme={theme} />
-          {step === 1 ? (
+          {!tripId ? <ProgressTrack label={t('tripFormStep', { current: step })} step={step} theme={theme} /> : null}
+          {tripId || step === 1 ? (
             <WhereStep
               destinationSearchState={destinationSearchState}
               destinationSuggestions={destinationSuggestions}
@@ -335,10 +334,12 @@ export function TripFormScreen({ tripId, suggestionSlug }: { tripId?: string; su
               theme={theme}
             />
           ) : null}
-          {step === 2 ? (
-            <StyleStep draft={draft} onChange={updateDraft} theme={theme} />
+          {tripId || step === 2 ? (
+            <View style={tripId ? [styles.editStyleSection, { borderColor: theme.colors.outline }] : undefined}>
+              <StyleStep draft={draft} onChange={updateDraft} theme={theme} />
+            </View>
           ) : null}
-          {step === 3 ? (
+          {!tripId && step === 3 ? (
             <ReviewStep draft={draft} language={language} theme={theme} />
           ) : null}
           {saveError ? (
@@ -350,16 +351,16 @@ export function TripFormScreen({ tripId, suggestionSlug }: { tripId?: string; su
         <View style={[styles.footer, { backgroundColor: theme.colors.background, borderColor: theme.colors.outline }]}>
           <AppButton
             label={
-              step === 1
+              tripId
+                ? t('tripUpdateAction')
+                : step === 1
                 ? t('tripContinue')
                 : step === 2
                   ? t('tripReview')
-                  : tripId
-                    ? t('tripUpdateAction')
-                    : t('tripCreateAction')
+                  : t('tripCreateAction')
             }
             loading={isSaving}
-            onPress={step === 1 ? continueFromWhere : step === 2 ? showReview : () => void save()}
+            onPress={tripId ? () => void save() : step === 1 ? continueFromWhere : step === 2 ? showReview : () => void save()}
           />
         </View>
       </KeyboardAvoidingView>
@@ -369,16 +370,19 @@ export function TripFormScreen({ tripId, suggestionSlug }: { tripId?: string; su
 
 function ProgressTrack({ label, step, theme }: { label: string; step: FormStep; theme: AppTheme }) {
   return (
-    <View accessibilityLabel={label} style={styles.progressTrack}>
-      {[1, 2, 3].map((item) => (
-        <View
-          key={item}
-          style={[
-            styles.progressSegment,
-            { backgroundColor: item <= step ? theme.colors.primary : theme.colors.outline },
-          ]}
-        />
-      ))}
+    <View style={styles.progressGroup}>
+      <Text style={[styles.progressLabel, { color: theme.colors.inkMuted }]}>{label}</Text>
+      <View accessibilityLabel={label} style={styles.progressTrack}>
+        {[1, 2, 3].map((item) => (
+          <View
+            key={item}
+            style={[
+              styles.progressSegment,
+              { backgroundColor: item <= step ? theme.colors.primary : theme.colors.outline },
+            ]}
+          />
+        ))}
+      </View>
     </View>
   );
 }
@@ -623,8 +627,6 @@ function ReviewStep({
     return null;
   }
 
-  const tripLike = { startDate: validation.value.startDate, endDate: validation.value.endDate };
-
   return (
     <View>
       <Text accessibilityRole="header" style={[styles.stepTitle, { color: theme.colors.ink }]}>
@@ -651,11 +653,6 @@ function ReviewStep({
           label={t('tripTypeLabel')}
           theme={theme}
           value={t(tripTypeMessageKeys[validation.value.tripType])}
-        />
-        <ReviewRow
-          label={t('tripDurationLabel')}
-          theme={theme}
-          value={t('tripDuration', { count: getTripDurationDays(tripLike) })}
         />
         <ReviewRow
           label={t('tripNotesTitle')}
@@ -797,10 +794,13 @@ const styles = StyleSheet.create({
   content: { width: '100%', maxWidth: 620, alignSelf: 'center', paddingHorizontal: 20, paddingBottom: 32 },
   prefillNotice: { marginTop: 8, marginBottom: 16, borderWidth: 1, borderRadius: 16, padding: 14, flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   prefillNoticeText: { minWidth: 0, flex: 1, fontSize: 13, lineHeight: 19, fontWeight: '700' },
-  progressTrack: { flexDirection: 'row', gap: 6, marginTop: 8, marginBottom: 32 },
+  progressGroup: { marginTop: 8, marginBottom: 24, gap: 8 },
+  progressLabel: { fontSize: 13, lineHeight: 18, fontWeight: '700' },
+  progressTrack: { flexDirection: 'row', gap: 6 },
   progressSegment: { flex: 1, height: 4, borderRadius: 2 },
-  stepTitle: { fontSize: 30, lineHeight: 37, fontWeight: '800', letterSpacing: -0.5 },
+  stepTitle: { fontSize: 26, lineHeight: 33, fontWeight: '800', letterSpacing: -0.3 },
   stepBody: { marginTop: 8, fontSize: 16, lineHeight: 24, maxWidth: 520 },
+  editStyleSection: { marginTop: 32, paddingTop: 24, borderTopWidth: 1 },
   inputGroup: { marginTop: 24, gap: 8 },
   inputLabel: { fontSize: 14, lineHeight: 20, fontWeight: '800' },
   input: { minHeight: 52, borderWidth: 1, borderRadius: 12, paddingHorizontal: 16, fontSize: 16, lineHeight: 22 },
@@ -850,11 +850,11 @@ const styles = StyleSheet.create({
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 24 },
   chip: { minHeight: 48, borderWidth: 1, borderRadius: 24, paddingHorizontal: 16, flexDirection: 'row', gap: 6, alignItems: 'center', justifyContent: 'center' },
   chipText: { fontSize: 14, lineHeight: 20, fontWeight: '700' },
-  reviewTag: { marginTop: 28, borderWidth: 1, borderRadius: 20, padding: 20 },
-  reviewDestination: { fontSize: 26, lineHeight: 32, fontWeight: '800' },
+  reviewTag: { marginTop: 20, borderWidth: 1, borderRadius: 20, padding: 16 },
+  reviewDestination: { fontSize: 22, lineHeight: 28, fontWeight: '800' },
   reviewName: { marginTop: 4, fontSize: 16, lineHeight: 22 },
-  reviewDivider: { height: 1, marginVertical: 22 },
-  reviewRow: { marginBottom: 16, gap: 3 },
+  reviewDivider: { height: 1, marginVertical: 16 },
+  reviewRow: { marginBottom: 12, gap: 3 },
   reviewLabel: { fontSize: 12, lineHeight: 17, fontWeight: '800', letterSpacing: 0.5 },
   reviewValue: { fontSize: 16, lineHeight: 23, fontWeight: '600' },
   saveError: { marginTop: 20, fontSize: 14, lineHeight: 21, fontWeight: '700' },

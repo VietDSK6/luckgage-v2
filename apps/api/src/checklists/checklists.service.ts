@@ -15,6 +15,7 @@ import type {
   ChecklistItemDto,
   CreateChecklistCategoryDto,
   CreateChecklistItemDto,
+  ImportChecklistDto,
   UpdateChecklistCategoryDto,
   UpdateChecklistItemDto,
 } from './checklists.dto.js';
@@ -99,7 +100,8 @@ export class ChecklistsService {
     categoryId: string,
     input: CreateChecklistItemDto,
   ): Promise<ChecklistItemDto> {
-    await this.getCategoryForMember(userId, categoryId);
+    const category = await this.getCategoryForMember(userId, categoryId);
+    if (input.assignedToUserId) await this.requireActiveAssignee(input.assignedToUserId, category.tripId);
     const position = input.position ?? (await this.nextItemPosition(categoryId));
     const item = await this.prisma.checklistItem.create({
       data: {
@@ -107,6 +109,8 @@ export class ChecklistsService {
         name: input.name,
         quantity: input.quantity,
         note: input.note?.trim() || null,
+        assignedToUserId: input.assignedToUserId ?? null,
+        isEssential: input.isEssential ?? false,
         position,
         createdByUserId: userId,
       },
@@ -119,13 +123,16 @@ export class ChecklistsService {
     itemId: string,
     input: UpdateChecklistItemDto,
   ): Promise<ChecklistItemDto> {
-    await this.getItemForMember(userId, itemId);
+    const item = await this.getItemForMember(userId, itemId);
+    if (input.assignedToUserId) await this.requireActiveAssignee(input.assignedToUserId, item.category.tripId);
     if (
       input.name === undefined &&
       input.quantity === undefined &&
       input.isPacked === undefined &&
       input.note === undefined &&
-      input.position === undefined
+      input.position === undefined &&
+      input.assignedToUserId === undefined &&
+      input.isEssential === undefined
     ) {
       throw emptyUpdate();
     }
@@ -136,6 +143,8 @@ export class ChecklistsService {
         ...(input.quantity !== undefined ? { quantity: input.quantity } : {}),
         ...(input.isPacked !== undefined ? { isPacked: input.isPacked } : {}),
         ...(input.note !== undefined ? { note: input.note?.trim() || null } : {}),
+        ...(input.assignedToUserId !== undefined ? { assignedToUserId: input.assignedToUserId } : {}),
+        ...(input.isEssential !== undefined ? { isEssential: input.isEssential } : {}),
         ...(input.position !== undefined ? { position: input.position } : {}),
         version: { increment: 1 },
       },
@@ -149,6 +158,50 @@ export class ChecklistsService {
   async deleteItem(userId: string, itemId: string): Promise<void> {
     await this.getItemForMember(userId, itemId);
     await this.prisma.checklistItem.delete({ where: { id: itemId } });
+  }
+
+  async importFromTrip(userId: string, tripId: string, input: ImportChecklistDto): Promise<ChecklistDto> {
+    await this.memberships.requireMember(userId, tripId);
+    await this.memberships.requireMember(userId, input.sourceTripId);
+    if (tripId === input.sourceTripId) {
+      throw new UnprocessableEntityException({ code: 'CHECKLIST_IMPORT_SAME_TRIP', title: 'Invalid source', detail: 'Choose a different trip.' });
+    }
+    const selectedIds = input.items.map((item) => item.sourceItemId);
+    if (new Set(selectedIds).size !== selectedIds.length) {
+      throw new UnprocessableEntityException({ code: 'CHECKLIST_IMPORT_DUPLICATE_ITEM', title: 'Invalid items', detail: 'Select each source item once.' });
+    }
+    await this.prisma.$transaction(async (transaction) => {
+      const sourceCategories = await transaction.checklistCategory.findMany({
+        where: { tripId: input.sourceTripId },
+        orderBy: [{ position: 'asc' }, { createdAt: 'asc' }],
+        include: { items: { orderBy: [{ position: 'asc' }, { createdAt: 'asc' }] } },
+      });
+      const selected = new Map(input.items.map((item) => [item.sourceItemId, item]));
+      const sourceCount = sourceCategories.reduce((count, category) =>
+        count + category.items.filter((item) => selected.has(item.id)).length, 0);
+      if (sourceCount !== input.items.length) {
+        throw new UnprocessableEntityException({ code: 'CHECKLIST_IMPORT_INVALID_ITEM', title: 'Invalid items', detail: 'One or more selected items are not in the source trip.' });
+      }
+      const last = await transaction.checklistCategory.aggregate({ where: { tripId }, _max: { position: true } });
+      let position = (last._max.position ?? -1) + 1;
+      for (const category of sourceCategories) {
+        const items = category.items.flatMap((source) => {
+          const edited = selected.get(source.id);
+          return edited ? [{
+            name: edited.name,
+            quantity: edited.quantity,
+            note: edited.note?.trim() || null,
+            position: source.position,
+            createdByUserId: userId,
+          }] : [];
+        });
+        if (items.length === 0) continue;
+        await transaction.checklistCategory.create({
+          data: { tripId, name: category.name, position: position++, items: { create: items } },
+        });
+      }
+    });
+    return this.get(userId, tripId);
   }
 
   async setCategoryPackedState(
@@ -198,6 +251,16 @@ export class ChecklistsService {
     return item;
   }
 
+  private async requireActiveAssignee(assigneeId: string, tripId: string): Promise<void> {
+    const member = await this.prisma.tripMember.findUnique({
+      where: { tripId_userId: { tripId, userId: assigneeId } },
+      select: { removedAt: true },
+    });
+    if (!member || member.removedAt) {
+      throw new UnprocessableEntityException({ code: 'CHECKLIST_ASSIGNEE_NOT_MEMBER', title: 'Invalid assignee', detail: 'Choose an active trip member.' });
+    }
+  }
+
   private async nextCategoryPosition(tripId: string): Promise<number> {
     const aggregate = await this.prisma.checklistCategory.aggregate({
       where: { tripId },
@@ -239,6 +302,8 @@ function toCategoryDto(category: {
     name: string;
     quantity: number;
     isPacked: boolean;
+    isEssential: boolean;
+    assignedToUserId: string | null;
     note: string | null;
     position: number;
     version: number;
@@ -254,6 +319,8 @@ function toItemDto(item: {
   name: string;
   quantity: number;
   isPacked: boolean;
+  isEssential: boolean;
+  assignedToUserId: string | null;
   note: string | null;
   position: number;
   version: number;
@@ -265,6 +332,8 @@ function toItemDto(item: {
     name: item.name,
     quantity: item.quantity,
     isPacked: item.isPacked,
+    isEssential: item.isEssential,
+    assignedToUserId: item.assignedToUserId,
     note: item.note,
     position: item.position,
     version: item.version,

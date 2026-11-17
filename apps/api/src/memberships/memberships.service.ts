@@ -75,9 +75,15 @@ export class MembershipsService {
         detail: 'The trip owner cannot be removed.',
       });
     }
-    await this.prisma.tripMember.update({
-      where: { tripId_userId: { tripId, userId: targetUserId } },
-      data: { removedAt: new Date() },
+    await this.prisma.$transaction(async (transaction) => {
+      await transaction.checklistItem.updateMany({
+        where: { assignedToUserId: targetUserId, category: { tripId } },
+        data: { assignedToUserId: null, version: { increment: 1 } },
+      });
+      await transaction.tripMember.update({
+        where: { tripId_userId: { tripId, userId: targetUserId } },
+        data: { removedAt: new Date() },
+      });
     });
   }
 }

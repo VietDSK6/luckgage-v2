@@ -938,6 +938,33 @@
         ]
       }
     },
+    "/api/v1/trips/{tripId}/checklist/import": {
+      "post": {
+        "operationId": "ChecklistsController_importFromTrip",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChecklistDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Append selected items from another member trip atomically",
+        "tags": [
+          "checklist"
+        ]
+      }
+    },
     "/api/v1/trips/{tripId}/checklist/categories": {
       "post": {
         "operationId": "ChecklistsController_createCategory",
@@ -3047,6 +3074,14 @@
           "isPacked": {
             "type": "boolean"
           },
+          "isEssential": {
+            "type": "boolean"
+          },
+          "assignedToUserId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
           "note": {
             "type": "string",
             "nullable": true
@@ -3071,6 +3106,7 @@
           "name",
           "quantity",
           "isPacked",
+          "isEssential",
           "position",
           "version",
           "createdAt",

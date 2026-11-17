@@ -1,5 +1,10 @@
 # 10 — Triển khai Phase 5
 
+Cập nhật phạm vi ngày 2026-11-17: người dùng cho biết đã QA giao diện và chức năng của bản trước.
+Các chức năng checklist mới (phân công, đồ quan trọng, dùng lại danh sách, chia sẻ) là thay đổi sau
+lượt QA đó nên cần kiểm tra trên thiết bị và áp migration mới trước khi chốt bản demo. Lượt kiểm
+tra database integration cho thay đổi này chưa chạy vì Docker/OrbStack local chưa hoạt động.
+
 Trạng thái ngày 2026-11-13: **Phase 5 đang triển khai local**. Theo chỉ đạo của người dùng,
 smoke/QA giao diện 4D/4E do người dùng tự thực hiện; không chạy Playwright hay device QA trong
 luồng triển khai này. Migration đã chạy trên database local và `luckgage_integration`; 8/8

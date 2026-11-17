@@ -226,10 +226,6 @@ export function MembersScreen({ tripId }: { tripId: string }) {
               {t('membersBody', { count: members.length })}
             </Text>
           </View>
-          <View style={[styles.countStamp, { borderColor: theme.colors.accent }]}>
-            <Text style={[styles.countValue, { color: theme.colors.danger }]}>{members.length}</Text>
-            <Text style={[styles.countLabel, { color: theme.colors.danger }]}>{t('membersCountLabel')}</Text>
-          </View>
         </View>
 
         {actionError ? (
@@ -431,9 +427,6 @@ const styles = StyleSheet.create({
   headingCopy: { flex: 1 },
   title: { fontSize: 32, lineHeight: 39, fontWeight: '800', letterSpacing: -0.5 },
   body: { marginTop: 8, fontSize: 15, lineHeight: 23 },
-  countStamp: { width: 64, height: 64, borderWidth: 2, borderRadius: 32, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '6deg' }] },
-  countValue: { fontSize: 20, lineHeight: 22, fontWeight: '900' },
-  countLabel: { fontSize: 8, lineHeight: 10, fontWeight: '900', letterSpacing: 0.8 },
   errorBanner: { minHeight: 48, marginTop: 20, borderWidth: 1, borderRadius: 12, padding: 12, justifyContent: 'center' },
   errorText: { fontSize: 14, lineHeight: 20, fontWeight: '700' },
   memberList: { marginTop: 24 },

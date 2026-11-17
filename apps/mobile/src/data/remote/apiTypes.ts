@@ -142,6 +142,8 @@ export type ApiChecklistItem = {
   name: string;
   quantity: number;
   isPacked: boolean;
+  isEssential: boolean;
+  assignedToUserId: string | null;
   note: string | null;
   position: number;
   version: number;

@@ -183,7 +183,7 @@ export function JoinTripScreen() {
               <AppButton label={t('joinQrCancel')} onPress={() => { setScanning(false); setScanError(null); }} variant="ghost" />
             </View>
           ) : (
-            <AppButton disabled={pending !== null} label={t('joinQrScan')} onPress={() => void openScanner()} style={styles.scanAction} />
+            <AppButton disabled={pending !== null} label={t('joinQrScan')} onPress={() => void openScanner()} style={styles.scanAction} variant="secondary" />
           )}
 
           {!scanning ? <View
@@ -191,7 +191,6 @@ export function JoinTripScreen() {
               styles.codePanel,
               { backgroundColor: theme.colors.surface, borderColor: theme.colors.outline },
             ]}>
-            <View style={[styles.tagHole, { borderColor: theme.colors.sun }]} />
             <Text style={[styles.inputLabel, { color: theme.colors.ink }]}>{t('joinCodeLabel')}</Text>
             <TextInput
               accessibilityLabel={t('joinCodeLabel')}
@@ -200,7 +199,7 @@ export function JoinTripScreen() {
               editable={pending === null}
               maxLength={32}
               onChangeText={updateCode}
-              placeholder="LUCK-8K4M2P7Q"
+              placeholder={t('joinCodePlaceholder')}
               placeholderTextColor={theme.colors.inkMuted}
               style={[
                 styles.codeInput,
@@ -217,7 +216,6 @@ export function JoinTripScreen() {
               label={t('joinPreviewAction')}
               loading={pending === 'preview'}
               onPress={() => void lookupCode(code)}
-              variant="secondary"
             />
           </View> : null}
 
@@ -329,15 +327,12 @@ const styles = StyleSheet.create({
   camera: { width: '100%', aspectRatio: 1, borderRadius: radius.card, overflow: 'hidden' },
   cameraState: { borderWidth: 1, borderRadius: radius.card, padding: spacing.x5, gap: spacing.x4 },
   codePanel: {
-    position: 'relative',
-    overflow: 'hidden',
-    marginTop: 24,
+    marginTop: 16,
     borderWidth: 1,
-    borderRadius: 28,
-    padding: 24,
-    gap: 14,
+    borderRadius: radius.card,
+    padding: spacing.x4,
+    gap: spacing.x3,
   },
-  tagHole: { position: 'absolute', top: 18, right: 18, width: 20, height: 20, borderRadius: 10, borderWidth: 5 },
   inputLabel: { fontSize: 14, lineHeight: 20, fontWeight: '800' },
   codeInput: {
     minHeight: 64,

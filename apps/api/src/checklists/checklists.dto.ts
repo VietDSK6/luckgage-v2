@@ -5,6 +5,11 @@ import {
   IsInt,
   IsOptional,
   IsString,
+  IsUUID,
+  ArrayMaxSize,
+  ArrayMinSize,
+  IsArray,
+  ValidateNested,
   Length,
   Max,
   MaxLength,
@@ -82,6 +87,16 @@ export class CreateChecklistItemDto {
   @IsInt()
   @Min(0)
   position?: number;
+
+  @ApiPropertyOptional({ type: String, format: 'uuid', nullable: true })
+  @IsOptional()
+  @IsUUID()
+  assignedToUserId?: string | null;
+
+  @ApiPropertyOptional({ type: Boolean, default: false })
+  @IsOptional()
+  @IsBoolean()
+  isEssential?: boolean;
 }
 
 export class UpdateChecklistItemDto {
@@ -124,6 +139,54 @@ export class UpdateChecklistItemDto {
   @IsInt()
   @Min(0)
   position?: number;
+
+  @ApiPropertyOptional({ type: String, format: 'uuid', nullable: true })
+  @IsOptional()
+  @IsUUID()
+  assignedToUserId?: string | null;
+
+  @ApiPropertyOptional({ type: Boolean })
+  @IsOptional()
+  @IsBoolean()
+  isEssential?: boolean;
+}
+
+export class ImportChecklistItemDto {
+  @ApiProperty({ type: String, format: 'uuid' })
+  @IsUUID()
+  sourceItemId!: string;
+
+  @ApiProperty({ type: String, minLength: 1, maxLength: 120 })
+  @Transform(({ value }: { value: unknown }) => typeof value === 'string' ? value.trim() : value)
+  @IsString()
+  @Length(1, 120)
+  name!: string;
+
+  @ApiProperty({ type: Number, minimum: 1, maximum: 99 })
+  @IsInt()
+  @Min(1)
+  @Max(99)
+  quantity!: number;
+
+  @ApiPropertyOptional({ type: String, maxLength: 500, nullable: true })
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  note?: string | null;
+}
+
+export class ImportChecklistDto {
+  @ApiProperty({ type: String, format: 'uuid' })
+  @IsUUID()
+  sourceTripId!: string;
+
+  @ApiProperty({ type: () => [ImportChecklistItemDto], minItems: 1, maxItems: 200 })
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(200)
+  @ValidateNested({ each: true })
+  @Type(() => ImportChecklistItemDto)
+  items!: ImportChecklistItemDto[];
 }
 
 export class PackedStateDto {
@@ -144,6 +207,12 @@ export class ChecklistItemDto {
 
   @ApiProperty({ type: Boolean })
   isPacked!: boolean;
+
+  @ApiProperty({ type: Boolean })
+  isEssential!: boolean;
+
+  @ApiPropertyOptional({ type: String, format: 'uuid', nullable: true })
+  assignedToUserId!: string | null;
 
   @ApiPropertyOptional({ type: String, nullable: true })
   note!: string | null;

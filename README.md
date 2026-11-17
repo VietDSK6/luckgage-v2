@@ -3,8 +3,9 @@
 luckgage v2 combines an Expo mobile app, a self-hosted TypeScript REST API, PostgreSQL, and a React
 admin app. **Phase 1D local mobile scope, backend Phase 2A–2D, and mobile integration Phase 3A–3D
 are complete. Admin Phases 4A–4C are complete and QA-accepted. Phases 4D–4E are implemented;
-PostgreSQL integration tests pass. Phase 5 local hardening is in progress; manual app QA and
-deployment are pending.**
+PostgreSQL integration tests passed for the earlier scope. Phase 5 local hardening is in progress;
+the user reports QA of the earlier mobile scope complete. The new checklist features still need
+database migration, device QA, and release deployment.**
 
 ## Sources of truth
 
@@ -117,6 +118,10 @@ The Checklist slice adds category/item relations with cascading deletion, progre
 search, packed/unpacked filters, category and item CRUD, per-category bulk state, inline quick-add,
 item quantity/notes, undo delete, completion feedback, pull-to-refresh, and a one-tap entry from Trip
 Detail. Checklist mutations go only to the API; SQLite is no longer a production write path.
+Members can assign items to active trip members, filter their own items, and see progress by person.
+An essential flag highlights unpacked essentials on Trip Detail. A user can preview and edit selected
+items from another trip before atomically appending them, or share a plain-text checklist through the
+device share sheet.
 
 Packing suggestions keep the editable preview and explicit confirmation flow, while Phase 3B moves
 both preview and transactional append-only apply to the API. Trip Detail consumes the backend's

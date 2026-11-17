@@ -48,10 +48,10 @@ export function PackingStudioScreen({ tripId }: { tripId: string }) {
   const [state, setState] = useState<ScreenState>('loading');
   const [trip, setTrip] = useState<Trip | null>(null);
   const [weather, setWeather] = useState<WeatherForecast | null>(null);
-  const [weatherUnavailable, setWeatherUnavailable] = useState(false);
   const [activities, setActivities] = useState<PackingActivity[]>([]);
   const [extraNotes, setExtraNotes] = useState('');
   const [preview, setPreview] = useState<PackingPreview | null>(null);
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [previewError, setPreviewError] = useState(false);
   const [isApplying, setIsApplying] = useState(false);
@@ -74,18 +74,16 @@ export function PackingStudioScreen({ tripId }: { tripId: string }) {
         return;
       }
       setTrip(nextTrip);
+      setWeather(null);
       setState('setup');
       weatherRepository
         .getWeather(nextTrip, language)
         .then((forecast) => {
           if (requestId === requestSequence.current) {
             setWeather(forecast);
-            setWeatherUnavailable(false);
           }
         })
-        .catch(() => {
-          if (requestId === requestSequence.current) setWeatherUnavailable(true);
-        });
+        .catch(() => {});
     } catch {
       if (requestId === requestSequence.current) setState('error');
     }
@@ -127,6 +125,7 @@ export function PackingStudioScreen({ tripId }: { tripId: string }) {
           locale: language,
         }),
       );
+      setEditingItemId(null);
       setState('preview');
     } catch {
       setPreviewError(true);
@@ -250,25 +249,12 @@ export function PackingStudioScreen({ tripId }: { tripId: string }) {
               </Text>
               <Text style={[styles.intro, { color: theme.colors.inkMuted }]}>{t('packingIntro')}</Text>
 
-              <View style={[styles.tripTicket, { backgroundColor: theme.colors.surface, borderColor: theme.colors.outline }]}>
-                <View style={[styles.ticketNotch, { backgroundColor: theme.colors.background }]} />
+              <View style={styles.tripContext}>
                 <Text style={[styles.destination, { color: theme.colors.ink }]}>{trip.destination}</Text>
-                <View style={styles.contextRow}>
-                  <Text style={[styles.contextTag, { backgroundColor: theme.colors.primarySoft, color: theme.colors.primary }]}>
-                    {t('packingContextDuration', { count: getTripDurationDays(trip) })}
-                  </Text>
-                  {weather ? (
-                    <Text style={[styles.weatherContext, { color: theme.colors.inkMuted }]}>
-                      {formatTemperature(weather.lowTemperatureCelsius, temperatureUnit)} —{' '}
-                      {formatTemperature(weather.highTemperatureCelsius, temperatureUnit)} ·{' '}
-                      {t('weatherRain', { count: weather.rainChancePercent })}
-                    </Text>
-                  ) : (
-                    <Text style={[styles.weatherContext, { color: theme.colors.inkMuted }]}>
-                      {weatherUnavailable ? t('weatherUnavailable') : t('weatherLoading')}
-                    </Text>
-                  )}
-                </View>
+                <Text style={[styles.weatherContext, { color: theme.colors.inkMuted }]}>
+                  {t('packingContextDuration', { count: getTripDurationDays(trip) })}
+                  {weather ? ` · ${formatTemperature(weather.lowTemperatureCelsius, temperatureUnit)} — ${formatTemperature(weather.highTemperatureCelsius, temperatureUnit)} · ${t('weatherRain', { count: weather.rainChancePercent })}` : ''}
+                </Text>
               </View>
 
               <Text accessibilityRole="header" style={[styles.sectionTitle, { color: theme.colors.ink }]}>
@@ -331,9 +317,7 @@ export function PackingStudioScreen({ tripId }: { tripId: string }) {
                 {t('packingPreviewTitle')}
               </Text>
               <Text style={[styles.intro, { color: theme.colors.inkMuted }]}>{t('packingPreviewBody')}</Text>
-              <View style={[styles.sourceNote, { backgroundColor: theme.colors.primarySoft }]}>
-                <Text style={[styles.sourceNoteText, { color: theme.colors.primary }]}>{preview.sourceLabel}</Text>
-              </View>
+              <Text style={[styles.sourceNoteText, { color: theme.colors.inkMuted }]}>{preview.sourceLabel}</Text>
               <Text style={[styles.selectedCount, { color: theme.colors.ink }]}>
                 {t('packingSelectedCount', { selected: selectedItems.length, total: preview.items.length })}
               </Text>
@@ -367,56 +351,69 @@ export function PackingStudioScreen({ tripId }: { tripId: string }) {
                           <AppIcon color={theme.colors.background} name="check" size={22} strokeWidth={2.8} />
                         ) : null}
                       </Pressable>
-                      <View style={styles.reasonBlock}>
-                        <Text style={[styles.reason, { backgroundColor: theme.colors.primarySoft, color: theme.colors.primary }]}>
-                          {t('packingItemReasonLabel', { reason: item.reason })}
-                        </Text>
-                      </View>
+                      <Pressable
+                        accessibilityLabel={editingItemId === item.id ? t('packingCloseItem', { name: item.name }) : t('packingEditItem', { name: item.name })}
+                        accessibilityRole="button"
+                        accessibilityState={{ expanded: editingItemId === item.id }}
+                        onPress={() => setEditingItemId((current) => current === item.id ? null : item.id)}
+                        style={styles.previewSummary}>
+                        <View style={styles.previewSummaryCopy}>
+                          <Text numberOfLines={1} style={[styles.previewName, { color: theme.colors.ink }]}>{item.name}</Text>
+                          <Text numberOfLines={1} style={[styles.previewMeta, { color: theme.colors.inkMuted }]}>
+                            {item.categoryName} · ×{item.quantity}
+                          </Text>
+                        </View>
+                        <AppIcon color={theme.colors.primary} name="edit" size={18} />
+                      </Pressable>
                     </View>
-
-                    <Text style={[styles.compactLabel, { color: theme.colors.inkMuted }]}>{t('packingItemNameLabel')}</Text>
-                    <TextInput
-                      editable={item.selected}
-                      onChangeText={(name) => updatePreviewItem(item.id, (current) => ({ ...current, name }))}
-                      style={[styles.previewInput, { borderColor: theme.colors.outlineStrong, color: theme.colors.ink }]}
-                      value={item.name}
-                    />
-                    <View style={styles.previewFieldRow}>
-                      <View style={styles.quantityField}>
-                        <Text style={[styles.compactLabel, { color: theme.colors.inkMuted }]}>{t('packingItemQuantityLabel')}</Text>
+                    <Text style={[styles.reason, { color: theme.colors.inkMuted }]}>{item.reason}</Text>
+                    {editingItemId === item.id ? (
+                      <View style={styles.previewEditor}>
+                        <Text style={[styles.compactLabel, { color: theme.colors.inkMuted }]}>{t('packingItemNameLabel')}</Text>
                         <TextInput
                           editable={item.selected}
-                          keyboardType="number-pad"
-                          onChangeText={(value) => {
-                            const quantity = Number(value);
-                            updatePreviewItem(item.id, (current) => ({
-                              ...current,
-                              quantity: Number.isInteger(quantity) && quantity > 0 ? quantity : 1,
-                            }));
-                          }}
+                          onChangeText={(name) => updatePreviewItem(item.id, (current) => ({ ...current, name }))}
                           style={[styles.previewInput, { borderColor: theme.colors.outlineStrong, color: theme.colors.ink }]}
-                          value={String(item.quantity)}
+                          value={item.name}
                         />
-                      </View>
-                      <View style={styles.categoryField}>
-                        <Text style={[styles.compactLabel, { color: theme.colors.inkMuted }]}>{t('packingItemCategoryLabel')}</Text>
+                        <View style={styles.previewFieldRow}>
+                          <View style={styles.quantityField}>
+                            <Text style={[styles.compactLabel, { color: theme.colors.inkMuted }]}>{t('packingItemQuantityLabel')}</Text>
+                            <TextInput
+                              editable={item.selected}
+                              keyboardType="number-pad"
+                              onChangeText={(value) => {
+                                const quantity = Number(value);
+                                updatePreviewItem(item.id, (current) => ({
+                                  ...current,
+                                  quantity: Number.isInteger(quantity) && quantity > 0 ? quantity : 1,
+                                }));
+                              }}
+                              style={[styles.previewInput, { borderColor: theme.colors.outlineStrong, color: theme.colors.ink }]}
+                              value={String(item.quantity)}
+                            />
+                          </View>
+                          <View style={styles.categoryField}>
+                            <Text style={[styles.compactLabel, { color: theme.colors.inkMuted }]}>{t('packingItemCategoryLabel')}</Text>
+                            <TextInput
+                              editable={item.selected}
+                              onChangeText={(categoryName) => updatePreviewItem(item.id, (current) => ({ ...current, categoryName }))}
+                              style={[styles.previewInput, { borderColor: theme.colors.outlineStrong, color: theme.colors.ink }]}
+                              value={item.categoryName}
+                            />
+                          </View>
+                        </View>
+                        <Text style={[styles.compactLabel, { color: theme.colors.inkMuted }]}>{t('packingItemNoteLabel')}</Text>
                         <TextInput
                           editable={item.selected}
-                          onChangeText={(categoryName) => updatePreviewItem(item.id, (current) => ({ ...current, categoryName }))}
+                          onChangeText={(note) => updatePreviewItem(item.id, (current) => ({ ...current, note: note || null }))}
+                          placeholder="—"
+                          placeholderTextColor={theme.colors.inkMuted}
                           style={[styles.previewInput, { borderColor: theme.colors.outlineStrong, color: theme.colors.ink }]}
-                          value={item.categoryName}
+                          value={item.note ?? ''}
                         />
                       </View>
-                    </View>
-                    <Text style={[styles.compactLabel, { color: theme.colors.inkMuted }]}>{t('packingItemNoteLabel')}</Text>
-                    <TextInput
-                      editable={item.selected}
-                      onChangeText={(note) => updatePreviewItem(item.id, (current) => ({ ...current, note: note || null }))}
-                      placeholder="—"
-                      placeholderTextColor={theme.colors.inkMuted}
-                      style={[styles.previewInput, { borderColor: theme.colors.outlineStrong, color: theme.colors.ink }]}
-                      value={item.note ?? ''}
-                    />
+                    ) : null}
                   </View>
                 ))}
               </View>
@@ -458,11 +455,8 @@ const styles = StyleSheet.create({
   content: { width: '100%', maxWidth: 640, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 12, paddingBottom: 64 },
   displayTitle: { fontSize: 31, lineHeight: 38, fontWeight: '900', letterSpacing: -0.5 },
   intro: { marginTop: 8, fontSize: 16, lineHeight: 24 },
-  tripTicket: { position: 'relative', overflow: 'hidden', marginTop: 24, borderWidth: 1, borderRadius: 24, padding: 20 },
-  ticketNotch: { position: 'absolute', width: 28, height: 28, borderRadius: 14, top: -14, right: 48 },
-  destination: { maxWidth: '88%', fontSize: 25, lineHeight: 32, fontWeight: '900' },
-  contextRow: { marginTop: 16, gap: 10 },
-  contextTag: { alignSelf: 'flex-start', overflow: 'hidden', borderRadius: 20, paddingHorizontal: 12, paddingVertical: 7, fontSize: 13, lineHeight: 18, fontWeight: '900' },
+  tripContext: { marginTop: 16, gap: 4 },
+  destination: { fontSize: 17, lineHeight: 24, fontWeight: '700' },
   weatherContext: { fontSize: 13, lineHeight: 19, fontWeight: '600' },
   sectionTitle: { marginTop: 32, fontSize: 21, lineHeight: 28, fontWeight: '900' },
   activityGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 },
@@ -473,15 +467,18 @@ const styles = StyleSheet.create({
   primaryAction: { marginTop: 24 },
   stickyFooter: { borderTopWidth: 1, paddingHorizontal: 20, paddingTop: 10, paddingBottom: 8, flexDirection: 'row', gap: 8 },
   footerButton: { flex: 1, minWidth: 0, paddingHorizontal: 10 },
-  sourceNote: { marginTop: 18, borderRadius: 16, padding: 14 },
-  sourceNoteText: { fontSize: 13, lineHeight: 19, fontWeight: '800' },
-  selectedCount: { marginTop: 24, fontSize: 17, lineHeight: 23, fontWeight: '900', fontVariant: ['tabular-nums'] },
-  previewList: { gap: 16, marginTop: 12 },
-  previewItem: { borderWidth: 1, borderRadius: 20, padding: 16, gap: 7 },
-  previewHeader: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  sourceNoteText: { marginTop: 12, fontSize: 13, lineHeight: 19 },
+  selectedCount: { marginTop: 16, fontSize: 16, lineHeight: 22, fontWeight: '800', fontVariant: ['tabular-nums'] },
+  previewList: { gap: 8, marginTop: 12 },
+  previewItem: { borderWidth: 1, borderRadius: 16, padding: 12, gap: 6 },
+  previewHeader: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 12 },
   previewCheck: { width: 48, height: 48, borderWidth: 2, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  reasonBlock: { flex: 1, alignItems: 'flex-start' },
-  reason: { overflow: 'hidden', borderRadius: 14, paddingHorizontal: 11, paddingVertical: 6, fontSize: 11, lineHeight: 16, fontWeight: '800' },
+  previewSummary: { minHeight: 48, flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  previewSummaryCopy: { flex: 1 },
+  previewName: { fontSize: 16, lineHeight: 22, fontWeight: '800' },
+  previewMeta: { marginTop: 2, fontSize: 13, lineHeight: 18 },
+  reason: { marginLeft: 60, fontSize: 13, lineHeight: 19 },
+  previewEditor: { marginTop: 8, gap: 4 },
   compactLabel: { marginTop: 4, fontSize: 11, lineHeight: 16, fontWeight: '900', letterSpacing: 0.5 },
   previewInput: { minHeight: 44, borderBottomWidth: 1, paddingHorizontal: 4, paddingVertical: 8, fontSize: 15, lineHeight: 21, fontWeight: '700' },
   previewFieldRow: { flexDirection: 'row', gap: 16 },

@@ -18,6 +18,10 @@ Cảm xúc mục tiêu:
 UI mới không chạy theo hiệu ứng phô trương. Mỗi hình dạng, màu và chuyển động phải giúp người
 dùng nhìn ra trạng thái hoặc hành động quan trọng.
 
+Copy dùng câu tự nhiên, đủ thông tin để người dùng quyết định bước tiếp theo. Giảm phần lặp và
+trang trí trước khi rút ngắn câu; không ép mọi hướng dẫn thành nhãn cụt hoặc bỏ mất ngữ cảnh.
+Tiếng Việt và tiếng Anh phải giữ cùng ý, với cách diễn đạt thuận tai ở từng ngôn ngữ.
+
 ## 2. Hướng thị giác: Travel Tag 2.0
 
 ### Tính cách
@@ -111,6 +115,9 @@ Bottom navigation MVP giữ hai destination và một hành động nhanh ở gi
 - Quét QR: mở camera trong luồng join, không phải tab nội dung.
 - Settings.
 
+Nút QR là hành động, không có trạng thái selected như hai tab. Màu và nhãn của QR phải khác
+trạng thái tab đang mở.
+
 Auth/onboarding nằm trước app shell. Create/join/detail/checklist/suggestions/members là nested
 flow trong Trips.
 
@@ -140,6 +147,7 @@ mobile phải có thêm tab.
   trip/[tripId]
   trip/[tripId]/edit
   trip/[tripId]/checklist
+  trip/[tripId]/checklist/import
   trip/[tripId]/packing-studio
   trip/[tripId]/members
   trip/suggestions
@@ -187,21 +195,19 @@ bước lựa chọn, không giả rằng setup đã xong.
 
 ### 6.2. Trips Hub
 
-Thứ tự nhìn:
+Thứ tự nhìn khi đã có chuyến đi:
 
 1. Greeting ngắn và avatar/profile shortcut.
 2. Hero trip gần nhất.
-3. CTA tiếp tục chuẩn bị.
+3. Hành động tạo hoặc tham gia chuyến đi.
 4. Upcoming/active/past groups.
-5. Published trip suggestions nếu phù hợp.
+5. Lối vào gợi ý và cẩm nang sau danh sách chuyến đi.
 
-Hero trip gồm:
+Thẻ trip gần nhất giữ gọn để danh sách còn lại không bị đẩy quá xa. Thẻ gồm:
 
-- Destination lớn.
-- Date/countdown.
-- Readiness ring hoặc bar.
-- Member stack.
-- Một primary action theo trạng thái: “Tiếp tục đóng gói”, “Xem chuyến đi” hoặc “Tạo checklist”.
+- Tên chuyến đi, điểm đến, ngày khởi hành và trạng thái thời gian.
+- Số món đã chuẩn bị khi checklist có dữ liệu.
+- Một hành động mở chuyến đi; CTA checklist nằm ngay đầu Trip Detail.
 
 Empty state không chỉ có icon:
 
@@ -209,7 +215,7 @@ Empty state không chỉ có icon:
 - Copy giải thích.
 - CTA tạo trip.
 - Secondary CTA join code.
-- 1–3 trip suggestions nếu backend có dữ liệu.
+- Lối vào gợi ý và cẩm nang để tìm ý tưởng khi chưa có chuyến đi.
 
 ### 6.3. Create trip
 
@@ -229,6 +235,9 @@ Nguyên tắc:
 - Back giữ dữ liệu đã nhập trong session.
 - Không xin notification permission trong form trip.
 
+Sửa chuyến đi hiển thị các trường trên một trang với nút “Lưu thay đổi” cố định. Người dùng có thể
+đổi một trường mà không phải đi lại ba bước tạo mới.
+
 ### 6.4. Join trip
 
 - Có hành động quét QR bằng camera; chỉ xin quyền khi người dùng chọn quét.
@@ -247,12 +256,11 @@ Nguyên tắc:
 
 Thứ tự:
 
-1. Hero header: destination, date/countdown, owner/member.
-2. Readiness: packed/total và CTA checklist.
-3. Weather strip: success/cached/unavailable.
-4. Packing suggestion CTA.
-5. Members/invite.
-6. Notes và secondary actions.
+1. Tóm tắt gọn: destination, date/countdown và loại chuyến đi.
+2. Readiness và CTA checklist trong cùng một khối có thể chạm.
+3. Packing suggestion và members/invite.
+4. Weather strip: success/cached/unavailable.
+5. Notes và secondary actions.
 
 Edit/delete nằm trong overflow. Delete cần confirm. Edit là reversible nên không cần confirm.
 
@@ -265,11 +273,11 @@ Weather unavailable chỉ làm weather strip chuyển state; phần còn lại k
 Layout:
 
 - Sticky compact header: progress + packed/total.
-- Search và filter có thể collapse khi scroll.
+- Search và filter mở theo yêu cầu để checklist ngắn không mất chỗ cho thanh công cụ.
 - Category header có count và bulk action.
 - Item row có checkbox, name, quantity/note và overflow.
 - Inline quick-add ở cuối category.
-- Bottom action chỉ xuất hiện khi cần tạo category hoặc bulk mode.
+- Form tạo category chỉ mở khi người dùng chọn thêm; checklist trống có thể mở form ngay.
 
 Behavior:
 
@@ -279,6 +287,12 @@ Behavior:
 - Filter không làm mất context của category.
 - Stable key là item ID.
 - 100% packed kích hoạt celebration ngắn rồi hiển thị readiness summary.
+- Thành viên có thể chọn người chuẩn bị và đánh dấu đồ quan trọng trong trình sửa vật dụng. Bộ lọc
+  “Chỉ đồ của tôi” và tiến độ theo người nằm trong checklist, không tạo tab mới.
+- “Dùng lại danh sách” mở màn chọn trip nguồn, xem trước từng vật dụng, chỉnh hoặc bỏ chọn rồi xác
+  nhận thêm vào trip hiện tại. Các món mới chưa xếp và không thay đổi danh sách cũ.
+- “Chia sẻ” gửi bản văn bản qua share sheet của thiết bị. Trip Detail nêu tên các món quan trọng
+  chưa xếp và dẫn về checklist.
 
 ### 6.7. Packing Studio
 
@@ -286,19 +300,18 @@ Tên trải nghiệm phía UI có thể là “Gợi ý hành lý”; “Packing
 
 Flow:
 
-1. Context summary: trip type, duration, weather.
+1. Dòng ngữ cảnh gọn: điểm đến, thời lượng và thời tiết nếu đã có.
 2. Optional activity chips/notes.
 3. Generate.
-4. Preview theo category.
-5. Reason badge cho item quan trọng: “Mưa 60%”, “Chuyến 4 ngày”, “Đi quốc tế”.
-6. User chỉnh/chọn.
-7. Sticky CTA “Thêm N món vào checklist”.
-8. Success summary và điều hướng về checklist.
+4. Preview thành các dòng vật dụng có tên, số lượng, danh mục và lý do.
+5. User chọn/bỏ chọn; chạm một dòng mới mở các trường chỉnh sửa.
+6. Sticky CTA “Thêm N món vào checklist”.
+7. Success summary và điều hướng về checklist.
 
 Peak moment:
 
-- Category/item xuất hiện theo stagger nhẹ.
-- Source label nói rõ “Gợi ý theo quy tắc”.
+- Lý do gợi ý nằm ngay dưới món tương ứng để người dùng hiểu trước khi chọn.
+- Source label nói rõ nguồn gợi ý mà không chiếm một thẻ riêng.
 - Không dùng sparkle/AI icon.
 
 Apply failure:

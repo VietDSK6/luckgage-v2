@@ -393,6 +393,8 @@ Owner-only. Không cho xóa owner. Response 204.
           "name": "Hộ chiếu",
           "quantity": 1,
           "isPacked": true,
+          "isEssential": true,
+          "assignedToUserId": null,
           "note": null,
           "position": 0,
           "version": 2,
@@ -431,7 +433,9 @@ Request:
 
 ### PATCH /checklist-items/{itemId}
 
-Cho phép name, quantity, note, isPacked, position và version.
+Cho phép name, quantity, note, isPacked, isEssential, assignedToUserId (UUID hoặc null), position
+và version. Create item cũng nhận hai field mới. Server chỉ cho giao vật dụng cho thành viên đang
+tham gia cùng trip. Loại thành viên sẽ gỡ phân công trong transaction, giữ nguyên trạng thái packed.
 
 Toggle nhanh vẫn gửi version để phát hiện stale update.
 
@@ -451,6 +455,14 @@ Request:
 ~~~
 
 Server update toàn category trong transaction và trả progress mới.
+
+### POST /trips/{tripId}/checklist/import
+
+Request gồm `sourceTripId` và 1–200 item đã chọn: `sourceItemId`, `name`, `quantity`, `note`.
+Người dùng phải là thành viên cả trip nguồn và đích. Server kiểm tra từng sourceItemId thật sự
+thuộc trip nguồn, từ chối ID trùng, và tạo category mới cùng các item đã chỉnh trong một
+transaction. Item nhập vào chưa xếp, chưa phân công và không tự mang cờ đồ quan trọng. Response 200
+là checklist đích sau khi append; lỗi không để lại một phần dữ liệu.
 
 ## 7. Packing suggestions
 

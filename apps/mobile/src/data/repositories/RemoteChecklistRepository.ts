@@ -10,6 +10,7 @@ import {
   type ChecklistCategory,
   type ChecklistItem,
   type ChecklistItemDraft,
+  type ChecklistImportItemDraft,
 } from '@/features/checklist/domain/checklist';
 
 import {
@@ -166,6 +167,19 @@ export class RemoteChecklistRepository implements ChecklistRepository {
     }
   }
 
+  async importFromTrip(targetTripId: string, sourceTripId: string, items: ChecklistImportItemDraft[]): Promise<ChecklistCategory[]> {
+    try {
+      const payload = await this.apiClient.request<ApiChecklist>(`/trips/${targetTripId}/checklist/import`, {
+        method: 'POST',
+        body: { sourceTripId, items },
+      });
+      if (payload?.tripId !== targetTripId || !Array.isArray(payload.categories)) throw invalidResponse('Checklist import response is invalid');
+      return payload.categories.map((category) => this.rememberCategory(targetTripId, category));
+    } catch (error) {
+      throw mapChecklistError('Could not import checklist', error);
+    }
+  }
+
   private rememberCategory(tripId: string, payload: ApiChecklistCategory): ChecklistCategory {
     if (
       !payload?.id ||
@@ -198,6 +212,8 @@ export class RemoteChecklistRepository implements ChecklistRepository {
       !Number.isInteger(payload.quantity) ||
       payload.quantity < 1 ||
       typeof payload.isPacked !== 'boolean' ||
+      typeof payload.isEssential !== 'boolean' ||
+      (payload.assignedToUserId !== null && typeof payload.assignedToUserId !== 'string') ||
       !Number.isInteger(payload.position) ||
       !Number.isInteger(payload.version) ||
       payload.version < 1 ||
@@ -213,6 +229,8 @@ export class RemoteChecklistRepository implements ChecklistRepository {
       quantity: payload.quantity,
       note: payload.note ?? null,
       isPacked: payload.isPacked,
+      isEssential: payload.isEssential,
+      assignedToUserId: payload.assignedToUserId,
       position: payload.position,
       createdAt,
       updatedAt,

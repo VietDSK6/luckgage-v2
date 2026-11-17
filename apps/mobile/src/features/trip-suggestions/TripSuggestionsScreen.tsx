@@ -112,9 +112,8 @@ export function TripSuggestionsScreen() {
             tintColor={theme.colors.primary}
           />
         }
-        renderItem={({ index, item }) => (
+        renderItem={({ item }) => (
           <SuggestionCard
-            index={index}
             item={item}
             onPress={() => router.push(`/trip/suggestions/${item.slug}`)}
             theme={theme}
@@ -127,12 +126,10 @@ export function TripSuggestionsScreen() {
 }
 
 function SuggestionCard({
-  index,
   item,
   onPress,
   theme,
 }: {
-  index: number;
   item: TripSuggestion;
   onPress: () => void;
   theme: AppTheme;
@@ -150,30 +147,16 @@ function SuggestionCard({
       ]}>
       <View style={styles.imageWrap}>
         <RemoteImage alt={item.image.alt} style={styles.image} uri={item.image.url} />
-        <View style={[styles.number, { backgroundColor: theme.colors.sun }]}>
-          <Text style={[theme.typography.label, { color: theme.colors.onWarm }]}>
-            {String(index + 1).padStart(2, '0')}
-          </Text>
-        </View>
       </View>
       <View style={styles.cardCopy}>
-        <Text style={[theme.typography.eyebrow, { color: theme.colors.primary }]}>
-          {item.destination.label.toUpperCase()}
-        </Text>
         <Text accessibilityRole="header" style={[styles.cardTitle, { color: theme.colors.ink }]}>
           {item.title}
         </Text>
+        <Text numberOfLines={1} style={[theme.typography.bodySmall, { color: theme.colors.primary }]}>{item.destination.label}</Text>
         <Text numberOfLines={3} style={[theme.typography.bodySmall, { color: theme.colors.inkMuted }]}>
           {item.summary}
         </Text>
         <View style={[styles.cardFooter, { borderTopColor: theme.colors.outline }]}>
-          <View style={styles.tags}>
-            {item.tags.slice(0, 2).map((tag) => (
-              <Text key={tag} style={[styles.tag, { backgroundColor: theme.colors.primarySoft, color: theme.colors.primary }]}>
-                {tag}
-              </Text>
-            ))}
-          </View>
           <Text style={[theme.typography.caption, { color: theme.colors.inkMuted }]}>
             {t('suggestionDuration', { count: item.suggestedDurationDays })}
           </Text>
@@ -207,15 +190,12 @@ const styles = StyleSheet.create({
   centerText: { textAlign: 'center' },
   empty: { minHeight: 360, marginTop: spacing.x5, borderWidth: 1, borderRadius: radius.card, padding: spacing.x8, alignItems: 'center', justifyContent: 'center', gap: spacing.x3 },
   statePanel: { minHeight: 320, marginTop: spacing.x5, borderWidth: 1, borderRadius: radius.card, padding: spacing.x8, alignItems: 'center', justifyContent: 'center', gap: spacing.x3 },
-  card: { marginBottom: spacing.x6, borderWidth: 1, borderRadius: radius.hero, overflow: 'hidden' },
-  imageWrap: { position: 'relative', aspectRatio: 4 / 3, overflow: 'hidden' },
+  card: { marginBottom: spacing.x4, borderWidth: 1, borderRadius: radius.card, overflow: 'hidden' },
+  imageWrap: { aspectRatio: 16 / 9, overflow: 'hidden' },
   image: { width: '100%', height: '100%' },
-  number: { position: 'absolute', left: spacing.x4, bottom: spacing.x4, width: 42, height: 42, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
   cardCopy: { padding: spacing.x5 },
-  cardTitle: { ...typography.screenTitle, marginTop: 6, marginBottom: spacing.x2 },
-  cardFooter: { marginTop: spacing.x5, borderTopWidth: 1, paddingTop: spacing.x3, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.x3 },
-  tags: { minWidth: 0, flex: 1, flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  tag: { borderRadius: radius.pill, paddingHorizontal: spacing.x2, paddingVertical: spacing.x1, ...typography.eyebrow },
+  cardTitle: { ...typography.cardTitle, marginBottom: spacing.x2 },
+  cardFooter: { marginTop: spacing.x4, borderTopWidth: 1, paddingTop: spacing.x3, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start' },
   openRow: { marginTop: spacing.x5, flexDirection: 'row', alignItems: 'center', gap: spacing.x2 },
   pressed: { opacity: 0.82, transform: [{ scale: 0.995 }] },
 });

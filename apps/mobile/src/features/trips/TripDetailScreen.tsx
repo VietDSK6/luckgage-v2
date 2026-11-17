@@ -42,6 +42,7 @@ export function TripDetailScreen({ tripId }: { tripId: string }) {
     total: 0,
     percentage: 0,
   });
+  const [essentialUnpacked, setEssentialUnpacked] = useState<string[]>([]);
   const [state, setState] = useState<'loading' | 'content' | 'notFound' | 'error'>('loading');
   const [weatherState, setWeatherState] = useState<WeatherUiState>({ status: 'loading' });
   const [reminder, setReminder] = useState<LocalReminder | null>(null);
@@ -73,6 +74,8 @@ export function TripDetailScreen({ tripId }: { tripId: string }) {
       }
       setTrip(nextTrip);
       setChecklistProgress(getChecklistProgress(checklist));
+      setEssentialUnpacked(checklist.flatMap((category) => category.items)
+        .filter((item) => item.isEssential && !item.isPacked).map((item) => item.name));
       setState('content');
       setWeatherState({ status: 'loading' });
       weatherRepository
@@ -242,15 +245,10 @@ export function TripDetailScreen({ tripId }: { tripId: string }) {
       />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={[styles.hero, { backgroundColor: theme.colors.surface, borderColor: theme.colors.outline }]}>
-          <View style={[styles.heroNotch, { backgroundColor: theme.colors.background }]} />
-          <Text style={[styles.status, { color: theme.colors.danger }]}>{status.toUpperCase()}</Text>
+          <Text style={[styles.status, { color: theme.colors.primary }]}>{status}</Text>
           <Text accessibilityRole="header" style={[styles.destination, { color: theme.colors.ink }]}>
             {trip.destination}
           </Text>
-          <View style={[styles.routeLine, { backgroundColor: theme.colors.outline }]}>
-            <View style={[styles.routeDotStart, { backgroundColor: theme.colors.primary }]} />
-            <View style={[styles.routeDotEnd, { backgroundColor: theme.colors.accent }]} />
-          </View>
           <View style={styles.dateRow}>
             <View style={styles.dateBlock}>
               <Text style={[styles.metaLabel, { color: theme.colors.inkMuted }]}>{t('tripStartDateLabel')}</Text>
@@ -270,9 +268,6 @@ export function TripDetailScreen({ tripId }: { tripId: string }) {
               <Text style={[styles.typeTag, { backgroundColor: theme.colors.primarySoft, color: theme.colors.primary }]}>
                 {t(tripTypeMessageKeys[trip.tripType])}
               </Text>
-              <Text style={[styles.roleTag, { borderColor: theme.colors.outline, color: theme.colors.inkMuted }]}>
-                {t(trip.currentUserRole === 'owner' ? 'membersOwnerRole' : 'membersMemberRole')}
-              </Text>
             </View>
             <Text style={[styles.duration, { color: theme.colors.inkMuted }]}>
               {t('tripDuration', { count: getTripDurationDays(trip) })}
@@ -280,18 +275,19 @@ export function TripDetailScreen({ tripId }: { tripId: string }) {
           </View>
         </View>
 
-        <View style={styles.section}>
-          <Text accessibilityRole="header" style={[styles.sectionTitle, { color: theme.colors.ink }]}>
-            {t('tripReadinessTitle')}
-          </Text>
-          <View style={[styles.readiness, { backgroundColor: theme.colors.primarySoft }]}>
-            <View style={[styles.readinessMark, { borderColor: theme.colors.primary }]}>
-              <Text style={[styles.readinessMarkText, { color: theme.colors.primary }]}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`${t('tripReadinessTitle')}, ${checklistProgress.total > 0 ? t('tripReadinessProgress', { packed: checklistProgress.packed, total: checklistProgress.total }) : t('tripReadinessBody')}. ${t('tripChecklistAction')}`}
+          onPress={() => router.push(`/trip/${trip.id}/checklist`)}
+          style={({ pressed }) => [styles.readiness, { backgroundColor: theme.colors.primary }, pressed ? styles.pressed : null]}>
+            <View style={[styles.readinessMark, { borderColor: theme.colors.primarySoft }]}>
+              <Text style={[styles.readinessMarkText, { color: theme.colors.background }]}>
                 {checklistProgress.percentage}%
               </Text>
             </View>
             <View style={styles.readinessCopy}>
-              <Text style={[styles.readinessBody, { color: theme.colors.primary }]}>
+              <Text style={[styles.readinessTitle, { color: theme.colors.background }]}>{t('tripReadinessTitle')}</Text>
+              <Text style={[styles.readinessBody, { color: theme.colors.primarySoft }]}>
                 {checklistProgress.total > 0
                   ? t('tripReadinessProgress', {
                       packed: checklistProgress.packed,
@@ -299,24 +295,24 @@ export function TripDetailScreen({ tripId }: { tripId: string }) {
                     })
                   : t('tripReadinessBody')}
               </Text>
-              <AppButton
-                label={t('tripChecklistAction')}
-                onPress={() => router.push(`/trip/${trip.id}/checklist`)}
-                style={styles.checklistButton}
-                variant="secondary"
-              />
+              <Text style={[styles.readinessAction, { color: theme.colors.background }]}>{t('tripChecklistAction')}</Text>
             </View>
-          </View>
-        </View>
+            <AppIcon color={theme.colors.background} name="arrowRight" size={21} />
+        </Pressable>
 
-        <View style={styles.section}>
-          <Text accessibilityRole="header" style={[styles.sectionTitle, { color: theme.colors.ink }]}>
-            {t('weatherTitle')}
-          </Text>
-          <View style={styles.sectionContent}>
-            <WeatherStrip onRefresh={() => void refreshWeather()} state={weatherState} />
-          </View>
-        </View>
+        {essentialUnpacked.length > 0 ? (
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => router.push(`/trip/${trip.id}/checklist`)}
+            style={[styles.essentialNotice, { backgroundColor: theme.colors.primarySoft }]}>
+            <AppIcon color={theme.colors.primary} name="checklist" size={22} />
+            <View style={styles.essentialCopy}>
+              <Text style={[styles.essentialTitle, { color: theme.colors.ink }]}>{t('tripEssentialMissing', { count: essentialUnpacked.length })}</Text>
+              <Text numberOfLines={2} style={[styles.essentialItems, { color: theme.colors.inkMuted }]}>{essentialUnpacked.slice(0, 3).join(' · ')}</Text>
+            </View>
+            <AppIcon color={theme.colors.primary} name="chevronRight" size={20} />
+          </Pressable>
+        ) : null}
 
         <View style={styles.actionList}>
           <Pressable
@@ -369,6 +365,15 @@ export function TripDetailScreen({ tripId }: { tripId: string }) {
             </View>
             <AppIcon color={theme.colors.inkMuted} name="chevronRight" size={21} />
           </Pressable>
+        </View>
+
+        <View style={styles.section}>
+          <Text accessibilityRole="header" style={[styles.sectionTitle, { color: theme.colors.ink }]}>
+            {t('weatherTitle')}
+          </Text>
+          <View style={styles.sectionContent}>
+            <WeatherStrip onRefresh={() => void refreshWeather()} state={weatherState} />
+          </View>
         </View>
 
         <Pressable
@@ -481,32 +486,32 @@ const styles = StyleSheet.create({
   content: { width: '100%', maxWidth: 640, alignSelf: 'center', paddingHorizontal: 20, paddingBottom: 48 },
   centerState: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 20, padding: 24 },
   stateTitle: { fontSize: 20, lineHeight: 28, fontWeight: '800', textAlign: 'center' },
-  hero: { position: 'relative', overflow: 'hidden', marginTop: 8, borderWidth: 1, borderRadius: 20, padding: 20 },
-  heroNotch: { position: 'absolute', top: -14, right: 54, width: 28, height: 28, borderRadius: 14 },
-  status: { fontSize: 12, lineHeight: 17, fontWeight: '900', letterSpacing: 1.3 },
-  destination: { marginTop: 14, fontSize: 30, lineHeight: 37, fontWeight: '900', letterSpacing: -0.5 },
-  routeLine: { position: 'relative', height: 2, marginTop: 20, marginHorizontal: 5 },
-  routeDotStart: { position: 'absolute', left: -5, top: -5, width: 12, height: 12, borderRadius: 6 },
-  routeDotEnd: { position: 'absolute', right: -5, top: -5, width: 12, height: 12, borderRadius: 6 },
-  dateRow: { marginTop: 16, flexDirection: 'row', gap: 20 },
+  hero: { marginTop: 8, borderWidth: 1, borderRadius: 20, padding: 16 },
+  status: { fontSize: 13, lineHeight: 18, fontWeight: '700' },
+  destination: { marginTop: 6, fontSize: 24, lineHeight: 30, fontWeight: '800', letterSpacing: -0.3 },
+  dateRow: { marginTop: 14, flexDirection: 'row', gap: 20 },
   dateBlock: { flex: 1, gap: 4 },
   metaLabel: { fontSize: 11, lineHeight: 15, fontWeight: '800', letterSpacing: 0.7 },
   metaValue: { fontSize: 15, lineHeight: 21, fontWeight: '700' },
-  tagRow: { marginTop: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+  tagRow: { marginTop: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
   tripTags: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8 },
   typeTag: { overflow: 'hidden', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 14, fontSize: 12, lineHeight: 17, fontWeight: '800' },
-  roleTag: { overflow: 'hidden', borderWidth: 1, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 14, fontSize: 12, lineHeight: 17, fontWeight: '800' },
   duration: { fontSize: 13, lineHeight: 18, fontWeight: '700' },
   section: { marginTop: 24 },
   sectionContent: { marginTop: 8 },
   sectionTitle: { fontSize: 21, lineHeight: 28, fontWeight: '900' },
-  readiness: { marginTop: 8, padding: 16, borderRadius: 16, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  readiness: { minHeight: 84, marginTop: 12, padding: 16, borderRadius: 16, flexDirection: 'row', alignItems: 'center', gap: 12 },
   readinessMark: { width: 48, height: 48, borderRadius: 24, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
   readinessMarkText: { fontSize: 12, lineHeight: 17, fontWeight: '900', fontVariant: ['tabular-nums'] },
-  readinessCopy: { flex: 1, gap: 8 },
-  readinessBody: { fontSize: 15, lineHeight: 22, fontWeight: '700' },
-  checklistButton: { alignSelf: 'flex-start' },
-  actionList: { marginTop: 24, gap: 10 },
+  readinessCopy: { flex: 1, gap: 2 },
+  readinessTitle: { fontSize: 16, lineHeight: 22, fontWeight: '800' },
+  readinessBody: { fontSize: 14, lineHeight: 20, fontWeight: '600' },
+  readinessAction: { marginTop: 4, fontSize: 14, lineHeight: 20, fontWeight: '800' },
+  essentialNotice: { minHeight: 68, marginTop: 8, padding: 12, borderRadius: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  essentialCopy: { flex: 1, gap: 2 },
+  essentialTitle: { fontSize: 14, lineHeight: 20, fontWeight: '800' },
+  essentialItems: { fontSize: 13, lineHeight: 18 },
+  actionList: { marginTop: 16, gap: 10 },
   actionRow: { minHeight: 76, borderWidth: 1, borderRadius: 16, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 12 },
   actionIcon: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   actionCopy: { flex: 1, gap: 2 },

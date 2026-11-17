@@ -11,12 +11,14 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useTripRepository } from '@/data/repositories/TripRepositoryProvider';
+import { useChecklistRepository } from '@/data/repositories/ChecklistRepositoryProvider';
 import { AppButton } from '@/design/components/AppButton';
 import { AppIcon } from '@/design/components/AppIcon';
 import { BrandLuki, BrandMark } from '@/design/components/BrandLuki';
 import { useAppTheme } from '@/design/theme/AppThemeProvider';
 import { radius, spacing, typography, type AppTheme } from '@/design/tokens';
 import { useAuth } from '@/features/auth/AuthProvider';
+import { getChecklistProgress, type ChecklistProgress } from '@/features/checklist/domain/checklist';
 import { useI18n } from '@/i18n/I18nProvider';
 import { usePreferences } from '@/platform/preferences/PreferencesProvider';
 
@@ -37,6 +39,7 @@ type TripSection = {
 
 export function TripsHubScreen() {
   const repository = useTripRepository();
+  const checklistRepository = useChecklistRepository();
   const router = useRouter();
   const { theme } = useAppTheme();
   const { user } = useAuth();
@@ -46,6 +49,7 @@ export function TripsHubScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const [heroProgress, setHeroProgress] = useState<ChecklistProgress | null>(null);
   const hasLoaded = useRef(false);
   const requestSequence = useRef(0);
   const today = calendarDateFromLocalDate(new Date());
@@ -68,6 +72,16 @@ export function TripsHubScreen() {
         setTrips(nextTrips);
         setHasError(false);
         hasLoaded.current = true;
+        const groups = groupTripsByTimeline(nextTrips, calendarDateFromLocalDate(new Date()));
+        const featuredTrip = groups.current[0] ?? groups.upcoming[0];
+        setHeroProgress(null);
+        if (featuredTrip) {
+          void checklistRepository.getChecklist(featuredTrip.id)
+            .then((categories) => {
+              if (requestId === requestSequence.current) setHeroProgress(getChecklistProgress(categories));
+            })
+            .catch(() => {});
+        }
       } catch {
         if (requestId === requestSequence.current) {
           setHasError(true);
@@ -79,7 +93,7 @@ export function TripsHubScreen() {
         }
       }
     },
-    [repository],
+    [checklistRepository, repository],
   );
 
   useFocusEffect(
@@ -151,6 +165,7 @@ export function TripsHubScreen() {
             ) : null}
             {heroTrip ? (
               <TripHeroCard
+                checklistProgress={heroProgress}
                 language={language}
                 onPress={() => router.push(`/trip/${heroTrip.id}`)}
                 theme={theme}
@@ -165,17 +180,16 @@ export function TripsHubScreen() {
                     label={t('tripsCreate')}
                     onPress={() => router.push('/trip/new')}
                     style={styles.tripAction}
+                    variant="secondary"
                   />
                   <AppButton
                     icon="join"
                     label={t('tripsJoin')}
                     onPress={() => router.push('/trip/join')}
                     style={styles.tripAction}
-                    variant="secondary"
+                    variant="ghost"
                   />
                 </View>
-                <ExploreSuggestions onPress={() => router.push('/trip/suggestions')} theme={theme} />
-                <ExploreSuggestions icon="book" onPress={() => router.push('/trip/guides')} theme={theme} title={t('guidesTitle')} />
               </View>
             ) : null}
             {hasError && trips.length > 0 ? (
@@ -211,6 +225,12 @@ export function TripsHubScreen() {
             {section.title}
           </Text>
         )}
+        ListFooterComponent={trips.length > 0 ? (
+          <View style={styles.discoverLinks}>
+            <ExploreSuggestions onPress={() => router.push('/trip/suggestions')} theme={theme} />
+            <ExploreSuggestions icon="book" onPress={() => router.push('/trip/guides')} theme={theme} title={t('guidesTitle')} />
+          </View>
+        ) : undefined}
         sections={sections}
         showsVerticalScrollIndicator={false}
         stickySectionHeadersEnabled={false}
@@ -221,11 +241,13 @@ export function TripsHubScreen() {
 }
 
 function TripHeroCard({
+  checklistProgress,
   language,
   onPress,
   theme,
   trip,
 }: {
+  checklistProgress: ChecklistProgress | null;
   language: 'vi' | 'en';
   onPress: () => void;
   theme: AppTheme;
@@ -242,7 +264,7 @@ function TripHeroCard({
 
   return (
     <Pressable
-      accessibilityLabel={`${trip.name}, ${trip.destination}, ${status}`}
+      accessibilityLabel={`${trip.name}, ${trip.destination}, ${status}${checklistProgress && checklistProgress.total > 0 ? `, ${t('tripReadinessProgress', { packed: checklistProgress.packed, total: checklistProgress.total })}` : ''}`}
       accessibilityRole="button"
       onPress={onPress}
       style={({ pressed }) => [
@@ -250,30 +272,19 @@ function TripHeroCard({
         { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary },
         pressed ? styles.pressed : null,
       ]}>
-      <Text style={[styles.heroStatus, { color: theme.colors.background }]}>{status.toUpperCase()}</Text>
-      <Text style={[styles.heroDestination, { color: theme.colors.background }]}>
-        {trip.destination}
+      <Text style={[styles.heroStatus, { color: theme.colors.primarySoft }]}>{status}</Text>
+      <Text style={[styles.heroDestination, { color: theme.colors.background }]} numberOfLines={2}>
+        {trip.name}
       </Text>
-      <Text style={[styles.heroName, { color: theme.colors.primarySoft }]}>{trip.name}</Text>
-      <View style={[styles.heroDivider, { backgroundColor: theme.colors.primarySoft }]} />
-      <View style={styles.heroMetaRow}>
-        <View style={styles.heroMetaBlock}>
-          <Text style={[styles.heroMetaLabel, { color: theme.colors.primarySoft }]}>
-            {t('tripStartDateLabel').toUpperCase()}
-          </Text>
-          <Text style={[styles.heroMetaValue, { color: theme.colors.background }]}>
-            {formatCalendarDate(trip.startDate, language)}
-          </Text>
-        </View>
-        <View style={styles.heroMetaBlock}>
-          <Text style={[styles.heroMetaLabel, { color: theme.colors.primarySoft }]}>
-            {t('tripDurationLabel').toUpperCase()}
-          </Text>
-          <Text style={[styles.heroMetaValue, { color: theme.colors.background }]}>
-            {t('tripDuration', { count: getTripDurationDays(trip) })}
-          </Text>
-        </View>
-      </View>
+      <Text style={[styles.heroName, { color: theme.colors.primarySoft }]} numberOfLines={1}>{trip.destination}</Text>
+      <Text style={[styles.heroMetaValue, { color: theme.colors.primarySoft }]}>
+        {formatCalendarDate(trip.startDate, language)} · {t('tripDuration', { count: getTripDurationDays(trip) })}
+      </Text>
+      {checklistProgress && checklistProgress.total > 0 ? (
+        <Text style={[styles.heroProgress, { color: theme.colors.background }]}>
+          {t('tripReadinessProgress', { packed: checklistProgress.packed, total: checklistProgress.total })}
+        </Text>
+      ) : null}
       <View style={styles.heroActionRow}>
         <Text style={[styles.heroAction, { color: theme.colors.background }]}>{t('tripsHeroAction')}</Text>
         <AppIcon color={theme.colors.background} name="arrowRight" size={21} />
@@ -442,27 +453,25 @@ const styles = StyleSheet.create({
   title: { marginTop: 2, fontSize: 32, lineHeight: 38, fontWeight: '900', letterSpacing: -0.5 },
   tripActions: { marginTop: 12, flexDirection: 'row', gap: 8 },
   tripAction: { minWidth: 0, flex: 1, paddingHorizontal: 10 },
+  discoverLinks: { marginTop: spacing.x5 },
   explore: { alignSelf: 'stretch', minHeight: 56, marginTop: spacing.x3, borderWidth: 1, borderRadius: radius.panel, paddingHorizontal: spacing.x4, flexDirection: 'row', alignItems: 'center', gap: spacing.x3 },
   exploreIcon: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   exploreTitle: { ...typography.label, minWidth: 0, flex: 1 },
   hero: {
     position: 'relative',
     overflow: 'hidden',
-    minHeight: 226,
-    marginTop: 20,
-    padding: 20,
+    minHeight: 0,
+    marginTop: 16,
+    padding: 18,
     borderRadius: 20,
     borderWidth: 1,
   },
-  heroStatus: { fontSize: 12, lineHeight: 16, fontWeight: '900', letterSpacing: 1.4 },
-  heroDestination: { marginTop: 20, fontSize: 30, lineHeight: 36, fontWeight: '900' },
-  heroName: { marginTop: 6, fontSize: 17, lineHeight: 24, fontWeight: '600' },
-  heroDivider: { height: 1, marginVertical: 16, opacity: 0.42 },
-  heroMetaRow: { flexDirection: 'row', gap: 28 },
-  heroMetaBlock: { flex: 1, gap: 4 },
-  heroMetaLabel: { fontSize: 10, lineHeight: 14, fontWeight: '800', letterSpacing: 1.3 },
-  heroMetaValue: { fontSize: 14, lineHeight: 20, fontWeight: '700' },
-  heroActionRow: { marginTop: 16, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  heroStatus: { fontSize: 13, lineHeight: 18, fontWeight: '700' },
+  heroDestination: { marginTop: 8, fontSize: 24, lineHeight: 30, fontWeight: '800' },
+  heroName: { marginTop: 4, fontSize: 14, lineHeight: 20, fontWeight: '500' },
+  heroMetaValue: { marginTop: 12, fontSize: 14, lineHeight: 20, fontWeight: '600', fontVariant: ['tabular-nums'] },
+  heroProgress: { marginTop: 8, fontSize: 14, lineHeight: 20, fontWeight: '700', fontVariant: ['tabular-nums'] },
+  heroActionRow: { marginTop: 12, flexDirection: 'row', alignItems: 'center', gap: 8 },
   heroAction: { fontSize: 16, lineHeight: 22, fontWeight: '800' },
   sectionTitle: { marginTop: 24, marginBottom: 4, fontSize: 21, lineHeight: 28, fontWeight: '900' },
   tripRow: { minHeight: 116, flexDirection: 'row', borderBottomWidth: 1, paddingVertical: 16 },

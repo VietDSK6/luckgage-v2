@@ -185,6 +185,60 @@ describe('Trips, memberships, and checklists database integration', () => {
     await expect(prisma.tripInvite.count({ where: { tripId } })).resolves.toBe(0);
   });
 
+  it('assigns essential items only to active members and clears assignments when they leave', async () => {
+    const owner = await register('assign-owner@example.com');
+    const member = await register('assign-member@example.com');
+    const outsider = await register('assign-outsider@example.com');
+    const trip = await api(owner).post('/api/v1/trips')
+      .send(tripInput(offsetDate(10), offsetDate(12))).expect(201);
+    const invite = await api(owner).post(`/api/v1/trips/${trip.body.id}/invites`)
+      .send({ expiresInHours: 24, maxUses: 1 }).expect(201);
+    await api(member).post('/api/v1/trip-invites/join').send({ code: invite.body.code }).expect(200);
+    const category = await api(owner).post(`/api/v1/trips/${trip.body.id}/checklist/categories`)
+      .send({ name: 'Documents' }).expect(201);
+    const invalid = await api(owner).post(`/api/v1/checklist-categories/${category.body.id}/items`)
+      .send({ name: 'Passport', assignedToUserId: outsider.user.id }).expect(422);
+    expect(invalid.body.code).toBe('CHECKLIST_ASSIGNEE_NOT_MEMBER');
+    const item = await api(owner).post(`/api/v1/checklist-categories/${category.body.id}/items`)
+      .send({ name: 'Passport', assignedToUserId: member.user.id, isEssential: true }).expect(201);
+    expect(item.body).toMatchObject({ assignedToUserId: member.user.id, isEssential: true });
+    await api(owner).delete(`/api/v1/trips/${trip.body.id}/members/${member.user.id}`).expect(204);
+    const afterRemoval = await api(owner).get(`/api/v1/trips/${trip.body.id}/checklist`).expect(200);
+    expect(afterRemoval.body.categories[0].items[0]).toMatchObject({ assignedToUserId: null, isEssential: true, isPacked: false, version: 2 });
+    await api(owner).patch(`/api/v1/checklist-items/${item.body.id}`)
+      .send({ version: 2, assignedToUserId: member.user.id }).expect(422);
+  });
+
+  it('imports edited selections atomically without replacing existing checklist items', async () => {
+    const owner = await register('reuse-owner@example.com');
+    const outsider = await register('reuse-outsider@example.com');
+    const source = await api(owner).post('/api/v1/trips')
+      .send(tripInput(offsetDate(10), offsetDate(12))).expect(201);
+    const target = await api(owner).post('/api/v1/trips')
+      .send(tripInput(offsetDate(20), offsetDate(22))).expect(201);
+    const sourceCategory = await api(owner).post(`/api/v1/trips/${source.body.id}/checklist/categories`)
+      .send({ name: 'Clothes' }).expect(201);
+    const sourceItem = await api(owner).post(`/api/v1/checklist-categories/${sourceCategory.body.id}/items`)
+      .send({ name: 'Shirt', quantity: 2, isEssential: true }).expect(201);
+    const targetCategory = await api(owner).post(`/api/v1/trips/${target.body.id}/checklist/categories`)
+      .send({ name: 'Clothes' }).expect(201);
+    const existing = await api(owner).post(`/api/v1/checklist-categories/${targetCategory.body.id}/items`)
+      .send({ name: 'Existing shirt' }).expect(201);
+    const input = { sourceTripId: source.body.id, items: [{ sourceItemId: sourceItem.body.id, name: 'Edited shirt', quantity: 3, note: 'Blue' }] };
+    await api(outsider).post(`/api/v1/trips/${target.body.id}/checklist/import`).send(input).expect(404);
+    await api(owner).post(`/api/v1/trips/${target.body.id}/checklist/import`)
+      .send({ ...input, items: [input.items[0], input.items[0]] }).expect(422);
+    await api(owner).post(`/api/v1/trips/${target.body.id}/checklist/import`)
+      .send({ ...input, items: [...input.items, { ...input.items[0], sourceItemId: existing.body.id }] }).expect(422);
+    const before = await prisma.checklistItem.count({ where: { category: { tripId: target.body.id } } });
+    expect(before).toBe(1);
+    const imported = await api(owner).post(`/api/v1/trips/${target.body.id}/checklist/import`)
+      .send(input).expect(200);
+    expect(imported.body.categories).toHaveLength(2);
+    expect(imported.body.categories[0].items[0].name).toBe('Existing shirt');
+    expect(imported.body.categories[1].items[0]).toMatchObject({ name: 'Edited shirt', quantity: 3, note: 'Blue', isPacked: false, isEssential: false, assignedToUserId: null });
+  });
+
   it('maps invalid, revoked, expired, and exhausted invite states', async () => {
     const owner = await register('trip-owner-two@example.com');
     const member = await register('trip-member-two@example.com');

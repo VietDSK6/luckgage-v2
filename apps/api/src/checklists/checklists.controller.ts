@@ -34,6 +34,7 @@ import {
   ChecklistItemDto,
   CreateChecklistCategoryDto,
   CreateChecklistItemDto,
+  ImportChecklistDto,
   PackedStateDto,
   UpdateChecklistCategoryDto,
   UpdateChecklistItemDto,
@@ -55,6 +56,18 @@ export class ChecklistsController {
     @Param('tripId', new ParseUUIDPipe()) tripId: string,
   ): Promise<ChecklistDto> {
     return this.checklists.get(user.userId, tripId);
+  }
+
+  @Post('trips/:tripId/checklist/import')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Append selected items from another member trip atomically' })
+  @ApiOkResponse({ type: ChecklistDto })
+  importFromTrip(
+    @CurrentUser() user: AuthPrincipal,
+    @Param('tripId', new ParseUUIDPipe()) tripId: string,
+    @Body() input: ImportChecklistDto,
+  ): Promise<ChecklistDto> {
+    return this.checklists.importFromTrip(user.userId, tripId, input);
   }
 
   @Post('trips/:tripId/checklist/categories')

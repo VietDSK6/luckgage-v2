@@ -169,6 +169,8 @@ function installApiMock() {
         quantity: body.quantity ?? 1,
         note: body.note ?? null,
         isPacked: false,
+        isEssential: false,
+        assignedToUserId: null,
         position: serverCategories[0].items.length,
         version: 1,
         createdAt: '2026-11-05T00:00:00.000Z',
@@ -346,8 +348,6 @@ describe('app navigation', () => {
     );
 
     expect((await screen.findByLabelText('Điểm đến')).props.value).toBe('Hội An');
-    await user.press(screen.getByRole('button', { name: 'Tiếp tục' }));
-    await user.press(await screen.findByRole('button', { name: 'Xem lại chuyến đi' }));
     await user.press(await screen.findByRole('button', { name: 'Lưu thay đổi' }));
 
     expect(await screen.findByText('Sẵn sàng hành lý')).toBeTruthy();
@@ -430,6 +430,7 @@ describe('app navigation', () => {
     await user.press(await screen.findByRole('button', { name: 'Tạo bản gợi ý' }));
     expect(await screen.findByText('Kiểm tra từng món')).toBeTruthy();
 
+    await user.press(screen.getByRole('button', { name: 'Chỉnh sửa Giấy tờ tùy thân' }));
     const idInput = screen.getByDisplayValue('Giấy tờ tùy thân');
     await user.clear(idInput);
     await user.type(idInput, 'CCCD');

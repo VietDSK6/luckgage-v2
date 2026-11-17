@@ -47,10 +47,10 @@ export function AppBottomNavigation({ active, onSelect, onScanQr }: AppBottomNav
         accessibilityRole="button"
         onPress={onScanQr}
         style={({ pressed }) => [styles.item, pressed ? styles.pressed : null]}>
-        <View style={[styles.scanIcon, { backgroundColor: theme.colors.primary, borderRadius: theme.radius.pill, width: theme.spacing.x10, height: theme.spacing.x10 }]}>
-          <AppIcon color={theme.colors.background} name="qr" size={20} />
+        <View style={[styles.scanIcon, { backgroundColor: theme.colors.primarySoft, borderColor: theme.colors.primary, borderRadius: theme.radius.pill, width: theme.spacing.x10, height: theme.spacing.x10 }]}>
+          <AppIcon color={theme.colors.primary} name="qr" size={20} />
         </View>
-        <Text style={[theme.typography.nav, { color: theme.colors.primary }]}>{t('navScanQr')}</Text>
+        <Text style={[theme.typography.nav, { color: theme.colors.inkMuted }]}>{t('navScanQr')}</Text>
       </Pressable>
       <NavigationItem
         active={active === 'settings'}
@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 2,
   },
-  scanIcon: { alignItems: 'center', justifyContent: 'center' },
+  scanIcon: { alignItems: 'center', justifyContent: 'center', borderWidth: 1 },
   icon: { width: 20, height: 20 },
   iconLayer: { position: 'absolute', inset: 0 },
   labelFrame: { position: 'relative' },

@@ -7,6 +7,8 @@ export type ChecklistItem = {
   quantity: number;
   note: string | null;
   isPacked: boolean;
+  isEssential: boolean;
+  assignedToUserId: string | null;
   position: number;
   createdAt: number;
   updatedAt: number;
@@ -26,6 +28,15 @@ export type ChecklistItemDraft = {
   name: string;
   quantity?: number;
   note?: string | null;
+  isEssential?: boolean;
+  assignedToUserId?: string | null;
+};
+
+export type ChecklistImportItemDraft = {
+  sourceItemId: string;
+  name: string;
+  quantity: number;
+  note: string | null;
 };
 
 export type ChecklistProgress = {
@@ -80,7 +91,7 @@ export function normalizeChecklistName(name: string): string | null {
 
 export function normalizeChecklistItemDraft(
   draft: ChecklistItemDraft,
-): { name: string; quantity: number; note: string | null } | null {
+): { name: string; quantity: number; note: string | null; isEssential: boolean; assignedToUserId: string | null } | null {
   const name = normalizeChecklistName(draft.name);
   const quantity = draft.quantity ?? 1;
 
@@ -92,5 +103,7 @@ export function normalizeChecklistItemDraft(
     name,
     quantity,
     note: draft.note?.trim() || null,
+    isEssential: draft.isEssential ?? false,
+    assignedToUserId: draft.assignedToUserId ?? null,
   };
 }

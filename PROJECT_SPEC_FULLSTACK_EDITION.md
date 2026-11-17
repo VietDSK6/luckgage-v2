@@ -130,8 +130,22 @@ Không tạo entity “luggage” riêng chỉ để đổi tên checklist. Chec
 - CRUD category và item.
 - Item có tên, số lượng, ghi chú, trạng thái packed và thứ tự.
 - Tìm kiếm, lọc packed/unpacked và thao tác cả category.
+- Thành viên có thể giao một vật dụng cho một thành viên đang tham gia trip, xem đồ được giao cho
+  mình và xem tiến độ theo người. Khi thành viên rời trip, các vật dụng được giao cho họ trở về
+  trạng thái chưa phân công; trạng thái packed không tự thay đổi.
+- Vật dụng có thể được đánh dấu quan trọng. Trip detail nêu rõ những vật dụng quan trọng chưa xếp.
+- Người dùng có thể chia sẻ bản văn bản checklist bằng tính năng chia sẻ của điện thoại; bản chia sẻ
+  không chứa mã mời hoặc dữ liệu riêng của người khác ngoài tên thành viên được giao.
 - Checklist là nguồn sự thật; mọi suggestion chỉ là đầu vào tùy chọn.
 - Xóa trip phải xóa membership, invite, checklist và weather cache liên quan.
+
+### 5.4a. Dùng lại checklist
+
+- Thành viên có thể chọn một trip cũ mà họ có quyền xem, xem trước checklist của trip đó, bỏ chọn
+  hoặc sửa tên, số lượng và ghi chú trước khi thêm vào trip hiện tại.
+- Chỉ các vật dụng được chọn được thêm vào category mới trong một transaction. Danh mục và vật dụng
+  hiện có không bị ghi đè; vật dụng nhập vào luôn ở trạng thái chưa xếp, chưa phân công.
+- Trip nguồn và trip đích phải khác nhau và người thao tác phải là thành viên của cả hai.
 
 ### 5.5. Packing suggestions
 
@@ -224,6 +238,7 @@ Owner tạo join code
   -> Member nhập code và xác nhận
   -> Server tạo membership
   -> Member đọc/ghi cùng checklist qua REST API
+  -> Giao vật dụng cho thành viên và theo dõi tiến độ theo người
 ~~~
 
 ### 6.4. Quản trị nội dung
@@ -249,6 +264,8 @@ Admin tạo rule ở Draft
 10. Không commit API key, token, password hoặc secret.
 11. UI không dùng màu sắc làm tín hiệu trạng thái duy nhất.
 12. Mọi icon-only action có accessible label.
+13. Phân công vật dụng chỉ trỏ tới thành viên đang tham gia trip; rời trip sẽ gỡ phân công.
+14. Dùng lại checklist chỉ append atomically sau khi người dùng xem trước và xác nhận.
 
 ## 8. Yêu cầu phi chức năng
 

@@ -45,12 +45,12 @@ export function TripSuggestionDetailScreen({ slug }: { slug: string }) {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
-      <AppPageHeader onBack={goBack} title={suggestion?.title ?? t('suggestionsTitle')} />
+      <AppPageHeader onBack={goBack} title={t('suggestionsTitle')} />
       {state === 'loading' ? (
         <View style={styles.centerState}><ActivityIndicator color={theme.colors.primary} /></View>
       ) : suggestion && state === 'ready' ? (
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-          <View style={[styles.hero, { backgroundColor: theme.colors.surface, borderColor: theme.colors.outline }]}>
+          <View style={styles.hero}>
             <RemoteImage alt={suggestion.image.alt} style={styles.image} uri={suggestion.image.url} />
             <View style={styles.heroCopy}>
               <Text accessibilityRole="header" style={[styles.title, { color: theme.colors.ink }]}>{suggestion.title}</Text>
@@ -58,17 +58,11 @@ export function TripSuggestionDetailScreen({ slug }: { slug: string }) {
             </View>
           </View>
 
-          <View style={[styles.ticket, { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary }]}>
-            <View style={styles.ticketHeading}>
-              <AppIcon color={theme.colors.background} name="mapPin" size={22} />
-              <Text style={[theme.typography.eyebrow, { color: theme.colors.primarySoft }]}>{suggestion.destination.label.toUpperCase()}</Text>
-            </View>
-            <Text style={[styles.ticketTitle, { color: theme.colors.background }]}>{suggestion.destination.label}</Text>
-            <View style={[styles.ticketDivider, { backgroundColor: theme.colors.primarySoft }]} />
-            <View style={styles.ticketMeta}>
-              <Text style={[theme.typography.bodyStrong, { color: theme.colors.background }]}>{t('suggestionDuration', { count: suggestion.suggestedDurationDays })}</Text>
-              <View style={styles.tags}>{suggestion.tags.map((tag) => <Text key={tag} style={[styles.tag, { backgroundColor: theme.colors.primarySoft, color: theme.colors.primary }]}>{tag}</Text>)}</View>
-            </View>
+          <View style={styles.tripMeta}>
+            <AppIcon color={theme.colors.primary} name="mapPin" size={18} />
+            <Text style={[theme.typography.bodySmall, styles.tripMetaText, { color: theme.colors.inkMuted }]}>
+              {suggestion.destination.label} · {t('suggestionDuration', { count: suggestion.suggestedDurationDays })}
+            </Text>
           </View>
 
           <View style={[styles.prefillNote, { borderColor: theme.colors.outline }]}>
@@ -99,21 +93,16 @@ export function TripSuggestionDetailScreen({ slug }: { slug: string }) {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
-  content: { width: '100%', maxWidth: control.pageMaxWidth, alignSelf: 'center', paddingHorizontal: spacing.x5, paddingBottom: spacing.x10, gap: spacing.x5 },
+  content: { width: '100%', maxWidth: control.pageMaxWidth, alignSelf: 'center', paddingHorizontal: spacing.x5, paddingBottom: spacing.x10, gap: spacing.x4 },
   centerState: { flex: 1, paddingHorizontal: spacing.x8, alignItems: 'center', justifyContent: 'center', gap: spacing.x3 },
   stateTitle: { textAlign: 'center' },
   stateBody: { maxWidth: 420, textAlign: 'center', marginBottom: 8 },
-  hero: { borderWidth: 1, borderRadius: radius.hero, overflow: 'hidden' },
-  image: { width: '100%', aspectRatio: 4 / 3 },
-  heroCopy: { padding: spacing.x6 },
-  title: { ...typography.display, marginTop: spacing.x2, marginBottom: spacing.x3 },
-  ticket: { borderWidth: 1, borderRadius: radius.hero, padding: spacing.x5 },
-  ticketHeading: { flexDirection: 'row', alignItems: 'center', gap: spacing.x2 },
-  ticketTitle: { ...typography.screenTitle, marginTop: spacing.x3 },
-  ticketDivider: { height: 1, marginVertical: spacing.x5, opacity: 0.45 },
-  ticketMeta: { gap: spacing.x3 },
-  tags: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.x2 },
-  tag: { borderRadius: radius.pill, paddingHorizontal: spacing.x3, paddingVertical: spacing.x1, ...typography.eyebrow },
+  hero: { overflow: 'hidden' },
+  image: { width: '100%', aspectRatio: 16 / 9, borderRadius: radius.card },
+  heroCopy: { paddingTop: spacing.x4, gap: spacing.x2 },
+  title: { ...typography.screenTitle },
+  tripMeta: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.x2 },
+  tripMetaText: { flex: 1 },
   prefillNote: { borderWidth: 1, borderRadius: radius.panel, padding: spacing.x4, flexDirection: 'row', alignItems: 'flex-start', gap: spacing.x3 },
   prefillNoteText: { flex: 1 },
 });

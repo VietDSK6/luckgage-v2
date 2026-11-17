@@ -5,7 +5,6 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../src/generated/prisma/client.js';
 import {
   ContentStatus,
-  QuantityMode,
   TripMemberRole,
   TripType,
   UserLocale,
@@ -13,6 +12,7 @@ import {
   UserStatus,
 } from '../src/generated/prisma/enums.js';
 import { hashPassword } from '../src/auth/password.js';
+import { seedCuratedPackingRules } from '../src/packing-suggestions/packing-rule-catalog.js';
 
 const databaseUrl = process.env.DATABASE_URL;
 
@@ -33,7 +33,7 @@ const prisma = new PrismaClient({
 
 try {
   await prisma.$queryRaw`SELECT 1`;
-  await seedPackingRules();
+  await seedCuratedPackingRules(prisma);
   await seedTripSuggestions();
   await seedGuide();
   const demoUserId = await seedDemoUser();
@@ -80,66 +80,6 @@ try {
   }
 } finally {
   await prisma.$disconnect();
-}
-
-async function seedPackingRules(): Promise<void> {
-  const baseItems = [
-    {
-      categoryKey: 'documents',
-      categoryNameVi: 'Giấy tờ',
-      categoryNameEn: 'Documents',
-      itemKey: 'identity-document',
-      itemNameVi: 'Giấy tờ tùy thân',
-      itemNameEn: 'Identity document',
-      quantityMode: QuantityMode.FIXED,
-      baseQuantity: 1,
-      position: 0,
-    },
-    {
-      categoryKey: 'clothing',
-      categoryNameVi: 'Quần áo',
-      categoryNameEn: 'Clothing',
-      itemKey: 'daily-outfit',
-      itemNameVi: 'Bộ quần áo theo ngày',
-      itemNameEn: 'Daily outfit',
-      quantityMode: QuantityMode.PER_DAY,
-      baseQuantity: 1,
-      position: 1,
-    },
-    {
-      categoryKey: 'essentials',
-      categoryNameVi: 'Đồ thiết yếu',
-      categoryNameEn: 'Essentials',
-      itemKey: 'phone-charger',
-      itemNameVi: 'Sạc điện thoại',
-      itemNameEn: 'Phone charger',
-      quantityMode: QuantityMode.FIXED,
-      baseQuantity: 1,
-      position: 2,
-    },
-  ];
-  await prisma.packingRule.upsert({
-    where: { key_version: { key: 'baseline-essentials', version: 1 } },
-    create: {
-      key: 'baseline-essentials',
-      name: 'Đồ dùng thiết yếu cơ bản',
-      version: 1,
-      priority: 10,
-      status: ContentStatus.PUBLISHED,
-      reasonVi: 'Đồ thiết yếu cho mọi chuyến đi',
-      reasonEn: 'Essentials for every trip',
-      publishedAt: new Date('2026-01-01T00:00:00.000Z'),
-      items: { create: baseItems },
-    },
-    update: {
-      name: 'Đồ dùng thiết yếu cơ bản',
-      priority: 10,
-      status: ContentStatus.PUBLISHED,
-      reasonVi: 'Đồ thiết yếu cho mọi chuyến đi',
-      reasonEn: 'Essentials for every trip',
-      items: { deleteMany: {}, create: baseItems },
-    },
-  });
 }
 
 async function seedDemoUser(): Promise<string> {
@@ -245,9 +185,9 @@ async function seedTripSuggestions(): Promise<void> {
       countryCode: 'VN',
       adminArea: 'Lâm Đồng',
       country: 'Việt Nam',
-      imageUrl: 'https://images.unsplash.com/photo-1576745515893-3042060c8d83',
-      imageAltVi: 'Đồi thông trong sương ở Đà Lạt',
-      imageAltEn: 'Misty pine hills in Da Lat',
+      imageUrl: 'https://images.unsplash.com/photo-1678421289205-3a285e6b0f0c?auto=format&fit=crop&w=1200&q=75',
+      imageAltVi: 'Rừng thông trong sương ở Đà Lạt',
+      imageAltEn: 'Misty pine forest in Da Lat',
       tags: ['weekend', 'highland', 'cool-weather'],
       tripType: TripType.LEISURE,
       suggestedDurationDays: 3,
@@ -276,9 +216,9 @@ async function seedGuide(): Promise<void> {
       titleEn: 'Packing for Da Lat',
       summaryVi: 'Những món cần kiểm tra trước chuyến đi cao nguyên.',
       summaryEn: 'What to check before a highland trip.',
-      coverUrl: 'https://images.unsplash.com/photo-1576745515893-3042060c8d83',
-      coverAltVi: 'Đồi thông trong sương ở Đà Lạt',
-      coverAltEn: 'Misty pine hills in Da Lat',
+      coverUrl: 'https://images.unsplash.com/photo-1678421289205-3a285e6b0f0c?auto=format&fit=crop&w=1200&q=75',
+      coverAltVi: 'Rừng thông trong sương ở Đà Lạt',
+      coverAltEn: 'Misty pine forest in Da Lat',
       tags: ['da-lat', 'packing'],
       sectionsVi: [
         { type: 'heading', text: 'Trang phục theo lớp' },

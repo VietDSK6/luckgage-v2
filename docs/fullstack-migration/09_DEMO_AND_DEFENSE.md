@@ -74,6 +74,8 @@ Nói:
 
 ### Bước 5 — Collaboration
 
+- User A giao một vật dụng cho User B và đánh dấu một vật dụng quan trọng.
+- User B lọc “Chỉ đồ của tôi”, xếp món được giao.
 - User B check/thêm một item.
 - User A pull-to-refresh hoặc quay lại screen.
 - Thấy thay đổi.
@@ -81,6 +83,7 @@ Nói:
 Nói:
 
 - PostgreSQL là nguồn sự thật.
+- Tiến độ theo người và danh sách đồ quan trọng đọc từ cùng checklist, không là bản sao độc lập.
 - Mobile không dual-write local + server.
 - Nếu dùng version conflict, minh họa hoặc giải thích 409/refetch.
 

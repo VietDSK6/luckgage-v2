@@ -21,6 +21,8 @@ const categories: ChecklistCategory[] = [
         quantity: 2,
         note: null,
         isPacked: true,
+        isEssential: false,
+        assignedToUserId: null,
         position: 0,
         createdAt: 1,
         updatedAt: 1,
@@ -32,6 +34,8 @@ const categories: ChecklistCategory[] = [
         quantity: 1,
         note: 'Waterproof',
         isPacked: false,
+        isEssential: false,
+        assignedToUserId: null,
         position: 1,
         createdAt: 2,
         updatedAt: 2,
@@ -61,6 +65,8 @@ describe('checklist domain', () => {
       name: 'Socks',
       quantity: 3,
       note: 'warm',
+      isEssential: false,
+      assignedToUserId: null,
     });
     expect(normalizeChecklistItemDraft({ name: ' ', quantity: 1 })).toBeNull();
     expect(normalizeChecklistItemDraft({ name: 'Socks', quantity: 0 })).toBeNull();
