@@ -16,11 +16,16 @@ import { calendarDateFromLocalDate } from '@/features/trips/domain/calendarDate'
 import { useI18n } from '@/i18n/I18nProvider';
 
 import { groupTripsByProvince, ringsToSvgPath } from './domain/journeys';
+import { buildStampAlbum, findNewStamps } from './domain/stamps';
+import { loadSeenStamps, saveSeenStamps } from './seenStamps';
+import { StampBook } from './StampBook';
+import { PROVINCE_STAMPS } from './stamps';
 import { VIETNAM_ISLAND_GROUPS, VIETNAM_MAP_VIEWBOX, VIETNAM_PROVINCES } from './vietnamMap';
 
 type LoadState = 'loading' | 'ready' | 'error';
 
 const PROVINCE_PATHS = VIETNAM_PROVINCES.map((province) => ({ id: province.id, d: ringsToSvgPath(province) }));
+const STAMP_CATALOG = Object.entries(PROVINCE_STAMPS).map(([id, stamp]) => ({ id, region: stamp.region, nameVi: stamp.nameVi }));
 const ISLAND_LABELS: Record<string, string> = { 'hoang-sa': 'QĐ. Hoàng Sa', 'truong-sa': 'QĐ. Trường Sa' };
 
 export function JourneysScreen() {
@@ -32,6 +37,7 @@ export function JourneysScreen() {
   const [stats, setStats] = useState<TravelStats | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [seenStamps, setSeenStamps] = useState<Set<string> | null>(null);
   const requestId = useRef(0);
 
   const load = useCallback(
@@ -39,9 +45,10 @@ export function JourneysScreen() {
       const currentRequest = ++requestId.current;
       if (refresh) setRefreshing(true);
       try {
-        const next = await repository.get(calendarDateFromLocalDate(new Date()));
+        const [next, seen] = await Promise.all([repository.get(calendarDateFromLocalDate(new Date())), loadSeenStamps()]);
         if (requestId.current !== currentRequest) return;
         setStats(next);
+        setSeenStamps(seen);
         setState('ready');
       } catch {
         if (requestId.current === currentRequest && !refresh) setState('error');
@@ -63,6 +70,13 @@ export function JourneysScreen() {
 
   const grouped = useMemo(() => groupTripsByProvince(stats?.trips ?? []), [stats]);
   const visitedIds = useMemo(() => new Set(grouped.provinces.map((province) => province.id)), [grouped]);
+  const album = useMemo(() => buildStampAlbum(STAMP_CATALOG, grouped.provinces), [grouped]);
+  const newStamps = useMemo(() => (seenStamps ? findNewStamps(album, seenStamps) : []), [album, seenStamps]);
+  const markStampsSeen = () => {
+    const unlocked = album.filter((stamp) => stamp.unlockedOn !== null).map((stamp) => stamp.id);
+    setSeenStamps(new Set(unlocked));
+    void saveSeenStamps(unlocked);
+  };
   const goBack = () => (router.canGoBack() ? router.back() : router.replace('/'));
 
   const fillFor = (id: string) =>
@@ -138,6 +152,8 @@ export function JourneysScreen() {
               })}
             </Svg>
           </View>
+
+          {state === 'ready' ? <StampBook album={album} newStamps={newStamps} onCelebrated={markStampsSeen} /> : null}
 
           {state === 'ready' && (stats?.tripCount ?? 0) === 0 ? (
             <AppText tone="muted" style={styles.centered}>
