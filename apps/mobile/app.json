@@ -31,6 +31,12 @@
           "recordAudioAndroid": false
         }
       ],
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "Allow luckgage to add your trips to your calendar"
+        }
+      ],
       "@react-native-community/datetimepicker"
     ],
     "experiments": {
