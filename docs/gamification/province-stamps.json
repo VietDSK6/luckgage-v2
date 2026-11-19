@@ -1,0 +1,596 @@
+{
+  "$comment": "Spec for the luckgage province stamp set. Hand this whole file to the asset generator. Province ids match apps/mobile/src/features/journeys/vietnamMap.ts (34 units in force since 1 July 2025, Resolution 202/2025/QH15).",
+  "version": 1,
+  "series": {
+    "nameVi": "Tem hành trình Luki",
+    "nameEn": "Luki journey stamps",
+    "unlockRule": "A province stamp unlocks automatically when the user has a started trip (start date <= today) whose destination coordinates fall inside that province, using the same province lookup as the journeys map. No check-in, no extra taps.",
+    "lockedState": "Rendered in code from the same PNG: tinted with the outline colour at 35% opacity (a stamp silhouette). Do not generate separate locked artwork."
+  },
+  "output": {
+    "directory": "apps/mobile/assets/stamps",
+    "fileName": "{id}.png",
+    "size": "Generate 1024x1024 PNG with a transparent background. Masters are kept untracked in docs/gamification/stamp-masters/; the app ships copies cropped to the stamp edge and resized to 384x512.",
+    "displaySizes": [
+      "72dp grid tile",
+      "240dp detail view"
+    ],
+    "deliverables": [
+      "34 province PNGs named by id",
+      "apps/mobile/src/features/journeys/stamps.ts exporting a manifest: id -> require('../../../assets/stamps/{id}.png') plus nameVi, nameEn, captionVi, captionEn, region, coastal",
+      "A row per stamp added to the asset inventory in docs/BRAND_SYSTEM.md"
+    ]
+  },
+  "artDirection": {
+    "basePrompt": "Use case: collectible travel stamp for a mobile app. Asset type: single postage-stamp illustration cutout. Primary request: a portrait postage stamp (3:4 ratio) with classic perforated scalloped edges, printed on warm cream paper, centered in a square transparent canvas with generous padding. Inside a thin inner frame sits one simple illustration of the subject below. A small circular luggage-tag hole motif sits in the top-right corner of the stamp as the series mark. Style/medium: premium flat editorial screen-print illustration with subtle paper grain, limited flat colors, strong clean shapes, slightly imperfect hand-drawn geometry, matching the luckgage Luki mascot style. Composition: one hero subject, at most one secondary element, readable at 72px.",
+    "palette": {
+      "always": [
+        "warm cream #FFF7E8 (paper)",
+        "dark blue-green ink #12312F (linework)"
+      ],
+      "brand": [
+        "deep travel teal #0F766E",
+        "coral #FF665C",
+        "sun yellow #F6C84C"
+      ],
+      "rule": "Use the paper and ink colors plus at most three other flat colors: the stamp's accent and up to two brand colors."
+    },
+    "constraints": [
+      "no text, letters, numbers, or wordmarks anywhere (the app renders the province name)",
+      "no national flags except where the subject itself is a flagpole",
+      "no people's faces in detail; figures, if any, are small silhouettes",
+      "no photorealism, 3D, gradients, glossy effects, drop shadows outside the stamp, or watermarks",
+      "transparent background outside the stamp edge",
+      "all 34 stamps must look like one series: same frame, edge, paper, corner mark, and line weight"
+    ],
+    "acceptance": [
+      "subject recognisable at 72px",
+      "series consistency checked by viewing all 34 in a 6-column grid",
+      "accurate architecture/landform silhouettes; review each against a reference photo before shipping"
+    ]
+  },
+  "regions": {
+    "north": "Miền Bắc / Northern Vietnam",
+    "central": "Miền Trung và Tây Nguyên / Central Vietnam and Highlands",
+    "south": "Miền Nam / Southern Vietnam"
+  },
+  "stamps": [
+    {
+      "id": "ha-noi",
+      "nameVi": "Hà Nội",
+      "nameEn": "Hanoi",
+      "mergedFrom": [],
+      "region": "north",
+      "coastal": false,
+      "accent": "#C8553D",
+      "subject": "Khue Van Cac pavilion at the Temple of Literature: a square two-tier pavilion with circular sun windows on four brick pillars, a few lotus leaves in front",
+      "captionVi": "Khuê Văn Các, biểu tượng nghìn năm văn hiến.",
+      "captionEn": "Khue Van Cac, symbol of a thousand years of learning."
+    },
+    {
+      "id": "hue",
+      "nameVi": "Huế",
+      "nameEn": "Hue",
+      "mergedFrom": [],
+      "region": "central",
+      "coastal": true,
+      "accent": "#7A5C99",
+      "subject": "Ngo Mon gate of the Hue Imperial City with its five-pavilion roof line, the Perfume River as a calm band below, one conical hat floating on a small boat",
+      "captionVi": "Ngọ Môn Đại Nội bên dòng sông Hương.",
+      "captionEn": "The Imperial City's Noon Gate by the Perfume River."
+    },
+    {
+      "id": "lai-chau",
+      "nameVi": "Lai Châu",
+      "nameEn": "Lai Chau",
+      "mergedFrom": [],
+      "region": "north",
+      "coastal": false,
+      "accent": "#5B8E7D",
+      "subject": "a sea of clouds filling the valley below the O Quy Ho mountain pass, a winding road ribbon on the ridge, sharp peaks rising above the clouds",
+      "captionVi": "Biển mây trên đèo Ô Quy Hồ.",
+      "captionEn": "A sea of clouds over O Quy Ho pass."
+    },
+    {
+      "id": "dien-bien",
+      "nameVi": "Điện Biên",
+      "nameEn": "Dien Bien",
+      "mergedFrom": [],
+      "region": "north",
+      "coastal": false,
+      "accent": "#E9E4D8",
+      "subject": "white ban (Bauhinia) flowers on a branch in the foreground, the Dien Bien Phu Victory Monument on D1 hill as a small silhouette behind, Muong Thanh valley fields",
+      "captionVi": "Hoa ban trắng và đồi D1 lịch sử.",
+      "captionEn": "White ban blossoms and historic D1 hill."
+    },
+    {
+      "id": "son-la",
+      "nameVi": "Sơn La",
+      "nameEn": "Son La",
+      "mergedFrom": [],
+      "region": "north",
+      "coastal": false,
+      "accent": "#7FB069",
+      "subject": "the heart-shaped tea hill of Moc Chau plateau with neat tea rows, a white plum blossom branch in one corner",
+      "captionVi": "Đồi chè trái tim cao nguyên Mộc Châu.",
+      "captionEn": "Moc Chau's heart-shaped tea hill."
+    },
+    {
+      "id": "lang-son",
+      "nameVi": "Lạng Sơn",
+      "nameEn": "Lang Son",
+      "mergedFrom": [],
+      "region": "north",
+      "coastal": false,
+      "accent": "#E58FA2",
+      "subject": "a pink peach blossom branch framing the misty peaks of Mau Son mountain",
+      "captionVi": "Hoa đào xứ Lạng và núi Mẫu Sơn.",
+      "captionEn": "Peach blossoms and Mau Son mountain."
+    },
+    {
+      "id": "quang-ninh",
+      "nameVi": "Quảng Ninh",
+      "nameEn": "Quang Ninh",
+      "mergedFrom": [],
+      "region": "north",
+      "coastal": true,
+      "accent": "#2E86AB",
+      "subject": "the Trong Mai twin rocks (fighting cock islets) rising from calm emerald water in Ha Long Bay, one small junk boat with a brown sail",
+      "captionVi": "Hòn Trống Mái giữa vịnh Hạ Long.",
+      "captionEn": "The Trong Mai rocks in Ha Long Bay."
+    },
+    {
+      "id": "thanh-hoa",
+      "nameVi": "Thanh Hóa",
+      "nameEn": "Thanh Hoa",
+      "mergedFrom": [],
+      "region": "central",
+      "coastal": true,
+      "accent": "#A6763E",
+      "subject": "the massive stone south gate of the Ho Dynasty Citadel, three arched openings in large cut stone blocks, grass on top",
+      "captionVi": "Thành nhà Hồ, di sản thế giới bằng đá.",
+      "captionEn": "The Ho Dynasty Citadel, a stone World Heritage site."
+    },
+    {
+      "id": "nghe-an",
+      "nameVi": "Nghệ An",
+      "nameEn": "Nghe An",
+      "mergedFrom": [],
+      "region": "central",
+      "coastal": true,
+      "accent": "#E07A9B",
+      "subject": "a simple thatched-roof wooden village house of Lang Sen beside a pond with pink lotus flowers",
+      "captionVi": "Mái tranh Làng Sen bên hồ sen hồng.",
+      "captionEn": "A thatched house in Lang Sen by a lotus pond."
+    },
+    {
+      "id": "ha-tinh",
+      "nameVi": "Hà Tĩnh",
+      "nameEn": "Ha Tinh",
+      "mergedFrom": [],
+      "region": "central",
+      "coastal": true,
+      "accent": "#4F9D8A",
+      "subject": "the many peaks of Hong Linh mountain above the gentle curve of the La River",
+      "captionVi": "Núi Hồng, sông La.",
+      "captionEn": "Hong Linh mountain and the La River."
+    },
+    {
+      "id": "cao-bang",
+      "nameVi": "Cao Bằng",
+      "nameEn": "Cao Bang",
+      "mergedFrom": [],
+      "region": "north",
+      "coastal": false,
+      "accent": "#3FA7D6",
+      "subject": "Ban Gioc waterfall: wide multi-tiered white cascades over green limestone, a small bamboo raft on the turquoise pool",
+      "captionVi": "Thác Bản Giốc hùng vĩ.",
+      "captionEn": "The mighty Ban Gioc waterfall."
+    },
+    {
+      "id": "tuyen-quang",
+      "nameVi": "Tuyên Quang",
+      "nameEn": "Tuyen Quang",
+      "mergedFrom": [
+        "Tuyên Quang",
+        "Hà Giang"
+      ],
+      "region": "north",
+      "coastal": false,
+      "accent": "#D1495B",
+      "subject": "the Lung Cu flag tower on Dragon Mountain at Vietnam's northern tip, a red flag on top, rocky karst ridges and buckwheat flowers below",
+      "captionVi": "Cột cờ Lũng Cú nơi địa đầu Tổ quốc.",
+      "captionEn": "Lung Cu flag tower at the country's northern tip."
+    },
+    {
+      "id": "lao-cai",
+      "nameVi": "Lào Cai",
+      "nameEn": "Lao Cai",
+      "mergedFrom": [
+        "Lào Cai",
+        "Yên Bái"
+      ],
+      "region": "north",
+      "coastal": false,
+      "accent": "#E3B23C",
+      "subject": "golden rice terraces of Mu Cang Chai curving down a slope, the Fansipan summit with its small pyramid marker in the distance",
+      "captionVi": "Ruộng bậc thang mùa vàng dưới đỉnh Fansipan.",
+      "captionEn": "Golden rice terraces below Fansipan."
+    },
+    {
+      "id": "thai-nguyen",
+      "nameVi": "Thái Nguyên",
+      "nameEn": "Thai Nguyen",
+      "mergedFrom": [
+        "Thái Nguyên",
+        "Bắc Kạn"
+      ],
+      "region": "north",
+      "coastal": false,
+      "accent": "#6A994E",
+      "subject": "rolling Tan Cuong tea hills in front, the calm blue Ba Be lake with a dugout canoe behind",
+      "captionVi": "Chè Tân Cương và hồ Ba Bể.",
+      "captionEn": "Tan Cuong tea and Ba Be lake."
+    },
+    {
+      "id": "phu-tho",
+      "nameVi": "Phú Thọ",
+      "nameEn": "Phu Tho",
+      "mergedFrom": [
+        "Phú Thọ",
+        "Vĩnh Phúc",
+        "Hòa Bình"
+      ],
+      "region": "north",
+      "coastal": false,
+      "accent": "#B5651D",
+      "subject": "the triple-gate entrance of the Hung Kings Temple on Nghia Linh mountain, stone steps leading up through trees",
+      "captionVi": "Đền Hùng, nơi cội nguồn dân tộc.",
+      "captionEn": "The Hung Kings Temple, the nation's roots."
+    },
+    {
+      "id": "bac-ninh",
+      "nameVi": "Bắc Ninh",
+      "nameEn": "Bac Ninh",
+      "mergedFrom": [
+        "Bắc Ninh",
+        "Bắc Giang"
+      ],
+      "region": "north",
+      "coastal": false,
+      "accent": "#C1121F",
+      "subject": "a flat quai thao hat with fringe for quan ho folk singing resting beside a bunch of red Luc Ngan lychees",
+      "captionVi": "Nón quai thao quan họ và vải thiều.",
+      "captionEn": "A quan ho singer's hat and fresh lychees."
+    },
+    {
+      "id": "hung-yen",
+      "nameVi": "Hưng Yên",
+      "nameEn": "Hung Yen",
+      "mergedFrom": [
+        "Hưng Yên",
+        "Thái Bình"
+      ],
+      "region": "north",
+      "coastal": true,
+      "accent": "#C99A2E",
+      "subject": "the three-tier wooden bell tower of Keo Pagoda with curved roof corners, a branch of longan fruit in the foreground",
+      "captionVi": "Gác chuông chùa Keo và nhãn lồng.",
+      "captionEn": "Keo Pagoda's bell tower and longans."
+    },
+    {
+      "id": "hai-phong",
+      "nameVi": "Hải Phòng",
+      "nameEn": "Hai Phong",
+      "mergedFrom": [
+        "Hải Phòng",
+        "Hải Dương"
+      ],
+      "region": "north",
+      "coastal": true,
+      "accent": "#E63946",
+      "subject": "a branch of red flamboyant (phuong) flowers over the limestone islands and blue bay of Cat Ba",
+      "captionVi": "Thành phố hoa phượng đỏ và đảo Cát Bà.",
+      "captionEn": "The city of red flamboyants and Cat Ba island."
+    },
+    {
+      "id": "ninh-binh",
+      "nameVi": "Ninh Bình",
+      "nameEn": "Ninh Binh",
+      "mergedFrom": [
+        "Ninh Bình",
+        "Hà Nam",
+        "Nam Định"
+      ],
+      "region": "north",
+      "coastal": true,
+      "accent": "#386641",
+      "subject": "a small rowing boat on a calm river winding between steep karst towers at Trang An, a cave mouth at water level",
+      "captionVi": "Thuyền nan giữa núi đá Tràng An.",
+      "captionEn": "A rowing boat among Trang An's karst towers."
+    },
+    {
+      "id": "quang-tri",
+      "nameVi": "Quảng Trị",
+      "nameEn": "Quang Tri",
+      "mergedFrom": [
+        "Quảng Trị",
+        "Quảng Bình"
+      ],
+      "region": "central",
+      "coastal": true,
+      "accent": "#2A9D8F",
+      "subject": "the arched cave entrance of Phong Nha with a boat on the river flowing out of it, stalactites at the mouth",
+      "captionVi": "Động Phong Nha, vương quốc hang động.",
+      "captionEn": "Phong Nha, the kingdom of caves."
+    },
+    {
+      "id": "da-nang",
+      "nameVi": "Đà Nẵng",
+      "nameEn": "Da Nang",
+      "mergedFrom": [
+        "Đà Nẵng",
+        "Quảng Nam"
+      ],
+      "region": "central",
+      "coastal": true,
+      "accent": "#F4A259",
+      "subject": "the yellow Dragon Bridge arching over the Han River, with two Hoi An silk lanterns hanging in the foreground",
+      "captionVi": "Cầu Rồng sông Hàn và đèn lồng Hội An.",
+      "captionEn": "The Dragon Bridge and Hoi An lanterns."
+    },
+    {
+      "id": "quang-ngai",
+      "nameVi": "Quảng Ngãi",
+      "nameEn": "Quang Ngai",
+      "mergedFrom": [
+        "Quảng Ngãi",
+        "Kon Tum"
+      ],
+      "region": "central",
+      "coastal": true,
+      "accent": "#6C757D",
+      "subject": "the To Vo natural stone arch on Ly Son island at sunset over the sea, a tall Kon Tum rong communal house roof as a small silhouette on the far headland",
+      "captionVi": "Cổng Tò Vò Lý Sơn và nhà rông Tây Nguyên.",
+      "captionEn": "Ly Son's To Vo arch and a highland rong house."
+    },
+    {
+      "id": "gia-lai",
+      "nameVi": "Gia Lai",
+      "nameEn": "Gia Lai",
+      "mergedFrom": [
+        "Gia Lai",
+        "Bình Định"
+      ],
+      "region": "central",
+      "coastal": true,
+      "accent": "#BC4B51",
+      "subject": "the Cham Twin Towers (Thap Doi) of red brick in front, the round Bien Ho (T'Nung) lake ringed by pine trees behind",
+      "captionVi": "Tháp Đôi Chăm Pa và Biển Hồ Pleiku.",
+      "captionEn": "The Cham Twin Towers and Pleiku's Bien Ho lake."
+    },
+    {
+      "id": "khanh-hoa",
+      "nameVi": "Khánh Hòa",
+      "nameEn": "Khanh Hoa",
+      "mergedFrom": [
+        "Khánh Hòa",
+        "Ninh Thuận"
+      ],
+      "region": "central",
+      "coastal": true,
+      "accent": "#00A6A6",
+      "subject": "the Po Nagar Cham tower on its hill above the turquoise Nha Trang bay, a small bunch of Ninh Thuan grapes in the corner",
+      "captionVi": "Tháp Bà Ponagar bên vịnh Nha Trang.",
+      "captionEn": "Po Nagar tower above Nha Trang bay."
+    },
+    {
+      "id": "lam-dong",
+      "nameVi": "Lâm Đồng",
+      "nameEn": "Lam Dong",
+      "mergedFrom": [
+        "Lâm Đồng",
+        "Đắk Nông",
+        "Bình Thuận"
+      ],
+      "region": "central",
+      "coastal": true,
+      "accent": "#F2C14E",
+      "subject": "a misty pine forest of Da Lat with yellow wild sunflowers (da quy) in front, the soft red sand dunes of Mui Ne as a band at the bottom",
+      "captionVi": "Rừng thông Đà Lạt và đồi cát Mũi Né.",
+      "captionEn": "Da Lat pines and Mui Ne sand dunes."
+    },
+    {
+      "id": "dak-lak",
+      "nameVi": "Đắk Lắk",
+      "nameEn": "Dak Lak",
+      "mergedFrom": [
+        "Đắk Lắk",
+        "Phú Yên"
+      ],
+      "region": "central",
+      "coastal": true,
+      "accent": "#6F4E37",
+      "subject": "a friendly elephant silhouette beside a coffee branch with red cherries, the hexagonal basalt columns of Ganh Da Dia at the bottom edge",
+      "captionVi": "Cà phê Buôn Ma Thuột và Gành Đá Đĩa.",
+      "captionEn": "Buon Ma Thuot coffee and Ganh Da Dia rocks."
+    },
+    {
+      "id": "ho-chi-minh",
+      "nameVi": "TP. Hồ Chí Minh",
+      "nameEn": "Ho Chi Minh City",
+      "mergedFrom": [
+        "TP. Hồ Chí Minh",
+        "Bình Dương",
+        "Bà Rịa - Vũng Tàu"
+      ],
+      "region": "south",
+      "coastal": true,
+      "accent": "#457B9D",
+      "subject": "the clock tower of Ben Thanh Market in front, the Landmark 81 skyscraper silhouette rising behind",
+      "captionVi": "Chợ Bến Thành giữa thành phố năng động.",
+      "captionEn": "Ben Thanh Market in a lively city."
+    },
+    {
+      "id": "dong-nai",
+      "nameVi": "Đồng Nai",
+      "nameEn": "Dong Nai",
+      "mergedFrom": [
+        "Đồng Nai",
+        "Bình Phước"
+      ],
+      "region": "south",
+      "coastal": false,
+      "accent": "#588157",
+      "subject": "dense tropical forest of Cat Tien National Park with a hornbill on a branch, a cluster of cashew fruits in the foreground",
+      "captionVi": "Rừng Cát Tiên và hạt điều Bình Phước.",
+      "captionEn": "Cat Tien forest and Binh Phuoc cashews."
+    },
+    {
+      "id": "tay-ninh",
+      "nameVi": "Tây Ninh",
+      "nameEn": "Tay Ninh",
+      "mergedFrom": [
+        "Tây Ninh",
+        "Long An"
+      ],
+      "region": "south",
+      "coastal": true,
+      "accent": "#8E7DBE",
+      "subject": "the lone Ba Den mountain rising from flat plains, a cable car line climbing toward the summit",
+      "captionVi": "Núi Bà Đen, nóc nhà Nam Bộ.",
+      "captionEn": "Ba Den mountain, the roof of the south."
+    },
+    {
+      "id": "can-tho",
+      "nameVi": "Cần Thơ",
+      "nameEn": "Can Tho",
+      "mergedFrom": [
+        "Cần Thơ",
+        "Sóc Trăng",
+        "Hậu Giang"
+      ],
+      "region": "south",
+      "coastal": true,
+      "accent": "#F28F3B",
+      "subject": "Cai Rang floating market: two wooden boats loaded with fruit, a tall bamboo pole hanging produce to advertise what is sold",
+      "captionVi": "Chợ nổi Cái Răng trên sông Hậu.",
+      "captionEn": "Cai Rang floating market on the Hau River."
+    },
+    {
+      "id": "vinh-long",
+      "nameVi": "Vĩnh Long",
+      "nameEn": "Vinh Long",
+      "mergedFrom": [
+        "Vĩnh Long",
+        "Bến Tre",
+        "Trà Vinh"
+      ],
+      "region": "south",
+      "coastal": true,
+      "accent": "#90BE6D",
+      "subject": "a row of leaning coconut palms along a canal with a small sampan, ripe tropical fruit on the bank",
+      "captionVi": "Kênh rạch rợp dừa miền Tây.",
+      "captionEn": "Coconut-lined canals of the Mekong Delta."
+    },
+    {
+      "id": "dong-thap",
+      "nameVi": "Đồng Tháp",
+      "nameEn": "Dong Thap",
+      "mergedFrom": [
+        "Đồng Tháp",
+        "Tiền Giang"
+      ],
+      "region": "south",
+      "coastal": true,
+      "accent": "#E76F8C",
+      "subject": "a field of pink lotus flowers of Thap Muoi with one white egret standing among the leaves",
+      "captionVi": "Sen hồng Tháp Mười.",
+      "captionEn": "Pink lotus fields of Thap Muoi."
+    },
+    {
+      "id": "ca-mau",
+      "nameVi": "Cà Mau",
+      "nameEn": "Ca Mau",
+      "mergedFrom": [
+        "Cà Mau",
+        "Bạc Liêu"
+      ],
+      "region": "south",
+      "coastal": true,
+      "accent": "#1D7874",
+      "subject": "the ship-shaped monument at Ca Mau Cape at the southern tip, mangrove roots in the foreground, a line of white wind turbines on the horizon",
+      "captionVi": "Mũi Cà Mau, điểm cực Nam.",
+      "captionEn": "Ca Mau Cape, the southernmost point."
+    },
+    {
+      "id": "an-giang",
+      "nameVi": "An Giang",
+      "nameEn": "An Giang",
+      "mergedFrom": [
+        "An Giang",
+        "Kiên Giang"
+      ],
+      "region": "south",
+      "coastal": true,
+      "accent": "#55A630",
+      "subject": "the green Tra Su cajuput forest with a duckweed-covered waterway and a small boat, a tall sugar palm (thot not) tree at the side",
+      "captionVi": "Rừng tràm Trà Sư và cây thốt nốt.",
+      "captionEn": "Tra Su cajuput forest and sugar palms."
+    }
+  ],
+  "milestoneBadges": {
+    "$comment": "Optional second wave. Badges reuse the same stamp frame but with a round seal shape. All unlock from existing data; none needs user input.",
+    "items": [
+      {
+        "id": "first-stamp",
+        "nameVi": "Con tem đầu tiên",
+        "nameEn": "First stamp",
+        "rule": "1 province stamp",
+        "subject": "Luki holding a single stamp"
+      },
+      {
+        "id": "three-regions",
+        "nameVi": "Bắc – Trung – Nam",
+        "nameEn": "North to south",
+        "rule": "at least one stamp in each region",
+        "subject": "three small stamps fanned out"
+      },
+      {
+        "id": "north-to-south",
+        "nameVi": "Xuyên Việt",
+        "nameEn": "End to end",
+        "rule": "stamps for both tuyen-quang (Lung Cu) and ca-mau (Ca Mau Cape)",
+        "subject": "a dotted route line from a flag tower to a cape"
+      },
+      {
+        "id": "by-the-sea",
+        "nameVi": "Gió biển",
+        "nameEn": "Sea breeze",
+        "rule": "5 stamps where coastal is true",
+        "subject": "a wave and a lighthouse"
+      },
+      {
+        "id": "packed-early",
+        "nameVi": "Xếp đủ trước giờ đi",
+        "nameEn": "Packed in time",
+        "rule": "a trip whose checklist reached 100% before its start date",
+        "subject": "a closed suitcase with a check mark tag"
+      },
+      {
+        "id": "team-ready",
+        "nameVi": "Cả nhóm sẵn sàng",
+        "nameEn": "Team ready",
+        "rule": "a shared trip where every assigned item was packed before departure",
+        "subject": "three luggage tags tied together"
+      },
+      {
+        "id": "full-set",
+        "nameVi": "Đủ bộ 34",
+        "nameEn": "Full set",
+        "rule": "all 34 province stamps",
+        "subject": "a stamp album with a gold corner"
+      }
+    ]
+  }
+}

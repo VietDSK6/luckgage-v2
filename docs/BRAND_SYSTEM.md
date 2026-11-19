@@ -42,6 +42,45 @@ screen reader; chỉ thêm accessibility label khi chính hình truyền tải t
 | Luki toàn thân | `apps/mobile/assets/brand/luki-mascot.png` | Transparent RGBA | Welcome, loading, empty state |
 | App icon/brand mark | `apps/mobile/assets/brand/app-icon.png` | Opaque teal RGB | Expo app icon, brand mark 40–58 dp |
 | Component mascot | `apps/mobile/src/design/components/BrandLuki.tsx` | Theo theme | Kích thước, crop và accessibility thống nhất |
+| Bộ tem tỉnh thành | `apps/mobile/src/features/journeys/stamps.ts` | Manifest TypeScript | 34 ảnh, tên, chú thích, vùng và thông tin ven biển |
+| Tem Hà Nội | `apps/mobile/assets/stamps/ha-noi.png` | Transparent RGBA, 384 × 512, cắt sát viền tem | Bộ sưu tập hành trình; địa danh Hà Nội |
+| Tem Huế | `apps/mobile/assets/stamps/hue.png` | Transparent RGBA, 384 × 512, cắt sát viền tem | Bộ sưu tập hành trình; địa danh Huế |
+| Tem Lai Châu | `apps/mobile/assets/stamps/lai-chau.png` | Transparent RGBA, 384 × 512, cắt sát viền tem | Bộ sưu tập hành trình; địa danh Lai Châu |
+| Tem Điện Biên | `apps/mobile/assets/stamps/dien-bien.png` | Transparent RGBA, 384 × 512, cắt sát viền tem | Bộ sưu tập hành trình; địa danh Điện Biên |
+| Tem Sơn La | `apps/mobile/assets/stamps/son-la.png` | Transparent RGBA, 384 × 512, cắt sát viền tem | Bộ sưu tập hành trình; địa danh Sơn La |
+| Tem Lạng Sơn | `apps/mobile/assets/stamps/lang-son.png` | Transparent RGBA, 384 × 512, cắt sát viền tem | Bộ sưu tập hành trình; địa danh Lạng Sơn |
+| Tem Quảng Ninh | `apps/mobile/assets/stamps/quang-ninh.png` | Transparent RGBA, 384 × 512, cắt sát viền tem | Bộ sưu tập hành trình; địa danh Quảng Ninh |
+| Tem Thanh Hóa | `apps/mobile/assets/stamps/thanh-hoa.png` | Transparent RGBA, 384 × 512, cắt sát viền tem | Bộ sưu tập hành trình; địa danh Thanh Hóa |
+| Tem Nghệ An | `apps/mobile/assets/stamps/nghe-an.png` | Transparent RGBA, 384 × 512, cắt sát viền tem | Bộ sưu tập hành trình; địa danh Nghệ An |
+| Tem Hà Tĩnh | `apps/mobile/assets/stamps/ha-tinh.png` | Transparent RGBA, 384 × 512, cắt sát viền tem | Bộ sưu tập hành trình; địa danh Hà Tĩnh |
+| Tem Cao Bằng | `apps/mobile/assets/stamps/cao-bang.png` | Transparent RGBA, 384 × 512, cắt sát viền tem | Bộ sưu tập hành trình; địa danh Cao Bằng |
+| Tem Tuyên Quang | `apps/mobile/assets/stamps/tuyen-quang.png` | Transparent RGBA, 384 × 512, cắt sát viền tem | Bộ sưu tập hành trình; địa danh Tuyên Quang |
+| Tem Lào Cai | `apps/mobile/assets/stamps/lao-cai.png` | Transparent RGBA, 384 × 512, cắt sát viền tem | Bộ sưu tập hành trình; địa danh Lào Cai |
+| Tem Thái Nguyên | `apps/mobile/assets/stamps/thai-nguyen.png` | Transparent RGBA, 384 × 512, cắt sát viền tem | Bộ sưu tập hành trình; địa danh Thái Nguyên |
+| Tem Phú Thọ | `apps/mobile/assets/stamps/phu-tho.png` | Transparent RGBA, 384 × 512, cắt sát viền tem | Bộ sưu tập hành trình; địa danh Phú Thọ |
+| Tem Bắc Ninh | `apps/mobile/assets/stamps/bac-ninh.png` | Transparent RGBA, 384 × 512, cắt sát viền tem | Bộ sưu tập hành trình; địa danh Bắc Ninh |
+| Tem Hưng Yên | `apps/mobile/assets/stamps/hung-yen.png` | Transparent RGBA, 384 × 512, cắt sát viền tem | Bộ sưu tập hành trình; địa danh Hưng Yên |
+| Tem Hải Phòng | `apps/mobile/assets/stamps/hai-phong.png` | Transparent RGBA, 384 × 512, cắt sát viền tem | Bộ sưu tập hành trình; địa danh Hải Phòng |
+| Tem Ninh Bình | `apps/mobile/assets/stamps/ninh-binh.png` | Transparent RGBA, 384 × 512, cắt sát viền tem | Bộ sưu tập hành trình; địa danh Ninh Bình |
+| Tem Quảng Trị | `apps/mobile/assets/stamps/quang-tri.png` | Transparent RGBA, 384 × 512, cắt sát viền tem | Bộ sưu tập hành trình; địa danh Quảng Trị |
+| Tem Đà Nẵng | `apps/mobile/assets/stamps/da-nang.png` | Transparent RGBA, 384 × 512, cắt sát viền tem | Bộ sưu tập hành trình; địa danh Đà Nẵng |
+| Tem Quảng Ngãi | `apps/mobile/assets/stamps/quang-ngai.png` | Transparent RGBA, 384 × 512, cắt sát viền tem | Bộ sưu tập hành trình; địa danh Quảng Ngãi |
+| Tem Gia Lai | `apps/mobile/assets/stamps/gia-lai.png` | Transparent RGBA, 384 × 512, cắt sát viền tem | Bộ sưu tập hành trình; địa danh Gia Lai |
+| Tem Khánh Hòa | `apps/mobile/assets/stamps/khanh-hoa.png` | Transparent RGBA, 384 × 512, cắt sát viền tem | Bộ sưu tập hành trình; địa danh Khánh Hòa |
+| Tem Lâm Đồng | `apps/mobile/assets/stamps/lam-dong.png` | Transparent RGBA, 384 × 512, cắt sát viền tem | Bộ sưu tập hành trình; địa danh Lâm Đồng |
+| Tem Đắk Lắk | `apps/mobile/assets/stamps/dak-lak.png` | Transparent RGBA, 384 × 512, cắt sát viền tem | Bộ sưu tập hành trình; địa danh Đắk Lắk |
+| Tem TP. Hồ Chí Minh | `apps/mobile/assets/stamps/ho-chi-minh.png` | Transparent RGBA, 384 × 512, cắt sát viền tem | Bộ sưu tập hành trình; địa danh TP. Hồ Chí Minh |
+| Tem Đồng Nai | `apps/mobile/assets/stamps/dong-nai.png` | Transparent RGBA, 384 × 512, cắt sát viền tem | Bộ sưu tập hành trình; địa danh Đồng Nai |
+| Tem Tây Ninh | `apps/mobile/assets/stamps/tay-ninh.png` | Transparent RGBA, 384 × 512, cắt sát viền tem | Bộ sưu tập hành trình; địa danh Tây Ninh |
+| Tem Cần Thơ | `apps/mobile/assets/stamps/can-tho.png` | Transparent RGBA, 384 × 512, cắt sát viền tem | Bộ sưu tập hành trình; địa danh Cần Thơ |
+| Tem Vĩnh Long | `apps/mobile/assets/stamps/vinh-long.png` | Transparent RGBA, 384 × 512, cắt sát viền tem | Bộ sưu tập hành trình; địa danh Vĩnh Long |
+| Tem Đồng Tháp | `apps/mobile/assets/stamps/dong-thap.png` | Transparent RGBA, 384 × 512, cắt sát viền tem | Bộ sưu tập hành trình; địa danh Đồng Tháp |
+| Tem Cà Mau | `apps/mobile/assets/stamps/ca-mau.png` | Transparent RGBA, 384 × 512, cắt sát viền tem | Bộ sưu tập hành trình; địa danh Cà Mau |
+| Tem An Giang | `apps/mobile/assets/stamps/an-giang.png` | Transparent RGBA, 384 × 512, cắt sát viền tem | Bộ sưu tập hành trình; địa danh An Giang |
+
+Bản xem nhanh 34 tem nằm tại `docs/gamification/stamps-contact-sheet.png`. Chủ thể, màu nhấn,
+chú thích và quy tắc tạo ảnh nằm trong `docs/gamification/province-stamps.json`; trạng thái tem
+chưa mở khóa được render từ cùng PNG theo đặc tả, không có bộ ảnh riêng.
 
 Không sửa trực tiếp PNG bằng công cụ nén mất dữ liệu. Nếu cần biến thể, tạo file mới trong cùng
 folder, ghi rõ use case và cập nhật bảng trên. Không dùng app icon như hero phóng lớn và không dùng

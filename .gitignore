@@ -28,3 +28,6 @@ yarn-error.log*
 *.p12
 *.pem
 *.mobileprovision
+
+# 1024px stamp masters from the image generator; the app ships cropped 384x512 copies.
+docs/gamification/stamp-masters/

@@ -246,6 +246,17 @@ luồng hiện có. Mỗi tính năng bắt đầu bằng tối đa một lần 
 - Backend cung cấp `GET /api/v1/me/travel-stats` cho các trip người dùng đang là thành viên; app tự
   đối chiếu tọa độ với ranh giới tỉnh đóng gói sẵn.
 
+### 5.15. Sổ tem
+
+- Màn Hành trình có sổ 34 tem, mỗi tỉnh một tem; nội dung và ảnh theo
+  `docs/gamification/province-stamps.json`.
+- Tem tự mở khi tỉnh đó được tô trên bản đồ (5.14); ngày nhận là ngày bắt đầu của chuyến đầu tiên tới
+  tỉnh. Không check-in, không xin quyền vị trí.
+- Tem chưa mở hiện dạng bóng mờ; chạm vào tem bất kỳ xem ảnh lớn, chú thích và ngày nhận hoặc gợi ý.
+- Lần đầu mở Hành trình sau khi có tem mới, app hiện một lần khoảnh khắc “Tem mới” kèm rung nhẹ.
+  Danh sách tem đã xem lưu cục bộ; mất dữ liệu này chỉ làm khoảnh khắc hiện lại.
+- Không có điểm, bảng xếp hạng hay chuỗi ngày.
+
 ## 6. Luồng cốt lõi
 
 ### 6.1. Người dùng mới
