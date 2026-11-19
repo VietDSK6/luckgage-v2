@@ -911,6 +911,33 @@
         ]
       }
     },
+    "/api/v1/me/travel-stats": {
+      "get": {
+        "operationId": "TravelStatsController_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TravelStatsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Summarise trips the current user has already started",
+        "tags": [
+          "trips"
+        ]
+      }
+    },
     "/api/v1/trips/{tripId}/checklist": {
       "get": {
         "operationId": "ChecklistsController_get",
@@ -3056,6 +3083,80 @@
           "pageSize",
           "totalItems",
           "totalPages"
+        ]
+      },
+      "TravelTripStatsDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "destinationLabel": {
+            "type": "string"
+          },
+          "latitude": {
+            "type": "number",
+            "nullable": true
+          },
+          "longitude": {
+            "type": "number",
+            "nullable": true
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "dayCount": {
+            "type": "number"
+          },
+          "packedItemCount": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "destinationLabel",
+          "latitude",
+          "longitude",
+          "startDate",
+          "endDate",
+          "dayCount",
+          "packedItemCount"
+        ]
+      },
+      "TravelStatsDto": {
+        "type": "object",
+        "properties": {
+          "tripCount": {
+            "type": "number"
+          },
+          "dayCount": {
+            "type": "number"
+          },
+          "packedItemCount": {
+            "type": "number"
+          },
+          "trips": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TravelTripStatsDto"
+            }
+          }
+        },
+        "required": [
+          "tripCount",
+          "dayCount",
+          "packedItemCount",
+          "trips"
         ]
       },
       "ChecklistItemDto": {

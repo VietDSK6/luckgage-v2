@@ -48,6 +48,8 @@ The API listens on `http://localhost:3000` by default:
   Open-Meteo data with timeout, retry, cache, stale fallback, and a non-blocking `UNAVAILABLE`
   state.
 - `GET /api/v1/trip-suggestions[/:slug]` exposes published localized destination content.
+- `GET /api/v1/me/travel-stats[?today=YYYY-MM-DD]` summarises the current user's started trips
+  (trips, days, packed items, destination coordinates) for the mobile journeys map.
 - `GET /api/v1/guides`, `GET /api/v1/guides/:slug`, and `GET /api/v1/guides/saved` expose
   published localized guides; `PUT|DELETE /api/v1/guides/:slug/save` changes the current user's
   bookmark.
