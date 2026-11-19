@@ -206,6 +206,46 @@ mở form tạo trip. Trips Hub dẫn tới “Cẩm nang từ Luki”; chưa c�
 - Trip suggestion management.
 - Trip list chỉ phục vụ hỗ trợ/thống kê; không mặc định hiển thị nội dung checklist riêng tư.
 
+### 5.12. Kiểm tra trước khi đi
+
+Nguyên tắc chung cho 5.12–5.14: tính năng mới không thêm bước bắt buộc, form hay hộp xác nhận vào
+luồng hiện có. Mỗi tính năng bắt đầu bằng tối đa một lần chạm và tự dùng dữ liệu đã có.
+
+- Trip detail hiện lối vào “Kiểm tra nhanh” khi còn vật dụng chưa xếp; lối vào được nhấn mạnh khi
+  còn 3 ngày trở xuống tới ngày đi.
+- Màn kiểm tra hiện từng vật dụng chưa xếp dưới dạng thẻ: đồ quan trọng trước, rồi đồ được giao cho
+  người dùng, rồi phần còn lại theo thứ tự checklist.
+- Vuốt phải hoặc chạm “Có rồi” đánh dấu đã xếp và lưu ngay; vuốt trái hoặc chạm “Để sau” bỏ qua.
+  Có hoàn tác thao tác gần nhất. Không có hộp xác nhận.
+- Thiết bị rung nhẹ khi xếp nếu hỗ trợ. Nút luôn có sẵn thay cho cử chỉ vuốt; giảm chuyển động khi
+  hệ thống yêu cầu.
+- Kết thúc hiện số món đã xếp và danh sách món để sau, kèm một lần chạm mở checklist.
+- Nếu vật dụng đã bị người khác xếp, sửa hoặc xóa, thẻ đó được bỏ qua và dữ liệu được tải lại; không
+  hiện lỗi chặn.
+
+### 5.13. Thêm chuyến đi vào lịch điện thoại
+
+- Trip detail có một hành động “Thêm vào lịch”. Lần đầu, app xin quyền lịch; từ chối quyền chỉ hiện
+  thông báo ngắn và không chặn chức năng khác.
+- App tạo một sự kiện cả ngày từ ngày đi tới ngày về trong lịch mặc định, tiêu đề là tên trip và địa
+  điểm là điểm đến.
+- Sau khi thêm, app tự cập nhật sự kiện khi tên, ngày hoặc điểm đến thay đổi (do người dùng sửa hoặc
+  phát hiện khi mở Trip detail) và tự xóa sự kiện khi trip bị xóa hoặc người dùng rời trip. Người
+  dùng có thể gỡ sự kiện bằng một lần chạm.
+- Liên kết trip–sự kiện chỉ lưu cục bộ trên thiết bị, không gửi lên server.
+
+### 5.14. Hành trình đã đi
+
+- Trips Hub hiện một dòng tóm tắt khi người dùng có ít nhất một trip đã bắt đầu; chạm vào mở màn
+  “Hành trình”. Không cần người dùng nhập thêm dữ liệu.
+- Màn Hành trình có bản đồ Việt Nam theo 34 đơn vị hành chính cấp tỉnh từ ngày 1/7/2025, luôn thể
+  hiện quần đảo Hoàng Sa và Trường Sa. Tỉnh được tô khi có trip đã bắt đầu với tọa độ điểm đến nằm
+  trong tỉnh đó.
+- Thống kê gồm số tỉnh, số chuyến, số ngày đã đi và số món đã xếp trong các chuyến đó. Trip chưa có
+  tọa độ vẫn được tính vào số chuyến, số ngày và số món nhưng không tô trên bản đồ.
+- Backend cung cấp `GET /api/v1/me/travel-stats` cho các trip người dùng đang là thành viên; app tự
+  đối chiếu tọa độ với ranh giới tỉnh đóng gói sẵn.
+
 ## 6. Luồng cốt lõi
 
 ### 6.1. Người dùng mới
