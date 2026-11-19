@@ -4,6 +4,7 @@ import request from 'supertest';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 
 import { AppModule } from '../../src/app.module.js';
+import { AuthRateLimitGuard } from '../../src/auth/auth-rate-limit.guard.js';
 import { configureApplication } from '../../src/bootstrap.js';
 import { PrismaService } from '../../src/database/prisma.service.js';
 
@@ -18,7 +19,12 @@ describe('Trips, memberships, and checklists database integration', () => {
 
   beforeAll(async () => {
     assertIntegrationDatabase();
-    const module = await Test.createTestingModule({ imports: [AppModule] }).compile();
+    // This suite registers more users than the per-IP auth limit allows; the limiter has its own
+    // unit tests, so it is disabled here to keep these tests about trips and checklists.
+    const module = await Test.createTestingModule({ imports: [AppModule] })
+      .overrideGuard(AuthRateLimitGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
     app = module.createNestApplication();
     configureApplication(app);
     await app.init();
