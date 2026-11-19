@@ -52,6 +52,20 @@ docker compose run --rm --no-deps \
 
 Script chỉ tạo admin nếu email chưa tồn tại; không đổi mật khẩu của admin hiện có. Không đưa mật khẩu vào tham số lệnh. Sau khi dùng, giữ file secret ngoài Git để bàn giao an toàn hoặc xóa nó bằng quy trình quản lý secret của bạn.
 
+### Nạp nội dung demo (gợi ý chuyến đi và cẩm nang)
+
+`apps/api/src/ops/seed-demo-content.ts` upsert 9 gợi ý chuyến đi và 9 bài cẩm nang theo slug, ảnh từ `images.unsplash.com` (tải được trên cả iOS và Android). Script không tạo user, trip hay checklist; chạy lại sẽ ghi đè nội dung của đúng các slug đó. Nếu image đang chạy chưa có script, build `npm run api:build` ở máy local, chép `apps/api/dist/ops/demo-content.js` và `seed-demo-content.js` vào `ops-tmp/` trên VPS rồi mount vào container:
+
+```bash
+cd /home/user/services/luckgage
+docker compose run --rm --no-deps \
+  -v "$PWD/ops-tmp/demo-content.js:/app/apps/api/dist/ops/demo-content.js:ro" \
+  -v "$PWD/ops-tmp/seed-demo-content.js:/app/apps/api/dist/ops/seed-demo-content.js:ro" \
+  api node apps/api/dist/ops/seed-demo-content.js
+```
+
+Local: `npm run db:seed:content --workspace @luckgage/api`.
+
 ## 3. HTTPS qua Cloudflare Tunnel
 
 Trong Cloudflare Zero Trust, thêm **hai Published application routes cụ thể** cho tunnel `mini-paas-vps`, đặt trước wildcard `*.ai2p.id.vn`:
