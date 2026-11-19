@@ -12,7 +12,7 @@
     ],
     "userInterfaceStyle": "automatic",
     "splash": {
-      "backgroundColor": "#FFF7E8",
+      "backgroundColor": "#F7F7F2",
       "image": "./assets/brand/luki-mascot.png",
       "resizeMode": "contain"
     },

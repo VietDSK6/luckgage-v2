@@ -1,6 +1,12 @@
 import type { MessageKey } from '@/i18n/messages';
 
-import type { TripType } from './domain/trip';
+import type { Trip, TripType } from './domain/trip';
+
+export function getTripHeaderTitle(trip: Pick<Trip, 'name' | 'destination'>): string {
+  const name = trip.name.trim();
+  if (name !== trip.destination.trim()) return name;
+  return name.split(',')[0]?.trim() || name;
+}
 
 export const tripTypeMessageKeys: Record<TripType, MessageKey> = {
   leisure: 'tripTypeLeisure',

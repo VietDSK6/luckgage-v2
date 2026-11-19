@@ -7,7 +7,7 @@ import { AppIcon, type AppIconName } from './AppIcon';
 type AppButtonProps = {
   label: string;
   onPress: () => void;
-  variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'dangerFilled';
   disabled?: boolean;
   loading?: boolean;
   icon?: AppIconName;
@@ -28,10 +28,11 @@ export function AppButton({
   const { theme } = useAppTheme();
   const isDisabled = disabled || loading;
   const colors = {
-    primary: { background: theme.colors.primary, border: theme.colors.primary, text: theme.colors.background },
-    secondary: { background: theme.colors.primarySoft, border: theme.colors.primary, text: theme.colors.primary },
-    ghost: { background: theme.colors.background, border: theme.colors.outlineStrong, text: theme.colors.ink },
-    danger: { background: theme.colors.background, border: theme.colors.danger, text: theme.colors.danger },
+    primary: { background: theme.colors.primary, text: theme.colors.background },
+    secondary: { background: theme.colors.primarySoft, text: theme.colors.primary },
+    ghost: { background: 'transparent', text: theme.colors.ink },
+    danger: { background: 'transparent', text: theme.colors.danger },
+    dangerFilled: { background: theme.colors.danger, text: theme.colors.background },
   }[variant];
 
   return (
@@ -45,7 +46,6 @@ export function AppButton({
         styles.button,
         {
           backgroundColor: colors.background,
-          borderColor: colors.border,
           borderRadius: theme.radius.control,
           minHeight: theme.control.minTouchTarget,
           paddingHorizontal: theme.spacing.x5,
@@ -63,7 +63,6 @@ export function AppButton({
 
 const styles = StyleSheet.create({
   button: {
-    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',

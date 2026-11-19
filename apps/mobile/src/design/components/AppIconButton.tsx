@@ -34,7 +34,7 @@ export function AppIconButton({
       onPress={onPress}
       style={({ pressed }) => [
         styles.button,
-        { backgroundColor, borderColor, borderRadius: theme.radius.pill },
+        { backgroundColor, borderColor, borderWidth: variant === 'outlined' ? 1 : 0, borderRadius: theme.radius.control },
         pressed ? styles.pressed : null,
         style,
       ]}>
@@ -47,7 +47,6 @@ const styles = StyleSheet.create({
   button: {
     width: 48,
     height: 48,
-    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },

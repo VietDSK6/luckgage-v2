@@ -8,12 +8,12 @@ import {
   useRef,
   useState,
 } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { AppBottomSheet } from '@/design/components/AppBottomSheet';
-import { AppButton } from '@/design/components/AppButton';
-import type { AppIconName } from '@/design/components/AppIcon';
+import { AppIcon, type AppIconName } from '@/design/components/AppIcon';
 import { AppText } from '@/design/components/AppText';
+import { useAppTheme } from '@/design/theme/AppThemeProvider';
 import { useI18n } from '@/i18n/I18nProvider';
 
 import { AppDialog, type AppDialogTone } from './AppDialog';
@@ -60,6 +60,7 @@ const AppFeedbackContext = createContext<AppFeedbackContextValue | undefined>(un
 
 export function AppFeedbackProvider({ children }: PropsWithChildren) {
   const { t } = useI18n();
+  const { theme } = useAppTheme();
   const [dialog, setDialog] = useState<AppConfirmOptions | null>(null);
   const [actionSheet, setActionSheet] = useState<AppActionSheetOptions | null>(null);
   const [toast, setToast] = useState<AppToastModel | null>(null);
@@ -163,27 +164,32 @@ export function AppFeedbackProvider({ children }: PropsWithChildren) {
               </AppText>
             ) : null}
             <View style={styles.sheetActions}>
-              {actionSheet.actions.map((action) => (
-                <AppButton
-                  icon={action.icon}
-                  key={action.id}
-                  label={action.label}
-                  onPress={() => settleActionSheet(action.id)}
-                  variant={
-                    action.tone === 'danger'
-                      ? 'danger'
-                      : action.tone === 'primary'
-                        ? 'secondary'
-                        : 'ghost'
-                  }
-                />
-              ))}
+              {actionSheet.actions.map((action) => {
+                const color = action.tone === 'danger'
+                  ? theme.colors.danger
+                  : action.tone === 'primary'
+                    ? theme.colors.primary
+                    : theme.colors.ink;
+                return (
+                  <Pressable
+                    accessibilityRole="button"
+                    key={action.id}
+                    onPress={() => settleActionSheet(action.id)}
+                    style={({ pressed }) => [
+                      styles.sheetAction,
+                      action.tone === 'danger'
+                        ? [styles.dangerAction, { borderTopColor: theme.colors.outline }]
+                        : null,
+                      pressed ? { backgroundColor: theme.colors.primarySoft } : null,
+                    ]}>
+                    {action.icon ? <AppIcon color={color} name={action.icon} size={20} /> : null}
+                    <AppText style={[styles.sheetActionLabel, { color }]} variant="bodyStrong">
+                      {action.label}
+                    </AppText>
+                  </Pressable>
+                );
+              })}
             </View>
-            <AppButton
-              label={actionSheet.cancelLabel ?? t('commonCancel')}
-              onPress={() => settleActionSheet(null)}
-              variant="ghost"
-            />
           </View>
         ) : null}
       </AppBottomSheet>
@@ -205,6 +211,9 @@ export function useAppFeedback(): AppFeedbackContextValue {
 }
 
 const styles = StyleSheet.create({
-  sheetContent: { gap: 16, paddingBottom: 4 },
-  sheetActions: { gap: 8 },
+  sheetContent: { gap: 8, paddingBottom: 8 },
+  sheetActions: { gap: 2 },
+  sheetAction: { minHeight: 54, borderRadius: 10, flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 12 },
+  sheetActionLabel: { flex: 1 },
+  dangerAction: { marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderRadius: 0 },
 });

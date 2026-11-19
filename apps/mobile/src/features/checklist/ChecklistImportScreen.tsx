@@ -110,9 +110,11 @@ export function ChecklistImportScreen({ tripId }: { tripId: string }) {
         <AppButton label={t('commonRetry')} onPress={() => void loadSources()} variant="secondary" />
       </View> : sources.length === 0 ? <Text style={{ color: theme.colors.inkMuted }}>{t('checklistImportNoTrips')}</Text> : <>
         <Text accessibilityRole="header" style={[styles.heading, { color: theme.colors.ink }]}>{t('checklistImportSource')}</Text>
-        {sources.map((trip) => <Pressable key={trip.id} accessibilityRole="radio" accessibilityState={{ checked: sourceId === trip.id }} onPress={() => void chooseSource(trip.id)} style={[styles.source, { borderColor: sourceId === trip.id ? theme.colors.primary : theme.colors.outlineStrong, backgroundColor: theme.colors.surface }]}>
+        {sources.map((trip) => <Pressable key={trip.id} accessibilityRole="radio" accessibilityState={{ checked: sourceId === trip.id }} onPress={() => void chooseSource(trip.id)} style={[styles.source, { backgroundColor: sourceId === trip.id ? theme.colors.primarySoft : theme.colors.surface }]}>
           <Text style={[styles.sourceName, { color: theme.colors.ink }]}>{trip.name}</Text>
-          <Text style={[styles.sourceDestination, { color: theme.colors.inkMuted }]}>{trip.destination}</Text>
+          {trip.name.trim() !== trip.destination.trim() ? (
+            <Text style={[styles.sourceDestination, { color: theme.colors.inkMuted }]}>{trip.destination}</Text>
+          ) : null}
         </Pressable>)}
       </>}
       {loadingSource ? <ActivityIndicator color={theme.colors.primary} style={styles.state} /> : null}
@@ -123,7 +125,7 @@ export function ChecklistImportScreen({ tripId }: { tripId: string }) {
         if (group.length === 0) return null;
         return <View key={category.id} style={styles.group}>
           <Text accessibilityRole="header" style={[styles.heading, { color: theme.colors.ink }]}>{category.name}</Text>
-          {group.map((item) => <View key={item.sourceItemId} style={[styles.item, { borderColor: theme.colors.outline, backgroundColor: theme.colors.surface }]}>
+          {group.map((item) => <View key={item.sourceItemId} style={[styles.item, { backgroundColor: theme.colors.surface }]}>
             <Pressable accessibilityLabel={t('checklistImportSelectItem', { name: item.name })} accessibilityRole="checkbox" accessibilityState={{ checked: item.selected }} onPress={() => updateItem(item.sourceItemId, { selected: !item.selected })} style={styles.itemToggle}>
               <AppIcon color={theme.colors.primary} name={item.selected ? 'check' : 'checklist'} size={20} />
               <Text style={[styles.itemLabel, { color: theme.colors.ink }]}>{t('checklistImportSelect')}</Text>
@@ -148,14 +150,14 @@ const styles = StyleSheet.create({
   safe: { flex: 1 },
   content: { width: '100%', maxWidth: 640, alignSelf: 'center', padding: 20, paddingBottom: 64, gap: 12 },
   intro: { fontSize: 14, lineHeight: 20 },
-  heading: { fontSize: 18, lineHeight: 24, fontWeight: '800', marginTop: 12 },
-  source: { minHeight: 60, borderWidth: 1, borderRadius: 16, padding: 12 },
-  sourceName: { fontSize: 16, lineHeight: 22, fontWeight: '800' },
+  heading: { fontSize: 18, lineHeight: 24, fontWeight: '700', marginTop: 12 },
+  source: { minHeight: 60, borderRadius: 14, padding: 14 },
+  sourceName: { fontSize: 16, lineHeight: 22, fontWeight: '700' },
   sourceDestination: { fontSize: 13, lineHeight: 19 },
   state: { paddingVertical: 20, alignItems: 'center', gap: 12 },
   error: { fontSize: 14, lineHeight: 20 },
   group: { gap: 8 },
-  item: { borderWidth: 1, borderRadius: 16, padding: 12, gap: 8 },
+  item: { borderRadius: 14, padding: 14, gap: 8 },
   itemToggle: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 8 },
   itemLabel: { fontSize: 14, lineHeight: 20, fontWeight: '700' },
   input: { minHeight: 48, borderWidth: 1, borderRadius: 12, paddingHorizontal: 12, fontSize: 16, lineHeight: 22 },

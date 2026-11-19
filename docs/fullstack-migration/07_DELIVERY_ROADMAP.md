@@ -270,16 +270,22 @@ integration tests đã qua trên PostgreSQL `luckgage_integration` ngày 2026-11
 áp vào database local `luckgage`. Kiểm tra UI thủ công trên admin/mobile còn chờ; Phase 5 đang
 triển khai local, chưa chốt gate release.
 
-## 7. Phase 5 — Hardening, deploy, rehearsal
+## 7. Phase 5 — Hardening, làm lại UI/UX, deploy, rehearsal
 
 Kế hoạch triển khai và gate chi tiết: [10 — Triển khai Phase 5](10_PHASE5_PREPARATION.md).
-Trạng thái hiện tại: triển khai local 5A–5C; QA giao diện 4D/4E do người dùng tự thực hiện và là
-điều kiện trước khi chốt release. Deploy HTTPS chờ chốt hạ tầng.
+Trạng thái hiện tại: hardening local và hạ tầng demo đã có phần triển khai; [5C — làm lại
+UI/UX](13_UI_UX_REDESIGN.md) được thêm ngày 2026-11-17. Năm ảnh mobile là mẫu chẩn đoán đầu tiên;
+phạm vi là **toàn bộ app Expo**, gồm mọi màn, component và state; admin web làm sau trong hạng mục
+riêng. Gate 5C phải đạt trước khi chốt build giao diện, staging và rehearsal. Các bằng chứng
+CI/VPS/HTTPS đã làm vẫn được
+giữ; QA giao diện 4D/4E và các thay đổi checklist mới vẫn cần kiểm tra trên build tương ứng.
 
 - Security checklist.
 - Performance smoke test.
 - Accessibility audit.
 - Error/empty/offline polish.
+- Audit và làm lại UI/UX trên mọi màn app Expo, kể cả màn không có trong ảnh; chốt visual
+  direction qua màn đại diện, rồi áp dụng cho token, copy, component và states toàn app.
 - Backup/restore demo database.
 - Demo seed.
 - Expo development/release build.
@@ -331,7 +337,8 @@ Không gắn ngày cứng khi chưa biết deadline. Dùng checkpoint:
 | C5 | Mobile login + remote trips |
 | C6 | Hai user join và dùng shared checklist |
 | C7 | Admin publish rule, mobile nhận rule |
-| C8 | Deployment + full rehearsal |
+| C8 | UI/UX toàn bộ app Expo qua inventory, audit và QA trên build thật |
+| C9 | Deployment + full rehearsal |
 
 ## 10. Risk register
 
@@ -367,4 +374,4 @@ Dừng mở rộng và quay về hoàn thiện khi:
 | 2 | API container/service + migration + OpenAPI + integration tests |
 | 3 | Expo integrated build + two-user collaboration demo |
 | 4 | Admin web deploy + publish-to-mobile demo |
-| 5 | Release/demo package, report, slides, rehearsal checklist |
+| 5 | UI/UX đã qua gate, release/demo package, report, slides, rehearsal checklist |

@@ -56,7 +56,7 @@ export function AuthFrame({ body, children, footer, onBack, title }: AuthFramePr
               onPress={onBack}
               style={({ pressed }) => [
                 styles.backButton,
-                { borderColor: theme.colors.outlineStrong },
+                { backgroundColor: theme.colors.surface },
                 pressed ? styles.pressed : null,
               ]}>
               <AppIcon color={theme.colors.ink} name="arrowLeft" size={22} />
@@ -89,7 +89,7 @@ export function AuthFrame({ body, children, footer, onBack, title }: AuthFramePr
             <View
               style={[
                 styles.formTag,
-                { backgroundColor: theme.colors.surface, borderColor: theme.colors.outline },
+                { backgroundColor: theme.colors.surface },
               ]}>
               {children}
             </View>
@@ -127,19 +127,17 @@ const styles = StyleSheet.create({
   backButton: {
     width: 48,
     height: 48,
-    borderWidth: 1,
-    borderRadius: 24,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
   backPlaceholder: { width: 48, height: 48 },
   brandMark: { flex: 1, marginLeft: 12 },
-  title: { marginTop: 24, maxWidth: 520, fontSize: 32, lineHeight: 38, fontWeight: '800' },
+  title: { marginTop: 24, maxWidth: 520, fontSize: 29, lineHeight: 35, fontWeight: '700' },
   body: { marginTop: 8, maxWidth: 520, fontSize: 16, lineHeight: 24 },
   formTag: {
     marginTop: 24,
-    borderWidth: 1,
-    borderRadius: 20,
+    borderRadius: 18,
     padding: 20,
     gap: 20,
   },

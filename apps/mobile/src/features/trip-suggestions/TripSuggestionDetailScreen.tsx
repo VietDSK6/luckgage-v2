@@ -65,7 +65,7 @@ export function TripSuggestionDetailScreen({ slug }: { slug: string }) {
             </Text>
           </View>
 
-          <View style={[styles.prefillNote, { borderColor: theme.colors.outline }]}>
+          <View style={[styles.prefillNote, { backgroundColor: theme.colors.surface }]}>
             <AppIcon color={theme.colors.primary} name="info" size={21} />
             <Text style={[theme.typography.bodySmall, styles.prefillNoteText, { color: theme.colors.inkMuted }]}>{t('suggestionPrefillHint')}</Text>
           </View>
@@ -103,6 +103,6 @@ const styles = StyleSheet.create({
   title: { ...typography.screenTitle },
   tripMeta: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.x2 },
   tripMetaText: { flex: 1 },
-  prefillNote: { borderWidth: 1, borderRadius: radius.panel, padding: spacing.x4, flexDirection: 'row', alignItems: 'flex-start', gap: spacing.x3 },
+  prefillNote: { borderRadius: radius.panel, padding: spacing.x4, flexDirection: 'row', alignItems: 'flex-start', gap: spacing.x3 },
   prefillNoteText: { flex: 1 },
 });

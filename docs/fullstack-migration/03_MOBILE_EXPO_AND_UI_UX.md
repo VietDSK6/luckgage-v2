@@ -2,6 +2,11 @@
 
 ## 1. Mục tiêu trải nghiệm
 
+Trạng thái ngày 2026-11-17: token và component đã được chỉnh theo hướng 5C trong code; kiểm tra
+trên thiết bị và gate release vẫn đang chờ. [Phase 5C — làm lại UI/UX](13_UI_UX_REDESIGN.md)
+audit ảnh hiện tại, thử hướng mới trên màn đại diện và cập nhật tài liệu này sau khi chốt. Các
+quy tắc nghiệp vụ và accessibility trong đặc tả vẫn áp dụng xuyên suốt.
+
 Người dùng mở luckgage để trả lời nhanh ba câu:
 
 1. Chuyến đi nào cần chuẩn bị?
@@ -48,22 +53,22 @@ typography, spacing, radius hoặc màu song song trong feature. Token contrast 
 
 ### Color
 
-| Token | Light draft | Vai trò |
+| Token | Light 5C | Vai trò |
 |---|---:|---|
-| color.background | #FFF7E8 | Nền sand chính, khoảng 60% diện tích |
+| color.background | #F7F7F2 | Nền sáng trung tính, khoảng 60% diện tích |
 | color.surface | #FFFFFF | Card/input chính |
-| color.ink | #12312F | Heading và body chính |
-| color.inkMuted | #607174 | Nội dung phụ |
-| color.primary | #0F766E | CTA và trạng thái active |
-| color.primarySoft | #DDF4EF | Chip/card nhấn nhẹ |
-| color.accent | #FF665C | Accent trang trí, không dùng cho functional text trên nền sáng |
-| color.accentStrong | #C9473E | Active icon/functional coral đạt contrast |
-| color.sun | #F6C84C | Trip tag và optimistic moment |
-| color.success | #2F855A | Hoàn tất |
-| color.warning | #B7791F | Cảnh báo |
-| color.danger | #C2413A | Destructive/error |
-| color.outline | #D8DFDD | Divider và input border |
-| color.outlineStrong | #7F918F | Boundary cần thiết để nhận diện control |
+| color.ink | #193331 | Heading và body chính |
+| color.inkMuted | #576D6B | Nội dung phụ |
+| color.primary | #006F65 | CTA và trạng thái active |
+| color.primarySoft | #E6F3F0 | Chip/selected surface nhẹ |
+| color.accent | #E46F5E | Accent trang trí, không dùng cho functional text trên nền sáng |
+| color.accentStrong | #AF453A | Functional coral đạt contrast |
+| color.sun | #F5C75E | Trip tag và optimistic moment |
+| color.success | #237859 | Hoàn tất |
+| color.warning | #956611 | Cảnh báo |
+| color.danger | #B33A36 | Destructive/error |
+| color.outline | #E2E8E4 | Divider và biên nhóm |
+| color.outlineStrong | #718480 | Boundary cần thiết để nhận diện control |
 
 Dark mode dùng nền ink sâu, surface nâng nhẹ và giảm độ bão hòa accent. Không đảo màu máy móc.
 

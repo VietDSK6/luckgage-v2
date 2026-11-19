@@ -29,7 +29,6 @@ import {
   groupTripsByTimeline,
   type Trip,
 } from './domain/trip';
-import { tripTypeMessageKeys } from './tripPresentation';
 
 type TripSection = {
   key: 'current' | 'upcoming' | 'past';
@@ -180,7 +179,6 @@ export function TripsHubScreen() {
                     label={t('tripsCreate')}
                     onPress={() => router.push('/trip/new')}
                     style={styles.tripAction}
-                    variant="secondary"
                   />
                   <AppButton
                     icon="join"
@@ -264,29 +262,34 @@ function TripHeroCard({
 
   return (
     <Pressable
-      accessibilityLabel={`${trip.name}, ${trip.destination}, ${status}${checklistProgress && checklistProgress.total > 0 ? `, ${t('tripReadinessProgress', { packed: checklistProgress.packed, total: checklistProgress.total })}` : ''}`}
+      accessibilityLabel={`${trip.name}${trip.name.trim() === trip.destination.trim() ? '' : `, ${trip.destination}`}, ${status}${checklistProgress && checklistProgress.total > 0 ? `, ${t('tripReadinessProgress', { packed: checklistProgress.packed, total: checklistProgress.total })}` : ''}`}
       accessibilityRole="button"
       onPress={onPress}
       style={({ pressed }) => [
         styles.hero,
-        { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary },
+        { backgroundColor: theme.colors.primary },
         pressed ? styles.pressed : null,
       ]}>
-      <Text style={[styles.heroStatus, { color: theme.colors.primarySoft }]}>{status}</Text>
+      <Text style={[styles.heroStatus, { color: theme.colors.background }]}>{status}</Text>
       <Text style={[styles.heroDestination, { color: theme.colors.background }]} numberOfLines={2}>
         {trip.name}
       </Text>
-      <Text style={[styles.heroName, { color: theme.colors.primarySoft }]} numberOfLines={1}>{trip.destination}</Text>
-      <Text style={[styles.heroMetaValue, { color: theme.colors.primarySoft }]}>
-        {formatCalendarDate(trip.startDate, language)} · {t('tripDuration', { count: getTripDurationDays(trip) })}
-      </Text>
-      {checklistProgress && checklistProgress.total > 0 ? (
-        <Text style={[styles.heroProgress, { color: theme.colors.background }]}>
-          {t('tripReadinessProgress', { packed: checklistProgress.packed, total: checklistProgress.total })}
+      {trip.name.trim() !== trip.destination.trim() ? (
+        <Text style={[styles.heroName, { color: theme.colors.background }]} numberOfLines={1}>
+          {trip.destination}
         </Text>
       ) : null}
-      <View style={styles.heroActionRow}>
-        <Text style={[styles.heroAction, { color: theme.colors.background }]}>{t('tripsHeroAction')}</Text>
+      <View style={styles.heroFooter}>
+        <View style={styles.heroFooterCopy}>
+          <Text style={[styles.heroMetaValue, { color: theme.colors.background }]}>
+            {formatCalendarDate(trip.startDate, language)} · {t('tripDuration', { count: getTripDurationDays(trip) })}
+          </Text>
+          {checklistProgress && checklistProgress.total > 0 ? (
+            <Text style={[styles.heroProgress, { color: theme.colors.background }]}>
+              {t('tripReadinessProgress', { packed: checklistProgress.packed, total: checklistProgress.total })}
+            </Text>
+          ) : null}
+        </View>
         <AppIcon color={theme.colors.background} name="arrowRight" size={21} />
       </View>
     </Pressable>
@@ -317,7 +320,7 @@ function TripCompactRow({
 
   return (
     <Pressable
-      accessibilityLabel={`${trip.name}, ${trip.destination}`}
+      accessibilityLabel={trip.name.trim() === trip.destination.trim() ? trip.name : `${trip.name}, ${trip.destination}`}
       accessibilityRole="button"
       onPress={onPress}
       style={({ pressed }) => [
@@ -325,24 +328,21 @@ function TripCompactRow({
         { borderColor: theme.colors.outline },
         pressed ? styles.pressed : null,
       ]}>
-      <View style={[styles.timelineRail, { backgroundColor: theme.colors.outline }]}>
-        <View style={[styles.timelineDot, { backgroundColor: theme.colors.accent }]} />
-      </View>
       <View style={styles.tripRowContent}>
-        <Text style={[styles.tripRowDestination, { color: theme.colors.ink }]}>
-          {trip.destination}
+        <Text style={[styles.tripTimeline, { color: theme.colors.primary }]}>{timelineLabel}</Text>
+        <Text style={[styles.tripRowDestination, { color: theme.colors.ink }]} numberOfLines={2}>
+          {trip.name}
         </Text>
-        <Text style={[styles.tripRowName, { color: theme.colors.inkMuted }]}>{trip.name}</Text>
+        {trip.name.trim() !== trip.destination.trim() ? (
+          <Text style={[styles.tripRowName, { color: theme.colors.inkMuted }]} numberOfLines={1}>
+            {trip.destination}
+          </Text>
+        ) : null}
         <Text style={[styles.tripRowDate, { color: theme.colors.inkMuted }]}>
           {formatCalendarDate(trip.startDate, language)} — {formatCalendarDate(trip.endDate, language)}
         </Text>
       </View>
-      <View style={styles.tripRowAside}>
-        <Text style={[styles.tripType, { color: theme.colors.primary }]}>
-          {t(tripTypeMessageKeys[trip.tripType])}
-        </Text>
-        <Text style={[styles.tripTimeline, { color: theme.colors.inkMuted }]}>{timelineLabel}</Text>
-      </View>
+      <AppIcon color={theme.colors.inkMuted} name="chevronRight" size={19} />
     </Pressable>
   );
 }
@@ -396,7 +396,7 @@ function ExploreSuggestions({ onPress, theme, title, icon = 'mapPin' }: { onPres
       onPress={onPress}
       style={({ pressed }) => [
         styles.explore,
-        { backgroundColor: theme.colors.surface, borderColor: theme.colors.outline },
+        { backgroundColor: theme.colors.surface },
         pressed ? styles.pressed : null,
       ]}>
       <View style={[styles.exploreIcon, { backgroundColor: theme.colors.sun }]}>
@@ -449,12 +449,12 @@ const styles = StyleSheet.create({
   },
   topRow: { flexDirection: 'row', alignItems: 'center', gap: 16 },
   headingBlock: { flex: 1 },
-  greeting: { fontSize: 14, lineHeight: 20, fontWeight: '700' },
-  title: { marginTop: 2, fontSize: 32, lineHeight: 38, fontWeight: '900', letterSpacing: -0.5 },
+  greeting: { ...typography.bodySmall, fontWeight: '600' },
+  title: { ...typography.display, marginTop: 2 },
   tripActions: { marginTop: 12, flexDirection: 'row', gap: 8 },
-  tripAction: { minWidth: 0, flex: 1, paddingHorizontal: 10 },
+  tripAction: { minWidth: 0, flex: 1, paddingHorizontal: 8 },
   discoverLinks: { marginTop: spacing.x5 },
-  explore: { alignSelf: 'stretch', minHeight: 56, marginTop: spacing.x3, borderWidth: 1, borderRadius: radius.panel, paddingHorizontal: spacing.x4, flexDirection: 'row', alignItems: 'center', gap: spacing.x3 },
+  explore: { alignSelf: 'stretch', minHeight: 56, marginTop: spacing.x2, borderRadius: radius.panel, paddingHorizontal: spacing.x4, flexDirection: 'row', alignItems: 'center', gap: spacing.x3 },
   exploreIcon: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   exploreTitle: { ...typography.label, minWidth: 0, flex: 1 },
   hero: {
@@ -462,28 +462,23 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     minHeight: 0,
     marginTop: 16,
-    padding: 18,
-    borderRadius: 20,
-    borderWidth: 1,
+    padding: spacing.x5,
+    borderRadius: radius.card,
   },
-  heroStatus: { fontSize: 13, lineHeight: 18, fontWeight: '700' },
-  heroDestination: { marginTop: 8, fontSize: 24, lineHeight: 30, fontWeight: '800' },
-  heroName: { marginTop: 4, fontSize: 14, lineHeight: 20, fontWeight: '500' },
-  heroMetaValue: { marginTop: 12, fontSize: 14, lineHeight: 20, fontWeight: '600', fontVariant: ['tabular-nums'] },
-  heroProgress: { marginTop: 8, fontSize: 14, lineHeight: 20, fontWeight: '700', fontVariant: ['tabular-nums'] },
-  heroActionRow: { marginTop: 12, flexDirection: 'row', alignItems: 'center', gap: 8 },
-  heroAction: { fontSize: 16, lineHeight: 22, fontWeight: '800' },
-  sectionTitle: { marginTop: 24, marginBottom: 4, fontSize: 21, lineHeight: 28, fontWeight: '900' },
-  tripRow: { minHeight: 116, flexDirection: 'row', borderBottomWidth: 1, paddingVertical: 16 },
-  timelineRail: { width: 2, marginRight: 16, alignItems: 'center' },
-  timelineDot: { position: 'absolute', top: 4, width: 10, height: 10, borderRadius: 5 },
-  tripRowContent: { flex: 1, paddingRight: 12 },
-  tripRowDestination: { fontSize: 19, lineHeight: 25, fontWeight: '800' },
+  heroStatus: { ...typography.caption, fontWeight: '700' },
+  heroDestination: { marginTop: 6, fontSize: 23, lineHeight: 29, fontWeight: '700' },
+  heroName: { marginTop: 3, ...typography.bodySmall },
+  heroFooter: { marginTop: 14, flexDirection: 'row', alignItems: 'flex-end', gap: 8 },
+  heroFooterCopy: { flex: 1, gap: 4 },
+  heroMetaValue: { ...typography.bodySmall, fontVariant: ['tabular-nums'] },
+  heroProgress: { ...typography.bodySmall, fontWeight: '600', fontVariant: ['tabular-nums'] },
+  sectionTitle: { ...typography.sectionTitle, marginTop: 24, marginBottom: 4 },
+  tripRow: { minHeight: 96, flexDirection: 'row', alignItems: 'center', borderBottomWidth: 1, paddingVertical: 14 },
+  tripRowContent: { flex: 1, paddingRight: 12, gap: 2 },
+  tripRowDestination: { ...typography.cardTitle },
   tripRowName: { marginTop: 2, fontSize: 14, lineHeight: 20 },
-  tripRowDate: { marginTop: 8, fontSize: 13, lineHeight: 18, fontWeight: '600' },
-  tripRowAside: { maxWidth: 112, alignItems: 'flex-end', gap: 6 },
-  tripType: { fontSize: 12, lineHeight: 16, fontWeight: '800', textAlign: 'right' },
-  tripTimeline: { fontSize: 12, lineHeight: 17, textAlign: 'right' },
+  tripRowDate: { marginTop: 5, fontSize: 13, lineHeight: 18, fontWeight: '500', fontVariant: ['tabular-nums'] },
+  tripTimeline: { ...typography.caption, fontWeight: '600' },
   empty: { marginTop: 32, paddingVertical: 32, borderTopWidth: 1, alignItems: 'flex-start' },
   emptyMascot: {
     width: 176,
@@ -501,16 +496,16 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 12,
   },
-  emptyTitle: { marginTop: 28, fontSize: 24, lineHeight: 31, fontWeight: '800', maxWidth: 360 },
+  emptyTitle: { marginTop: 28, fontSize: 24, lineHeight: 31, fontWeight: '700', maxWidth: 360 },
   emptyBody: { marginTop: 8, fontSize: 16, lineHeight: 24, maxWidth: 460 },
   emptyActions: { marginTop: 24, flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   emptyButton: { minWidth: 160 },
   loading: { marginTop: 32, gap: 12 },
-  loadingHero: { height: 220, borderRadius: 28 },
+  loadingHero: { height: 200, borderRadius: radius.card },
   loadingLine: { height: 18, width: '72%', borderRadius: 9 },
   loadingLineShort: { height: 14, width: '48%', borderRadius: 7 },
   error: { marginTop: 32, borderWidth: 1, borderRadius: 20, padding: 20, gap: 12 },
-  errorTitle: { fontSize: 20, lineHeight: 27, fontWeight: '800' },
+  errorTitle: { fontSize: 20, lineHeight: 27, fontWeight: '700' },
   errorBody: { fontSize: 15, lineHeight: 22 },
   inlineError: { minHeight: 48, marginTop: 16, borderWidth: 1, borderRadius: 12, padding: 12, justifyContent: 'center' },
   inlineErrorText: { fontSize: 14, lineHeight: 20, fontWeight: '700' },

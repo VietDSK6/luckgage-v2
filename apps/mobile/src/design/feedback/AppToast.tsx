@@ -94,7 +94,7 @@ export function AppToast({ closeLabel, onDismiss, toast }: AppToastProps) {
         styles.host,
         {
           backgroundColor: theme.colors.surface,
-          borderColor: toneColor,
+          borderColor: theme.colors.outline,
           borderRadius: theme.radius.panel,
           opacity: progress,
           shadowColor: theme.colors.ink,
@@ -140,7 +140,6 @@ const styles = StyleSheet.create({
     elevation: 10,
     minHeight: 64,
     borderWidth: 1,
-    borderLeftWidth: 4,
     paddingLeft: 12,
     paddingVertical: 8,
     flexDirection: 'row',
@@ -152,6 +151,6 @@ const styles = StyleSheet.create({
   },
   icon: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
   message: { flex: 1 },
-  action: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 4 },
-  close: { width: 44, height: 44 },
+  action: { minHeight: 48, justifyContent: 'center', paddingHorizontal: 4 },
+  close: { width: 48, height: 48 },
 });

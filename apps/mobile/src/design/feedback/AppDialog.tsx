@@ -43,8 +43,7 @@ export function AppDialog({
       visible={visible}>
       <View style={styles.root}>
         <Pressable
-          accessibilityLabel={cancelLabel}
-          accessibilityRole="button"
+          accessible={false}
           onPress={onCancel}
           style={[styles.backdrop, { backgroundColor: theme.colors.overlay }]}
         />
@@ -55,7 +54,6 @@ export function AppDialog({
               styles.dialog,
               {
                 backgroundColor: theme.colors.surface,
-                borderColor: theme.colors.outline,
                 borderRadius: theme.radius.card,
               },
             ]}>
@@ -64,7 +62,6 @@ export function AppDialog({
                 styles.icon,
                 {
                   backgroundColor: tone === 'danger' ? theme.colors.background : theme.colors.primarySoft,
-                  borderColor: accentColor,
                   borderRadius: theme.radius.pill,
                 },
               ]}>
@@ -84,7 +81,7 @@ export function AppDialog({
                 label={confirmLabel}
                 onPress={onConfirm}
                 style={styles.action}
-                variant={tone === 'danger' ? 'danger' : 'primary'}
+                variant={tone === 'danger' ? 'dangerFilled' : 'primary'}
               />
             </View>
           </View>
@@ -98,11 +95,10 @@ const styles = StyleSheet.create({
   root: { flex: 1, justifyContent: 'center' },
   backdrop: { ...StyleSheet.absoluteFill },
   frame: { width: '100%', maxWidth: 640, alignSelf: 'center', paddingHorizontal: 20 },
-  dialog: { borderWidth: 1, padding: 20 },
+  dialog: { padding: 20 },
   icon: {
     width: 48,
     height: 48,
-    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,

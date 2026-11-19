@@ -45,7 +45,7 @@ export function WelcomeScreen() {
           <View
             style={[
               styles.benefitCard,
-              { backgroundColor: theme.colors.surface, borderColor: theme.colors.outline },
+              { backgroundColor: theme.colors.surface },
             ]}>
             {benefits.map((benefit, index) => (
               <View key={benefit} style={styles.benefitRow}>
@@ -86,8 +86,8 @@ const styles = StyleSheet.create({
   topBar: { minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   hero: { flex: 1, justifyContent: 'center', paddingVertical: 28 },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  title: { flex: 1, maxWidth: 520, fontSize: 40, lineHeight: 46, fontWeight: '800', letterSpacing: -1 },
-  titleCompact: { fontSize: 36, lineHeight: 42 },
+  title: { flex: 1, maxWidth: 520, fontSize: 34, lineHeight: 40, fontWeight: '700', letterSpacing: -0.7 },
+  titleCompact: { fontSize: 30, lineHeight: 36 },
   mascotStage: {
     width: 126,
     height: 126,
@@ -95,12 +95,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  body: { marginTop: 12, maxWidth: 500, fontSize: 17, lineHeight: 26 },
+  body: { marginTop: 12, maxWidth: 500, fontSize: 16, lineHeight: 24 },
   benefitCard: {
     marginTop: 28,
     padding: 16,
-    borderWidth: 1,
-    borderRadius: 20,
+    borderRadius: 18,
     gap: 12,
   },
   benefitRow: { minHeight: 40, flexDirection: 'row', alignItems: 'center', gap: 12 },

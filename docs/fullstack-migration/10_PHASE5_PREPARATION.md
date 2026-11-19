@@ -1,5 +1,13 @@
 # 10 — Triển khai Phase 5
 
+**Cập nhật kế hoạch ngày 2026-11-17:** thêm [Phase 5C — làm lại UI/UX](13_UI_UX_REDESIGN.md)
+theo audit khởi đầu từ năm ảnh mobile hiện tại; phạm vi gồm **toàn bộ app Expo**, kể cả các màn
+không có trong ảnh. Admin web làm sau trong hạng mục riêng. 5C là gate riêng trước
+build/staging/rehearsal. Phần CI, VPS và HTTPS đã làm trong hạng mục từng gọi là 5C được giữ làm
+bằng chứng kỹ thuật; build và QA
+giao diện phải chạy lại sau khi UI mới hoàn tất. Hạng mục build/staging đổi thành 5D và
+rehearsal đổi thành 5E.
+
 Cập nhật phạm vi ngày 2026-11-17: người dùng cho biết đã QA giao diện và chức năng của bản trước.
 Các chức năng checklist mới (phân công, đồ quan trọng, dùng lại danh sách, chia sẻ) là thay đổi sau
 lượt QA đó nên cần kiểm tra trên thiết bị và áp migration mới trước khi chốt bản demo. Lượt kiểm
@@ -64,20 +72,32 @@ nhận kết quả.
 **Gate 5B:** có số đo trước/sau khi tối ưu, restore thử thành công và seed chạy lặp không tạo
 trùng dữ liệu.
 
-### 5C — CI, build và staging
+### 5C — Làm lại UI/UX
 
-- Thêm CI cho lint/typecheck, unit/integration, OpenAPI check, migration smoke, admin build và
-  Expo JS bundle. Repo hiện chưa có `.github/workflows`.
-- Chốt application IDs và cấu hình build; tạo/cài thử Expo development và release build trên
-  thiết bị mục tiêu. Repo hiện chưa có `eas.json`.
+Kế hoạch, inventory toàn app, audit ảnh khởi đầu và gate chi tiết:
+[13 — Phase 5C: làm lại UI/UX](13_UI_UX_REDESIGN.md). Chốt hướng trên màn đại diện trước khi sửa
+token/components hàng loạt; sau đó làm và QA **mọi route, màn, component, overlay và state của
+app Expo**, gồm màn không xuất hiện trong ảnh. Admin web để hạng mục riêng sau 5C. Không mở rộng
+nghiệp vụ hoặc đổi hợp đồng API.
+
+**Gate 5C:** inventory app Expo được audit và QA đủ 100%; không còn P0/P1 ở bất kỳ màn mobile nào;
+ảnh trước/sau, quyết định visual direction, tài liệu token và QA thao tác được ghi lại.
+Build/staging dùng đúng UI sau gate này.
+
+### 5D — CI, build và staging
+
+- Xác minh CI hiện có trên runner thật cho lint/typecheck, unit/integration, OpenAPI check,
+  migration smoke, admin build và Expo JS bundle sau 5C.
+- Chốt application IDs và cấu hình build; tạo/cài thử Expo development và release build **chứa
+  UI sau 5C** trên thiết bị mục tiêu. Repo hiện chưa có `eas.json`.
 - Chốt nơi chạy API/admin/PostgreSQL và origin HTTPS. Chuẩn bị deploy config, secret storage,
-  migration job, CORS/cookie topology, SPA direct-route fallback và health checks. Repo hiện chưa
-  có Dockerfile/deploy config.
+  migration job, CORS/cookie topology, SPA direct-route fallback và health checks; xác minh lại
+  luồng mobile trên staging sau khi cập nhật build.
 
-**Gate 5C:** CI xanh, binary đã cài thử, staging HTTPS có readiness pass; admin login và mobile API
+**Gate 5D:** CI xanh, binary đã cài thử, staging HTTPS có readiness pass; admin login và mobile API
 flow hoạt động với origin thực.
 
-### 5D — Rehearsal và gói bàn giao
+### 5E — Rehearsal và gói bàn giao
 
 - Diễn tập kịch bản admin → mobile → hai user → Smart List → weather unavailable theo
   [demo script](09_DEMO_AND_DEFENSE.md), rồi bổ sung đoạn Cẩm nang → Trip Suggestion.
@@ -85,16 +105,16 @@ flow hoạt động với origin thực.
   build artifact, health URL, backup/restore record và video dự phòng.
 - Cập nhật báo cáo, ERD, sơ đồ và giới hạn sản phẩm từ code chạy thật.
 
-**Gate 5D:** một lần diễn tập đầy đủ trên môi trường demo thành công, có recovery path và bộ bằng
+**Gate 5E:** một lần diễn tập đầy đủ trên môi trường demo thành công, có recovery path và bộ bằng
 chứng khớp implementation.
 
-## 3. Quyết định cần có trước 5C
+## 3. Quyết định cần có trước 5D
 
 - Hosting/API/admin/database và domain HTTPS của môi trường demo.
 - Tài khoản Expo/build, application IDs Android/iOS và thiết bị mục tiêu.
 - Nơi lưu secret, backup và artifact; người có quyền deploy.
 
-Các quyết định này không chặn công việc local 5A–5B. QA giao diện vẫn là gate của bản release.
+Các quyết định này không chặn công việc local 5A–5C. QA giao diện vẫn là gate của bản release.
 
 Quyết định ban đầu là **local trước**; quyết định VPS dùng chung ngày 2026-11-14 bên dưới thay thế
 phần hosting. HTTPS và CORS preflight đã kiểm tra trên origin thật; đăng nhập/cookie còn chờ tài khoản
@@ -126,8 +146,9 @@ cookie và CSRF qua HTTPS đã kiểm tra. Mobile binary vẫn chưa được bu
   p95 trips list 18,5 ms, guides list 11,5 ms, suggestions list 11,1 ms và checklist 16,1 ms
   (20 request tuần tự/route, API local port 3100). Database và API tạm đã được dọn. Đây là
   latency HTTP local không có tải đồng thời; vẫn cần số đo staging trước release.
-- 5C: `.github/workflows/ci.yml` chạy PostgreSQL `_integration`, typecheck, lint, unit/integration
-  tests, seed hai lần, OpenAPI, API/admin build và Expo Android JS export. Workflow chưa được xác minh trên
+- CI/staging (trước đây gọi là 5C, nay thuộc 5D): `.github/workflows/ci.yml` chạy PostgreSQL
+  `_integration`, typecheck, lint, unit/integration tests, seed hai lần, OpenAPI, API/admin build
+  và Expo Android JS export. Workflow chưa được xác minh trên
   GitHub Actions runner; deployment và binary release chưa cấu hình. Cả 5 migration đã áp thành
   công từ database tạm sạch `luckgage_phase5_integration`, sau đó database tạm đã được dọn.
 - Local code checks: 14 admin, 27 API, 57 mobile tests và 8 integration tests qua; Expo Android

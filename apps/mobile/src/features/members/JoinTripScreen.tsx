@@ -189,7 +189,7 @@ export function JoinTripScreen() {
           {!scanning ? <View
             style={[
               styles.codePanel,
-              { backgroundColor: theme.colors.surface, borderColor: theme.colors.outline },
+              { backgroundColor: theme.colors.surface },
             ]}>
             <Text style={[styles.inputLabel, { color: theme.colors.ink }]}>{t('joinCodeLabel')}</Text>
             <TextInput
@@ -229,48 +229,41 @@ export function JoinTripScreen() {
             <View
               style={[
                 styles.preview,
-                { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary },
+                { backgroundColor: theme.colors.surface },
               ]}>
-              <View
-                style={[
-                  styles.previewHole,
-                  { backgroundColor: theme.colors.background, borderColor: theme.colors.primarySoft },
-                ]}
-              />
-              <Text style={[styles.previewEyebrow, { color: theme.colors.primarySoft }]}>
+              <Text style={[styles.previewEyebrow, { color: theme.colors.primary }]}>
                 {t('joinPreviewEyebrow')}
               </Text>
-              <Text accessibilityRole="header" style={[styles.tripName, { color: theme.colors.background }]}>
+              <Text accessibilityRole="header" style={[styles.tripName, { color: theme.colors.ink }]}>
                 {preview.tripName}
               </Text>
-              <Text style={[styles.destination, { color: theme.colors.primarySoft }]}>
+              <Text style={[styles.destination, { color: theme.colors.inkMuted }]}>
                 {preview.destination}
               </Text>
-              <View style={[styles.divider, { backgroundColor: theme.colors.primarySoft }]} />
+              <View style={[styles.divider, { backgroundColor: theme.colors.outline }]} />
               <PreviewRow
                 label={t('joinOwnerLabel')}
                 value={preview.ownerDisplayName}
-                color={theme.colors.background}
-                mutedColor={theme.colors.primarySoft}
+                color={theme.colors.ink}
+                mutedColor={theme.colors.inkMuted}
               />
               <PreviewRow
                 label={t('joinDatesLabel')}
                 value={`${formatCalendarDate(preview.startDate, language)} — ${formatCalendarDate(preview.endDate, language)}`}
-                color={theme.colors.background}
-                mutedColor={theme.colors.primarySoft}
+                color={theme.colors.ink}
+                mutedColor={theme.colors.inkMuted}
               />
               <PreviewRow
                 label={t('joinMembersLabel')}
                 value={t('joinMemberCount', { count: preview.memberCount })}
-                color={theme.colors.background}
-                mutedColor={theme.colors.primarySoft}
+                color={theme.colors.ink}
+                mutedColor={theme.colors.inkMuted}
               />
               <AppButton
                 label={t('joinConfirmAction')}
                 loading={pending === 'join'}
                 onPress={() => void join()}
                 style={styles.joinButton}
-                variant="ghost"
               />
             </View>
           ) : null}
@@ -325,15 +318,14 @@ const styles = StyleSheet.create({
   scanAction: { marginTop: spacing.x6 },
   scannerSection: { marginTop: spacing.x6, gap: spacing.x3 },
   camera: { width: '100%', aspectRatio: 1, borderRadius: radius.card, overflow: 'hidden' },
-  cameraState: { borderWidth: 1, borderRadius: radius.card, padding: spacing.x5, gap: spacing.x4 },
+  cameraState: { borderRadius: radius.card, padding: spacing.x5, gap: spacing.x4 },
   codePanel: {
     marginTop: 16,
-    borderWidth: 1,
     borderRadius: radius.card,
     padding: spacing.x4,
     gap: spacing.x3,
   },
-  inputLabel: { fontSize: 14, lineHeight: 20, fontWeight: '800' },
+  inputLabel: { fontSize: 14, lineHeight: 20, fontWeight: '700' },
   codeInput: {
     minHeight: 64,
     borderWidth: 1,
@@ -341,18 +333,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     fontSize: 22,
     lineHeight: 28,
-    fontWeight: '800',
+    fontWeight: '700',
     letterSpacing: 1.4,
   },
   error: { marginTop: 16, fontSize: 14, lineHeight: 21, fontWeight: '700' },
-  preview: { position: 'relative', overflow: 'hidden', marginTop: 28, borderWidth: 1, borderRadius: 28, padding: 24 },
-  previewHole: { position: 'absolute', top: 20, right: 20, width: 18, height: 18, borderRadius: 9, borderWidth: 4 },
-  previewEyebrow: { fontSize: 11, lineHeight: 15, fontWeight: '900', letterSpacing: 1.3 },
-  tripName: { marginTop: 24, paddingRight: 24, fontSize: 30, lineHeight: 37, fontWeight: '800' },
+  preview: { marginTop: 24, borderRadius: 18, padding: 20 },
+  previewEyebrow: { fontSize: 11, lineHeight: 15, fontWeight: '700', letterSpacing: 0.8 },
+  tripName: { marginTop: 8, fontSize: 24, lineHeight: 30, fontWeight: '700' },
   destination: { marginTop: 4, fontSize: 16, lineHeight: 23, fontWeight: '600' },
-  divider: { height: 1, marginVertical: 22, opacity: 0.42 },
+  divider: { height: 1, marginVertical: 18 },
   previewRow: { marginBottom: 16, gap: 3 },
-  previewLabel: { fontSize: 11, lineHeight: 15, fontWeight: '900', letterSpacing: 0.7 },
+  previewLabel: { fontSize: 11, lineHeight: 15, fontWeight: '800', letterSpacing: 0.7 },
   previewValue: { fontSize: 15, lineHeight: 22, fontWeight: '700' },
   joinButton: { marginTop: 8 },
 });

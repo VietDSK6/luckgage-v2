@@ -31,6 +31,7 @@ import { useAppTheme } from '@/design/theme/AppThemeProvider';
 import { useI18n } from '@/i18n/I18nProvider';
 import type { MessageKey } from '@/i18n/messages';
 import type { Trip } from '@/features/trips/domain/trip';
+import { getTripHeaderTitle } from '@/features/trips/tripPresentation';
 
 import {
   filterChecklist,
@@ -442,7 +443,7 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.safeArea}>
-        <AppPageHeader onBack={goBack} title={trip.name} />
+        <AppPageHeader onBack={goBack} title={getTripHeaderTitle(trip)} />
 
         <View
           accessibilityLabel={t('checklistProgress', { packed: progress.packed, total: progress.total })}
@@ -493,12 +494,12 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
           ) : null}
 
           <View style={styles.featureActions}>
-            <AppButton label={t('checklistReuse')} onPress={() => router.push(`/trip/${tripId}/checklist/import`)} style={styles.flexButton} variant="secondary" />
-            <AppButton disabled={progress.total === 0} label={t('checklistShare')} onPress={() => void shareChecklist()} style={styles.flexButton} variant="ghost" />
+            <AppButton label={t('checklistReuseShort')} onPress={() => router.push(`/trip/${tripId}/checklist/import`)} style={styles.reuseButton} variant="secondary" />
+            <AppButton disabled={progress.total === 0} label={t('checklistShare')} onPress={() => void shareChecklist()} style={styles.shareButton} variant="ghost" />
           </View>
 
           {members.length > 1 && memberProgress.some((member) => member.total > 0) ? (
-            <View style={[styles.teamProgress, { borderColor: theme.colors.outline, backgroundColor: theme.colors.surface }]}>
+            <View style={[styles.teamProgress, { backgroundColor: theme.colors.surface }]}>
               <Text accessibilityRole="header" style={[styles.teamTitle, { color: theme.colors.ink }]}>{t('checklistTeamProgress')}</Text>
               {memberProgress.filter((member) => member.total > 0).map((member) => (
                 <Text key={member.userId} style={[styles.teamLine, { color: theme.colors.inkMuted }]}>
@@ -555,7 +556,6 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
                         styles.filterChip,
                         {
                           backgroundColor: selected ? theme.colors.primary : theme.colors.surface,
-                          borderColor: selected ? theme.colors.primary : theme.colors.outlineStrong,
                         },
                         pressed ? styles.pressed : null,
                       ]}>
@@ -620,7 +620,7 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
                 return (
                   <View
                     key={category.id}
-                    style={[styles.category, { backgroundColor: theme.colors.surface, borderColor: theme.colors.outline }]}>
+                    style={[styles.category, { backgroundColor: theme.colors.surface }]}>
                     <View style={styles.categoryHeader}>
                       <View style={styles.categoryHeading}>
                         {editingCategory ? (
@@ -944,17 +944,19 @@ function insertItem(categories: ChecklistCategory[], item: ChecklistItem): Check
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
   centerState: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 20, padding: 24 },
-  stateTitle: { maxWidth: 420, fontSize: 20, lineHeight: 28, fontWeight: '800', textAlign: 'center' },
-  progressPanel: { marginHorizontal: 20, borderRadius: 16, paddingHorizontal: 16, paddingVertical: 12, gap: 8 },
+  stateTitle: { maxWidth: 420, fontSize: 20, lineHeight: 28, fontWeight: '700', textAlign: 'center' },
+  progressPanel: { marginHorizontal: 20, borderRadius: 14, paddingHorizontal: 16, paddingVertical: 12, gap: 8 },
   progressCopy: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 16 },
-  progressValue: { fontSize: 24, lineHeight: 30, fontWeight: '900', fontVariant: ['tabular-nums'] },
-  progressLabel: { flex: 1, fontSize: 13, lineHeight: 18, fontWeight: '700', textAlign: 'right' },
+  progressValue: { fontSize: 21, lineHeight: 27, fontWeight: '700', fontVariant: ['tabular-nums'] },
+  progressLabel: { flex: 1, fontSize: 13, lineHeight: 18, fontWeight: '500', textAlign: 'right' },
   progressTrack: { height: 7, overflow: 'hidden', borderRadius: 4 },
   progressFill: { height: 7, borderRadius: 4 },
   content: { width: '100%', maxWidth: 640, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 16, paddingBottom: 120 },
   featureActions: { flexDirection: 'row', gap: 8, marginBottom: 20 },
-  teamProgress: { borderWidth: 1, borderRadius: 16, padding: 16, gap: 4, marginBottom: 20 },
-  teamTitle: { fontSize: 16, lineHeight: 22, fontWeight: '800', marginBottom: 4 },
+  reuseButton: { flex: 1 },
+  shareButton: { width: 112 },
+  teamProgress: { borderRadius: 14, padding: 16, gap: 4, marginBottom: 20 },
+  teamTitle: { fontSize: 16, lineHeight: 22, fontWeight: '700', marginBottom: 4 },
   teamLine: { fontSize: 14, lineHeight: 20 },
   mineToggle: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
   editorToggle: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 10, borderWidth: 1, borderRadius: 12, paddingHorizontal: 14 },
@@ -964,45 +966,45 @@ const styles = StyleSheet.create({
   readyBanner: { flexDirection: 'row', alignItems: 'center', gap: 16, borderRadius: 20, padding: 18, marginBottom: 20 },
   readyStamp: { width: 48, alignItems: 'center', justifyContent: 'center' },
   readyCopy: { flex: 1, gap: 2 },
-  readyTitle: { fontSize: 18, lineHeight: 24, fontWeight: '900' },
+  readyTitle: { fontSize: 18, lineHeight: 24, fontWeight: '700' },
   readyBody: { fontSize: 14, lineHeight: 20 },
   searchBox: { minHeight: 52, borderWidth: 1, borderRadius: 12, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14 },
   searchMark: { width: 30 },
   searchInput: { flex: 1, minHeight: 50, fontSize: 16, lineHeight: 22 },
   filterRow: { flexDirection: 'row', gap: 8, marginTop: 8, marginBottom: 16 },
-  filterChip: { minHeight: 48, flex: 1, borderWidth: 1, borderRadius: 24, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 10 },
-  filterLabel: { fontSize: 13, lineHeight: 18, fontWeight: '800' },
+  filterChip: { minHeight: 48, flex: 1, borderRadius: 10, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 10 },
+  filterLabel: { fontSize: 13, lineHeight: 18, fontWeight: '600' },
   toolsToggle: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
   toolsToggleText: { fontSize: 14, lineHeight: 20, fontWeight: '700' },
   errorBanner: { borderWidth: 1, borderRadius: 12, padding: 14, marginBottom: 16 },
   errorText: { fontSize: 14, lineHeight: 20, fontWeight: '700' },
   emptyState: { alignItems: 'center', paddingVertical: 28, paddingHorizontal: 12 },
   emptyIconCircle: { width: 64, height: 64, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  emptyTitle: { marginTop: 18, fontSize: 22, lineHeight: 28, fontWeight: '900', textAlign: 'center' },
+  emptyTitle: { marginTop: 18, fontSize: 22, lineHeight: 28, fontWeight: '700', textAlign: 'center' },
   emptyBody: { maxWidth: 410, marginTop: 8, fontSize: 16, lineHeight: 24, textAlign: 'center' },
   noMatches: { paddingVertical: 40, fontSize: 16, lineHeight: 24, textAlign: 'center' },
   categoryList: { gap: 16 },
-  category: { overflow: 'hidden', borderWidth: 1, borderRadius: 16 },
+  category: { overflow: 'hidden', borderRadius: 14 },
   categoryHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingLeft: 16, paddingRight: 8, paddingTop: 10 },
   categoryHeading: { flex: 1, gap: 3 },
-  categoryName: { fontSize: 18, lineHeight: 24, fontWeight: '900' },
-  categoryNameInput: { minHeight: 44, borderBottomWidth: 2, fontSize: 19, lineHeight: 26, fontWeight: '800', paddingVertical: 6 },
-  categoryCount: { fontSize: 12, lineHeight: 17, fontWeight: '700', fontVariant: ['tabular-nums'] },
+  categoryName: { fontSize: 17, lineHeight: 23, fontWeight: '700' },
+  categoryNameInput: { minHeight: 44, borderBottomWidth: 2, fontSize: 18, lineHeight: 24, fontWeight: '700', paddingVertical: 6 },
+  categoryCount: { fontSize: 12, lineHeight: 17, fontWeight: '500', fontVariant: ['tabular-nums'] },
   inlineActions: { flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingTop: 8 },
   flexButton: { flex: 1 },
   itemList: { marginTop: 4, borderTopWidth: 1 },
   itemRow: { minHeight: 60, flexDirection: 'row', alignItems: 'center', gap: 8, paddingLeft: 8, paddingRight: 12, paddingVertical: 4, borderBottomWidth: 1 },
   checkboxHit: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
-  checkboxVisual: { width: 30, height: 30, borderWidth: 2, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  checkboxVisual: { width: 28, height: 28, borderWidth: 1.5, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
   itemCopy: { flex: 1, minHeight: 48, justifyContent: 'center', paddingVertical: 4 },
   itemNameRow: { flexDirection: 'row', alignItems: 'baseline', gap: 8 },
   itemName: { flexShrink: 1, fontSize: 16, lineHeight: 22, fontWeight: '700' },
   itemPacked: { textDecorationLine: 'line-through' },
-  quantity: { fontSize: 13, lineHeight: 18, fontWeight: '900', fontVariant: ['tabular-nums'] },
+  quantity: { fontSize: 13, lineHeight: 18, fontWeight: '700', fontVariant: ['tabular-nums'] },
   itemNote: { marginTop: 2, fontSize: 13, lineHeight: 18 },
   disclosure: { width: 20, alignItems: 'center', justifyContent: 'center' },
   sheetForm: { gap: 8, paddingBottom: 8 },
-  fieldLabel: { marginTop: 4, fontSize: 13, lineHeight: 18, fontWeight: '800' },
+  fieldLabel: { marginTop: 4, fontSize: 13, lineHeight: 18, fontWeight: '600' },
   input: { minHeight: 48, borderWidth: 1, borderRadius: 12, paddingHorizontal: 14, fontSize: 16, lineHeight: 22 },
   quantityInput: { width: 100 },
   noteInput: { minHeight: 80, paddingTop: 12, textAlignVertical: 'top' },
@@ -1010,17 +1012,17 @@ const styles = StyleSheet.create({
   editorSave: { flex: 1 },
   quickAddRow: { minHeight: 60, flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 12, paddingVertical: 6 },
   quickAddInput: { flex: 1, minHeight: 48, fontSize: 15, lineHeight: 21 },
-  quickAddButton: { width: 48, height: 48, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  quickAddButton: { width: 48, height: 48, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   disabled: { opacity: 0.4 },
   pressed: { opacity: 0.66, transform: [{ scale: 0.985 }] },
   newCategory: { marginTop: 24, paddingTop: 20, borderTopWidth: 1 },
   addCategoryToggle: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 8 },
-  newCategoryTitle: { fontSize: 20, lineHeight: 27, fontWeight: '900' },
+  newCategoryTitle: { fontSize: 20, lineHeight: 27, fontWeight: '700' },
   newCategoryRow: { gap: 10, marginTop: 12 },
   newCategoryInput: { minHeight: 52, borderWidth: 1, borderRadius: 14, paddingHorizontal: 16, fontSize: 16, lineHeight: 22 },
   newCategoryButton: { alignSelf: 'stretch' },
   undoBar: { position: 'absolute', left: 20, right: 20, bottom: 16, minHeight: 64, maxWidth: 600, alignSelf: 'center', borderRadius: 18, flexDirection: 'row', alignItems: 'center', gap: 12, paddingLeft: 18, paddingRight: 8, paddingVertical: 8 },
   undoText: { flex: 1, fontSize: 14, lineHeight: 20, fontWeight: '700' },
   undoAction: { minWidth: 72, minHeight: 48, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 8 },
-  undoActionText: { fontSize: 14, lineHeight: 20, fontWeight: '900' },
+  undoActionText: { fontSize: 14, lineHeight: 20, fontWeight: '800' },
 });

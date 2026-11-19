@@ -20,9 +20,8 @@ export function AuthRecoveryScreen() {
         <View
           style={[
             styles.tag,
-            { backgroundColor: theme.colors.surface, borderColor: theme.colors.outline },
+            { backgroundColor: theme.colors.surface },
           ]}>
-          <View style={[styles.signal, { backgroundColor: theme.colors.accent }]} />
           <Text accessibilityRole="header" style={[styles.title, { color: theme.colors.ink }]}>
             {t('authRestoreTitle')}
           </Text>
@@ -44,9 +43,8 @@ export function AuthRecoveryScreen() {
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
   content: { flex: 1, justifyContent: 'center', width: '100%', maxWidth: 600, alignSelf: 'center', padding: 24 },
-  tag: { borderWidth: 1, borderRadius: 28, padding: 24 },
-  signal: { width: 42, height: 8, borderRadius: 4, marginBottom: 22 },
-  title: { fontSize: 32, lineHeight: 39, fontWeight: '700' },
+  tag: { borderRadius: 18, padding: 24 },
+  title: { fontSize: 27, lineHeight: 34, fontWeight: '700' },
   body: { marginTop: 12, fontSize: 17, lineHeight: 26 },
   actions: { marginTop: 28, gap: 12 },
 });

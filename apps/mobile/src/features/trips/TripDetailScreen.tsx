@@ -24,7 +24,7 @@ import { getChecklistProgress, type ChecklistProgress } from '@/features/checkli
 import { WeatherStrip, type WeatherUiState } from '@/features/weather/WeatherStrip';
 import { calendarDateFromLocalDate, formatCalendarDate } from './domain/calendarDate';
 import { getTripDurationDays, getTripTimeline, type Trip } from './domain/trip';
-import { tripTypeMessageKeys } from './tripPresentation';
+import { getTripHeaderTitle, tripTypeMessageKeys } from './tripPresentation';
 
 export function TripDetailScreen({ tripId }: { tripId: string }) {
   const repository = useTripRepository();
@@ -154,7 +154,7 @@ export function TripDetailScreen({ tripId }: { tripId: string }) {
         { icon: 'minus', id: 'delete', label: t('commonDelete'), tone: 'danger' },
       ],
       cancelLabel: t('commonCancel'),
-      title: trip.name,
+      title: getTripHeaderTitle(trip),
     });
     if (action === 'edit') router.push(`/trip/${trip.id}/edit`);
     if (action === 'delete') await confirmDelete();
@@ -241,28 +241,17 @@ export function TripDetailScreen({ tripId }: { tripId: string }) {
         actionLabel={trip.currentUserRole === 'owner' ? t('commonMore') : undefined}
         onAction={trip.currentUserRole === 'owner' ? () => void openTripActions() : undefined}
         onBack={goBack}
-        title={trip.name}
+        title={getTripHeaderTitle(trip)}
       />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={[styles.hero, { backgroundColor: theme.colors.surface, borderColor: theme.colors.outline }]}>
+        <View style={[styles.hero, { backgroundColor: theme.colors.surface }]}>
           <Text style={[styles.status, { color: theme.colors.primary }]}>{status}</Text>
           <Text accessibilityRole="header" style={[styles.destination, { color: theme.colors.ink }]}>
             {trip.destination}
           </Text>
-          <View style={styles.dateRow}>
-            <View style={styles.dateBlock}>
-              <Text style={[styles.metaLabel, { color: theme.colors.inkMuted }]}>{t('tripStartDateLabel')}</Text>
-              <Text style={[styles.metaValue, { color: theme.colors.ink }]}>
-                {formatCalendarDate(trip.startDate, language)}
-              </Text>
-            </View>
-            <View style={styles.dateBlock}>
-              <Text style={[styles.metaLabel, { color: theme.colors.inkMuted }]}>{t('tripEndDateLabel')}</Text>
-              <Text style={[styles.metaValue, { color: theme.colors.ink }]}>
-                {formatCalendarDate(trip.endDate, language)}
-              </Text>
-            </View>
-          </View>
+          <Text style={[styles.dateLine, { color: theme.colors.inkMuted }]}>
+            {formatCalendarDate(trip.startDate, language)} — {formatCalendarDate(trip.endDate, language)}
+          </Text>
           <View style={styles.tagRow}>
             <View style={styles.tripTags}>
               <Text style={[styles.typeTag, { backgroundColor: theme.colors.primarySoft, color: theme.colors.primary }]}>
@@ -280,14 +269,14 @@ export function TripDetailScreen({ tripId }: { tripId: string }) {
           accessibilityLabel={`${t('tripReadinessTitle')}, ${checklistProgress.total > 0 ? t('tripReadinessProgress', { packed: checklistProgress.packed, total: checklistProgress.total }) : t('tripReadinessBody')}. ${t('tripChecklistAction')}`}
           onPress={() => router.push(`/trip/${trip.id}/checklist`)}
           style={({ pressed }) => [styles.readiness, { backgroundColor: theme.colors.primary }, pressed ? styles.pressed : null]}>
-            <View style={[styles.readinessMark, { borderColor: theme.colors.primarySoft }]}>
+            <View style={[styles.readinessMark, { borderColor: theme.colors.background }]}>
               <Text style={[styles.readinessMarkText, { color: theme.colors.background }]}>
                 {checklistProgress.percentage}%
               </Text>
             </View>
             <View style={styles.readinessCopy}>
               <Text style={[styles.readinessTitle, { color: theme.colors.background }]}>{t('tripReadinessTitle')}</Text>
-              <Text style={[styles.readinessBody, { color: theme.colors.primarySoft }]}>
+              <Text style={[styles.readinessBody, { color: theme.colors.background }]}>
                 {checklistProgress.total > 0
                   ? t('tripReadinessProgress', {
                       packed: checklistProgress.packed,
@@ -314,13 +303,14 @@ export function TripDetailScreen({ tripId }: { tripId: string }) {
           </Pressable>
         ) : null}
 
-        <View style={styles.actionList}>
+        <View style={[styles.actionList, { backgroundColor: theme.colors.surface }]}>
           <Pressable
             accessibilityRole="button"
             onPress={() => router.push(`/trip/${trip.id}/packing-studio`)}
             style={({ pressed }) => [
               styles.actionRow,
-              { backgroundColor: theme.colors.surface, borderColor: theme.colors.outlineStrong },
+              styles.actionDivider,
+              { borderColor: theme.colors.outline },
               pressed ? styles.pressed : null,
             ]}>
             <View style={[styles.actionIcon, { backgroundColor: theme.colors.sun }]}>
@@ -338,26 +328,10 @@ export function TripDetailScreen({ tripId }: { tripId: string }) {
             onPress={() => router.push(`/trip/${trip.id}/members`)}
             style={({ pressed }) => [
               styles.actionRow,
-              { backgroundColor: theme.colors.surface, borderColor: theme.colors.outlineStrong },
               pressed ? styles.pressed : null,
             ]}>
-            <View style={styles.memberStack}>
-              {trip.memberPreview.slice(0, 3).map((member, index) => (
-                <View
-                  key={member.userId}
-                  style={[
-                    styles.memberAvatar,
-                    {
-                      backgroundColor: member.role === 'owner' ? theme.colors.sun : theme.colors.primarySoft,
-                      borderColor: theme.colors.surface,
-                      marginLeft: index === 0 ? 0 : -12,
-                    },
-                  ]}>
-                  <Text style={[styles.memberAvatarText, { color: member.role === 'owner' ? theme.colors.onWarm : theme.colors.primary }]}>
-                    {memberInitials(member.displayName)}
-                  </Text>
-                </View>
-              ))}
+            <View style={[styles.actionIcon, { backgroundColor: theme.colors.primarySoft }]}>
+              <AppIcon color={theme.colors.primary} name="group" size={22} />
             </View>
             <View style={styles.actionCopy}>
               <Text style={[styles.actionTitle, { color: theme.colors.ink }]}>{t('tripMembersTitle')}</Text>
@@ -367,7 +341,7 @@ export function TripDetailScreen({ tripId }: { tripId: string }) {
           </Pressable>
         </View>
 
-        <View style={styles.section}>
+        <View style={[styles.section, styles.weatherSection]}>
           <Text accessibilityRole="header" style={[styles.sectionTitle, { color: theme.colors.ink }]}>
             {t('weatherTitle')}
           </Text>
@@ -382,7 +356,7 @@ export function TripDetailScreen({ tripId }: { tripId: string }) {
           onPress={() => setShowSecondaryDetails((current) => !current)}
           style={({ pressed }) => [
             styles.detailsToggle,
-            { borderColor: theme.colors.outlineStrong },
+            { backgroundColor: theme.colors.surface },
             pressed ? styles.pressed : null,
           ]}>
           <View style={styles.actionCopy}>
@@ -485,48 +459,44 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1 },
   content: { width: '100%', maxWidth: 640, alignSelf: 'center', paddingHorizontal: 20, paddingBottom: 48 },
   centerState: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 20, padding: 24 },
-  stateTitle: { fontSize: 20, lineHeight: 28, fontWeight: '800', textAlign: 'center' },
-  hero: { marginTop: 8, borderWidth: 1, borderRadius: 20, padding: 16 },
-  status: { fontSize: 13, lineHeight: 18, fontWeight: '700' },
-  destination: { marginTop: 6, fontSize: 24, lineHeight: 30, fontWeight: '800', letterSpacing: -0.3 },
-  dateRow: { marginTop: 14, flexDirection: 'row', gap: 20 },
-  dateBlock: { flex: 1, gap: 4 },
-  metaLabel: { fontSize: 11, lineHeight: 15, fontWeight: '800', letterSpacing: 0.7 },
-  metaValue: { fontSize: 15, lineHeight: 21, fontWeight: '700' },
+  stateTitle: { fontSize: 20, lineHeight: 28, fontWeight: '700', textAlign: 'center' },
+  hero: { marginTop: 8, borderRadius: 18, padding: 18 },
+  status: { fontSize: 12, lineHeight: 18, fontWeight: '600' },
+  destination: { marginTop: 5, fontSize: 21, lineHeight: 27, fontWeight: '700', letterSpacing: -0.3 },
+  dateLine: { marginTop: 12, fontSize: 14, lineHeight: 20, fontWeight: '500', fontVariant: ['tabular-nums'] },
   tagRow: { marginTop: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
   tripTags: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8 },
-  typeTag: { overflow: 'hidden', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 14, fontSize: 12, lineHeight: 17, fontWeight: '800' },
-  duration: { fontSize: 13, lineHeight: 18, fontWeight: '700' },
+  typeTag: { overflow: 'hidden', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, fontSize: 12, lineHeight: 17, fontWeight: '600' },
+  duration: { fontSize: 13, lineHeight: 18, fontWeight: '500' },
   section: { marginTop: 24 },
+  weatherSection: { marginTop: 16 },
   sectionContent: { marginTop: 8 },
-  sectionTitle: { fontSize: 21, lineHeight: 28, fontWeight: '900' },
+  sectionTitle: { fontSize: 20, lineHeight: 27, fontWeight: '700' },
   readiness: { minHeight: 84, marginTop: 12, padding: 16, borderRadius: 16, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  readinessMark: { width: 48, height: 48, borderRadius: 24, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
-  readinessMarkText: { fontSize: 12, lineHeight: 17, fontWeight: '900', fontVariant: ['tabular-nums'] },
+  readinessMark: { width: 48, height: 48, borderRadius: 24, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  readinessMarkText: { fontSize: 12, lineHeight: 17, fontWeight: '700', fontVariant: ['tabular-nums'] },
   readinessCopy: { flex: 1, gap: 2 },
-  readinessTitle: { fontSize: 16, lineHeight: 22, fontWeight: '800' },
-  readinessBody: { fontSize: 14, lineHeight: 20, fontWeight: '600' },
-  readinessAction: { marginTop: 4, fontSize: 14, lineHeight: 20, fontWeight: '800' },
+  readinessTitle: { fontSize: 16, lineHeight: 22, fontWeight: '700' },
+  readinessBody: { fontSize: 14, lineHeight: 20, fontWeight: '500' },
+  readinessAction: { marginTop: 4, fontSize: 14, lineHeight: 20, fontWeight: '600' },
   essentialNotice: { minHeight: 68, marginTop: 8, padding: 12, borderRadius: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
   essentialCopy: { flex: 1, gap: 2 },
-  essentialTitle: { fontSize: 14, lineHeight: 20, fontWeight: '800' },
+  essentialTitle: { fontSize: 14, lineHeight: 20, fontWeight: '700' },
   essentialItems: { fontSize: 13, lineHeight: 18 },
-  actionList: { marginTop: 16, gap: 10 },
-  actionRow: { minHeight: 76, borderWidth: 1, borderRadius: 16, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  actionList: { marginTop: 16, borderRadius: 14, overflow: 'hidden' },
+  actionRow: { minHeight: 76, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  actionDivider: { borderBottomWidth: 1 },
   actionIcon: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   actionCopy: { flex: 1, gap: 2 },
-  actionTitle: { fontSize: 16, lineHeight: 22, fontWeight: '800' },
+  actionTitle: { fontSize: 16, lineHeight: 22, fontWeight: '700' },
   actionBody: { fontSize: 13, lineHeight: 18 },
-  memberStack: { width: 58, minHeight: 40, flexDirection: 'row', alignItems: 'center' },
-  memberAvatar: { width: 38, height: 38, borderRadius: 19, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
-  memberAvatarText: { fontSize: 11, lineHeight: 15, fontWeight: '900' },
-  detailsToggle: { minHeight: 64, marginTop: 16, borderWidth: 1, borderRadius: 16, paddingHorizontal: 16, paddingVertical: 10, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  detailsToggle: { minHeight: 64, marginTop: 16, borderRadius: 14, paddingHorizontal: 16, paddingVertical: 10, flexDirection: 'row', alignItems: 'center', gap: 12 },
   reminderBody: { marginTop: 6, fontSize: 14, lineHeight: 21 },
   reminderOptions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 },
   reminderOption: { minHeight: 48, borderWidth: 1, borderRadius: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingHorizontal: 14 },
-  reminderOptionText: { fontSize: 13, lineHeight: 18, fontWeight: '800' },
+  reminderOptionText: { fontSize: 13, lineHeight: 18, fontWeight: '600' },
   reminderStatus: { marginTop: 10, flexDirection: 'row', alignItems: 'center', gap: 6 },
-  reminderStatusText: { flex: 1, fontSize: 13, lineHeight: 19, fontWeight: '800' },
+  reminderStatusText: { flex: 1, fontSize: 13, lineHeight: 19, fontWeight: '700' },
   reminderError: { marginTop: 10, fontSize: 13, lineHeight: 20, fontWeight: '700' },
   pressed: { opacity: 0.68 },
   note: { marginTop: 10, fontSize: 16, lineHeight: 25 },
@@ -539,13 +509,4 @@ function formatReminderDate(timestamp: number, language: 'vi' | 'en'): string {
     dateStyle: 'medium',
     timeStyle: 'short',
   }).format(new Date(timestamp));
-}
-
-function memberInitials(name: string): string {
-  return name
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? '')
-    .join('');
 }

@@ -1,6 +1,7 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { useAppTheme } from '@/design/theme/AppThemeProvider';
+import { AppIcon } from '@/design/components/AppIcon';
 import { useI18n } from '@/i18n/I18nProvider';
 import { usePreferences } from '@/platform/preferences/PreferencesProvider';
 
@@ -39,7 +40,7 @@ export function WeatherStrip({
     return (
       <View style={[styles.strip, { backgroundColor: theme.colors.surface, borderColor: theme.colors.outline }]}>
         <View style={styles.unavailableCopy}>
-          <Text style={[styles.weatherMark, { color: theme.colors.warning }]}>○</Text>
+          <AppIcon color={theme.colors.warning} name="warning" size={22} />
           <Text style={[styles.unavailableText, { color: theme.colors.inkMuted }]}>
             {t('weatherUnavailable')}
           </Text>
@@ -73,7 +74,7 @@ export function WeatherStrip({
             {t('weatherRain', { count: forecast.rainChancePercent })}
           </Text>
         </View>
-        <Text style={[styles.temperature, { color: theme.colors.primary }]}>
+        <Text numberOfLines={2} style={[styles.temperature, { color: theme.colors.primary }]}>
           {t('weatherRange', {
             low: formatTemperature(forecast.lowTemperatureCelsius, temperatureUnit),
             high: formatTemperature(forecast.highTemperatureCelsius, temperatureUnit),
@@ -85,18 +86,17 @@ export function WeatherStrip({
 }
 
 const styles = StyleSheet.create({
-  strip: { minHeight: 86, borderWidth: 1, borderRadius: 20, padding: 16, justifyContent: 'center' },
+  strip: { minHeight: 86, borderRadius: 14, padding: 16, justifyContent: 'center' },
   loadingText: { marginTop: 8, fontSize: 14, lineHeight: 20, textAlign: 'center' },
   unavailableCopy: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
-  weatherMark: { width: 24, fontSize: 24, lineHeight: 26, fontWeight: '900' },
   unavailableText: { flex: 1, fontSize: 14, lineHeight: 20 },
   refresh: { minHeight: 48, alignSelf: 'flex-start', justifyContent: 'center', marginTop: 4, paddingHorizontal: 34 },
-  refreshText: { fontSize: 13, lineHeight: 18, fontWeight: '900' },
+  refreshText: { fontSize: 13, lineHeight: 18, fontWeight: '800' },
   readyContent: { minHeight: 54, flexDirection: 'row', alignItems: 'center', gap: 14 },
   weatherMain: { flex: 1 },
-  source: { fontSize: 10, lineHeight: 14, fontWeight: '900', letterSpacing: 0.8 },
-  condition: { marginTop: 3, fontSize: 18, lineHeight: 24, fontWeight: '900' },
+  source: { fontSize: 10, lineHeight: 14, fontWeight: '800', letterSpacing: 0.8 },
+  condition: { marginTop: 3, fontSize: 18, lineHeight: 24, fontWeight: '800' },
   rain: { marginTop: 1, fontSize: 13, lineHeight: 18, fontWeight: '600' },
-  temperature: { fontSize: 18, lineHeight: 24, fontWeight: '900', fontVariant: ['tabular-nums'] },
+  temperature: { maxWidth: 128, fontSize: 17, lineHeight: 23, fontWeight: '700', textAlign: 'right', fontVariant: ['tabular-nums'] },
   pressed: { opacity: 0.68 },
 });

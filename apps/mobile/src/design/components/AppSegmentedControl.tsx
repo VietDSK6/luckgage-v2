@@ -26,7 +26,10 @@ export function AppSegmentedControl<Value extends string>({
   const { theme } = useAppTheme();
 
   return (
-    <View accessibilityLabel={accessibilityLabel} accessibilityRole="radiogroup" style={styles.group}>
+    <View
+      accessibilityLabel={accessibilityLabel}
+      accessibilityRole="radiogroup"
+      style={[styles.group, { backgroundColor: theme.colors.surface, borderRadius: theme.radius.panel }]}>
       {options.map((option) => {
         const selected = value === option.value;
         return (
@@ -39,8 +42,7 @@ export function AppSegmentedControl<Value extends string>({
             style={({ pressed }) => [
               styles.option,
               {
-                backgroundColor: selected ? theme.colors.primarySoft : theme.colors.surface,
-                borderColor: selected ? theme.colors.primary : theme.colors.outlineStrong,
+                backgroundColor: selected ? theme.colors.primarySoft : 'transparent',
                 borderRadius: theme.radius.control,
               },
               pressed ? styles.pressed : null,
@@ -57,11 +59,11 @@ export function AppSegmentedControl<Value extends string>({
 }
 
 const styles = StyleSheet.create({
-  group: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  group: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, padding: 4 },
   option: {
+    flexGrow: 1,
     minWidth: 88,
     minHeight: 48,
-    borderWidth: 1,
     paddingHorizontal: 14,
     flexDirection: 'row',
     alignItems: 'center',

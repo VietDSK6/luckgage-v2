@@ -87,7 +87,7 @@ export function TripSuggestionsScreen() {
               title={t('suggestionsLoadErrorTitle')}
             />
           ) : (
-            <View style={[styles.empty, { borderColor: theme.colors.outline }]}>
+            <View style={styles.empty}>
               <BrandLuki width={132} />
               <Text accessibilityRole="header" style={[theme.typography.sectionTitle, { color: theme.colors.ink }]}>
                 {t('suggestionsEmptyTitle')}
@@ -142,7 +142,7 @@ function SuggestionCard({
       onPress={onPress}
       style={({ pressed }) => [
         styles.card,
-        { backgroundColor: theme.colors.surface, borderColor: theme.colors.outline },
+        { backgroundColor: theme.colors.surface },
         pressed ? styles.pressed : null,
       ]}>
       <View style={styles.imageWrap}>
@@ -160,9 +160,6 @@ function SuggestionCard({
           <Text style={[theme.typography.caption, { color: theme.colors.inkMuted }]}>
             {t('suggestionDuration', { count: item.suggestedDurationDays })}
           </Text>
-        </View>
-        <View style={styles.openRow}>
-          <Text style={[theme.typography.bodyStrong, { color: theme.colors.primary }]}>{t('suggestionOpen')}</Text>
           <AppIcon color={theme.colors.primary} name="arrowRight" size={19} />
         </View>
       </View>
@@ -173,7 +170,7 @@ function SuggestionCard({
 function StatePanel({ body, onRetry, theme, title }: { body: string; onRetry: () => void; theme: AppTheme; title: string }) {
   const { t } = useI18n();
   return (
-    <View style={[styles.statePanel, { borderColor: theme.colors.outline }]}>
+    <View style={styles.statePanel}>
       <AppIcon color={theme.colors.accentStrong} name="warning" size={28} />
       <Text accessibilityRole="alert" style={[theme.typography.sectionTitle, { color: theme.colors.ink }]}>{title}</Text>
       <Text style={[theme.typography.bodySmall, styles.centerText, { color: theme.colors.inkMuted }]}>{body}</Text>
@@ -188,14 +185,13 @@ const styles = StyleSheet.create({
   intro: { marginTop: spacing.x4, marginBottom: spacing.x5, maxWidth: 520 },
   centerState: { minHeight: 320, alignItems: 'center', justifyContent: 'center' },
   centerText: { textAlign: 'center' },
-  empty: { minHeight: 360, marginTop: spacing.x5, borderWidth: 1, borderRadius: radius.card, padding: spacing.x8, alignItems: 'center', justifyContent: 'center', gap: spacing.x3 },
-  statePanel: { minHeight: 320, marginTop: spacing.x5, borderWidth: 1, borderRadius: radius.card, padding: spacing.x8, alignItems: 'center', justifyContent: 'center', gap: spacing.x3 },
-  card: { marginBottom: spacing.x4, borderWidth: 1, borderRadius: radius.card, overflow: 'hidden' },
+  empty: { minHeight: 320, marginTop: spacing.x5, padding: spacing.x8, alignItems: 'center', justifyContent: 'center', gap: spacing.x3 },
+  statePanel: { minHeight: 280, marginTop: spacing.x5, padding: spacing.x8, alignItems: 'center', justifyContent: 'center', gap: spacing.x3 },
+  card: { marginBottom: spacing.x4, borderRadius: radius.card, overflow: 'hidden' },
   imageWrap: { aspectRatio: 16 / 9, overflow: 'hidden' },
   image: { width: '100%', height: '100%' },
   cardCopy: { padding: spacing.x5 },
   cardTitle: { ...typography.cardTitle, marginBottom: spacing.x2 },
-  cardFooter: { marginTop: spacing.x4, borderTopWidth: 1, paddingTop: spacing.x3, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start' },
-  openRow: { marginTop: spacing.x5, flexDirection: 'row', alignItems: 'center', gap: spacing.x2 },
+  cardFooter: { marginTop: spacing.x4, borderTopWidth: 1, paddingTop: spacing.x3, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   pressed: { opacity: 0.82, transform: [{ scale: 0.995 }] },
 });

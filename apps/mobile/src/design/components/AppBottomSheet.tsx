@@ -21,15 +21,14 @@ export function AppBottomSheet({ children, closeLabel, onClose, title, visible }
 
   return (
     <Modal
-      animationType={reducedMotion ? 'none' : 'slide'}
+      animationType={reducedMotion ? 'none' : 'fade'}
       onRequestClose={onClose}
       presentationStyle="overFullScreen"
       transparent
       visible={visible}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.fill}>
         <Pressable
-          accessibilityLabel={closeLabel}
-          accessibilityRole="button"
+          accessible={false}
           onPress={onClose}
           style={[styles.backdrop, { backgroundColor: theme.colors.overlay }]}
         />
@@ -39,7 +38,6 @@ export function AppBottomSheet({ children, closeLabel, onClose, title, visible }
             styles.sheet,
             {
               backgroundColor: theme.colors.surface,
-              borderColor: theme.colors.outline,
               borderTopLeftRadius: theme.radius.hero,
               borderTopRightRadius: theme.radius.hero,
             },
@@ -68,7 +66,7 @@ export function AppBottomSheet({ children, closeLabel, onClose, title, visible }
 const styles = StyleSheet.create({
   fill: { flex: 1, justifyContent: 'flex-end' },
   backdrop: { ...StyleSheet.absoluteFill },
-  sheet: { maxHeight: '88%', borderTopWidth: 1, overflow: 'hidden' },
+  sheet: { maxHeight: '88%', overflow: 'hidden' },
   header: { paddingTop: 8, paddingHorizontal: 20 },
   handle: { width: 40, height: 4, borderRadius: 2, alignSelf: 'center', opacity: 0.7 },
   titleRow: { minHeight: 64, flexDirection: 'row', alignItems: 'center', gap: 12 },

@@ -47,8 +47,8 @@ export function AppBottomNavigation({ active, onSelect, onScanQr }: AppBottomNav
         accessibilityRole="button"
         onPress={onScanQr}
         style={({ pressed }) => [styles.item, pressed ? styles.pressed : null]}>
-        <View style={[styles.scanIcon, { backgroundColor: theme.colors.primarySoft, borderColor: theme.colors.primary, borderRadius: theme.radius.pill, width: theme.spacing.x10, height: theme.spacing.x10 }]}>
-          <AppIcon color={theme.colors.primary} name="qr" size={20} />
+        <View style={[styles.scanIcon, { backgroundColor: theme.colors.primary, borderRadius: theme.radius.control, width: theme.spacing.x10, height: theme.spacing.x10 }]}>
+          <AppIcon color={theme.colors.background} name="qr" size={20} />
         </View>
         <Text style={[theme.typography.nav, { color: theme.colors.inkMuted }]}>{t('navScanQr')}</Text>
       </Pressable>
@@ -113,7 +113,7 @@ function NavigationItem({
           <AppIcon color={theme.colors.inkMuted} name={icon} size={20} />
         </Animated.View>
         <Animated.View style={[styles.iconLayer, { opacity: progress }]}>
-          <AppIcon color={theme.colors.accentStrong} name={icon} size={20} />
+          <AppIcon color={theme.colors.primary} name={icon} size={20} />
         </Animated.View>
       </Animated.View>
       <View style={styles.labelFrame}>
@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 2,
   },
-  scanIcon: { alignItems: 'center', justifyContent: 'center', borderWidth: 1 },
+  scanIcon: { alignItems: 'center', justifyContent: 'center' },
   icon: { width: 20, height: 20 },
   iconLayer: { position: 'absolute', inset: 0 },
   labelFrame: { position: 'relative' },

@@ -54,23 +54,24 @@ screen mới.
 
 | Vai trò | Light | Ý nghĩa |
 |---|---:|---|
-| Background | `#FFF7E8` | Giấy travel journal ấm |
+| Background | `#F7F7F2` | Nền sáng trung tính, dịu mắt khi đọc danh sách dài |
 | Surface | `#FFFFFF` | Vùng nhập liệu/card cần rõ |
-| Ink | `#12312F` | Text chính và nét minh hoạ |
-| Primary | `#0F766E` | Hành động chính, độ tin cậy |
-| Primary soft | `#DDF4EF` | Nền nhấn nhẹ |
-| Accent | `#FF665C` | Peak moment và điểm hành trình |
-| Sun | `#F6C84C` | Lỗ thẻ, optimistic moment |
+| Ink | `#193331` | Text chính và nét minh hoạ |
+| Primary | `#006F65` | Hành động chính, độ tin cậy |
+| Primary soft | `#E6F3F0` | Nền chọn/nhấn nhẹ |
+| Accent | `#E46F5E` | Peak moment và điểm hành trình |
+| Sun | `#F5C75E` | Lỗ thẻ, optimistic moment |
 
-Tỷ lệ gợi ý: background/surface chiếm phần lớn, teal cho cấu trúc và CTA, coral/yellow chỉ làm điểm
-nhấn. Dark mode dùng semantic token hiện có, không đảo màu PNG hoặc tự tạo filter.
+Tỷ lệ gợi ý: background/surface chiếm phần lớn, teal dành cho CTA và một điểm nội dung chính trên
+màn, coral/yellow là điểm nhấn nhỏ. Dark mode dùng nền `#101C1B`, surface `#1A2A29`, primary
+`#87D7C8` và semantic token tương ứng; không đảo màu PNG hoặc tự tạo filter.
 
 ### Semantic contrast
 
 - `accent` là màu trang trí cho sticker, route dot và peak moment; không dùng cho text/icon chức năng
   trên nền sáng.
 - `accentStrong` là coral có contrast đủ cho trạng thái chức năng như active icon.
-- `outline` chỉ dùng cho divider và biên surface không cần thiết để nhận diện control.
+- `outline` chỉ dùng cho divider và biên surface cần thiết để phân nhóm.
 - `outlineStrong` dùng cho input, segmented option, checkbox và control chưa selected.
 - Test contrast nằm tại `apps/mobile/src/design/tokens/index.test.ts`; đổi token phải cập nhật và chạy
   test này.
@@ -92,8 +93,10 @@ Nguồn sự thật là `apps/mobile/src/design/tokens/index.ts`. Feature mới 
 | `eyebrow` | Nhãn editorial ngắn, uppercase |
 | `nav` | Bottom navigation |
 
-Không tạo font size mới chỉ để sửa một màn. Một màn chỉ có tối đa một `display`; checklist ưu tiên
-`screenTitle`/`sectionTitle` để giữ mật độ thao tác.
+Scale 5C: display 30/36, screen title 25/31, section title 20/27, card title 17/23, body 16/24.
+Heading chủ yếu dùng weight 700; display 800; metadata 400–500. Không tạo font size mới chỉ để sửa
+một màn. Một màn chỉ có tối đa một `display`; checklist ưu tiên `screenTitle`/`sectionTitle` để giữ
+mật độ thao tác.
 
 ### Spacing và radius
 
@@ -102,7 +105,9 @@ Không tạo font size mới chỉ để sửa một màn. Một màn chỉ có 
   hoặc `x3`.
 - `small` cho chi tiết nhỏ, `control` cho input/button, `panel` cho group, `card` cho card nội dung,
   `hero` chỉ dành cho hero thật sự và `pill` cho chip tròn.
-- Không dùng card bo tròn quanh mọi section. Ưu tiên divider/list row ở màn thao tác thường xuyên.
+- Radius 5C là 6/10/14/18/22 dp cho small/control/panel/card/hero. Không dùng card bo tròn quanh
+  mọi section. Ưu tiên divider/list row ở màn thao tác thường xuyên; viền dành cho field, checkbox
+  và control cần nhận diện, không vẽ quanh mọi card.
 
 ### Control và motion
 

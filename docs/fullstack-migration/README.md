@@ -76,6 +76,8 @@ Thứ tự ưu tiên khi có xung đột:
 10. [09 — Kịch bản demo và bảo vệ](09_DEMO_AND_DEFENSE.md)
 11. [10 — Triển khai Phase 5](10_PHASE5_PREPARATION.md)
 12. [11 — Security audit local](11_LOCAL_SECURITY_AUDIT.md)
+13. [12 — Packing rule catalog](12_PACKING_RULE_CATALOG.md)
+14. [13 — Phase 5C làm lại UI/UX](13_UI_UX_REDESIGN.md)
 
 ## Thứ tự triển khai đã chốt
 
@@ -85,7 +87,7 @@ Phase 1  Thiết kế lại + xây Expo mobile local
 Phase 2  Xây backend và PostgreSQL độc lập
 Phase 3  Tích hợp Expo với backend
 Phase 4  Xây admin web trên cùng API
-Phase 5  Hardening, deploy và rehearsal
+Phase 5  Hardening, làm lại UI/UX app Expo, deploy và rehearsal
 ~~~
 
 Không xây admin trước khi API admin ổn định. Không tích hợp backend khi backend chưa có

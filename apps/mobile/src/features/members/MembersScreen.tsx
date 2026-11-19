@@ -26,6 +26,7 @@ import { useAppFeedback } from '@/design/feedback/AppFeedbackProvider';
 import { useAppTheme } from '@/design/theme/AppThemeProvider';
 import { radius, spacing, themes, type AppTheme } from '@/design/tokens';
 import type { Trip } from '@/features/trips/domain/trip';
+import { getTripHeaderTitle } from '@/features/trips/tripPresentation';
 import { useI18n } from '@/i18n/I18nProvider';
 import { usePreferences } from '@/platform/preferences/PreferencesProvider';
 
@@ -205,7 +206,7 @@ export function MembersScreen({ tripId }: { tripId: string }) {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
-      <AppPageHeader onBack={goBack} title={trip.name} />
+      <AppPageHeader onBack={goBack} title={getTripHeaderTitle(trip)} />
       <ScrollView
         contentContainerStyle={styles.content}
         refreshControl={
@@ -260,21 +261,20 @@ export function MembersScreen({ tripId }: { tripId: string }) {
             </Text>
 
             {invite ? (
-              <View style={[styles.inviteTag, { backgroundColor: theme.colors.sun }]}>
-                <View style={[styles.inviteHole, { backgroundColor: theme.colors.background }]} />
-                <Text style={[styles.inviteLabel, { color: theme.colors.onWarm }]}>
+              <View style={[styles.inviteTag, { backgroundColor: theme.colors.surface }]}>
+                <Text style={[styles.inviteLabel, { color: theme.colors.primary }]}>
                   {t('membersInviteCodeLabel')}
                 </Text>
-                <Text selectable style={[styles.inviteCode, { color: theme.colors.onWarm }]}>
+                <Text selectable style={[styles.inviteCode, { color: theme.colors.ink }]}>
                   {invite.code}
                 </Text>
                 <View accessible accessibilityLabel={t('membersInviteQrLabel')} accessibilityRole="image" style={styles.inviteQr}>
-                  <QRCode value={invite.code} size={200} color={theme.colors.onWarm} backgroundColor={themes.light.colors.surface} quietZone={spacing.x3} />
+                  <QRCode value={invite.code} size={200} color={themes.light.colors.ink} backgroundColor={themes.light.colors.surface} quietZone={spacing.x3} />
                 </View>
-                <Text style={[theme.typography.bodySmall, { color: theme.colors.onWarm }]}>
+                <Text style={[theme.typography.bodySmall, { color: theme.colors.inkMuted }]}>
                   {t('membersInviteQrHint')}
                 </Text>
-                <Text style={[styles.inviteMeta, { color: theme.colors.onWarm }]}>
+                <Text style={[styles.inviteMeta, { color: theme.colors.inkMuted }]}>
                   {t('membersInviteExpires', {
                     date: formatDateTime(invite.expiresAt, language),
                   })}
@@ -320,15 +320,14 @@ export function MembersScreen({ tripId }: { tripId: string }) {
                         style={({ pressed }) => [
                           styles.expiryOption,
                           {
-                            backgroundColor: selected ? theme.colors.primary : theme.colors.surface,
-                            borderColor: selected ? theme.colors.primary : theme.colors.outlineStrong,
+                            backgroundColor: selected ? theme.colors.primarySoft : theme.colors.surface,
                           },
                           pressed ? styles.pressed : null,
                         ]}>
                         <Text
                           style={[
                             styles.expiryText,
-                            { color: selected ? theme.colors.background : theme.colors.ink },
+                            { color: selected ? theme.colors.primary : theme.colors.ink },
                           ]}>
                           {t(labelKey)}
                         </Text>
@@ -422,33 +421,32 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1 },
   content: { width: '100%', maxWidth: 640, alignSelf: 'center', paddingHorizontal: 20, paddingBottom: 48 },
   centerState: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 20, padding: 24 },
-  stateTitle: { fontSize: 20, lineHeight: 28, fontWeight: '800', textAlign: 'center' },
+  stateTitle: { fontSize: 20, lineHeight: 28, fontWeight: '700', textAlign: 'center' },
   headingRow: { marginTop: 16, flexDirection: 'row', alignItems: 'flex-start', gap: 20 },
   headingCopy: { flex: 1 },
-  title: { fontSize: 32, lineHeight: 39, fontWeight: '800', letterSpacing: -0.5 },
+  title: { fontSize: 32, lineHeight: 39, fontWeight: '700', letterSpacing: -0.5 },
   body: { marginTop: 8, fontSize: 15, lineHeight: 23 },
   errorBanner: { minHeight: 48, marginTop: 20, borderWidth: 1, borderRadius: 12, padding: 12, justifyContent: 'center' },
   errorText: { fontSize: 14, lineHeight: 20, fontWeight: '700' },
   memberList: { marginTop: 24 },
   memberRow: { minHeight: 76, flexDirection: 'row', alignItems: 'center', gap: 14, borderBottomWidth: 1, paddingVertical: 12 },
   avatar: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
-  avatarText: { fontSize: 15, lineHeight: 20, fontWeight: '900' },
+  avatarText: { fontSize: 15, lineHeight: 20, fontWeight: '800' },
   memberCopy: { flex: 1 },
-  memberName: { fontSize: 16, lineHeight: 22, fontWeight: '800' },
+  memberName: { fontSize: 16, lineHeight: 22, fontWeight: '700' },
   memberRole: { marginTop: 2, fontSize: 12, lineHeight: 17, fontWeight: '700' },
   removeButton: { minWidth: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
-  removeText: { fontSize: 13, lineHeight: 18, fontWeight: '800' },
+  removeText: { fontSize: 13, lineHeight: 18, fontWeight: '700' },
   inviteSection: { marginTop: 36 },
-  sectionTitle: { fontSize: 23, lineHeight: 30, fontWeight: '800' },
+  sectionTitle: { fontSize: 23, lineHeight: 30, fontWeight: '700' },
   sectionBody: { marginTop: 6, fontSize: 15, lineHeight: 23 },
   expiryRow: { marginTop: 18, flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  expiryOption: { minHeight: 48, borderWidth: 1, borderRadius: 24, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' },
-  expiryText: { fontSize: 13, lineHeight: 18, fontWeight: '800' },
+  expiryOption: { minHeight: 48, borderRadius: 10, paddingHorizontal: 14, alignItems: 'center', justifyContent: 'center' },
+  expiryText: { fontSize: 13, lineHeight: 18, fontWeight: '700' },
   createInvite: { marginTop: 16 },
-  inviteTag: { position: 'relative', overflow: 'hidden', marginTop: 18, borderRadius: 24, padding: 22, transform: [{ rotate: '-1deg' }], gap: 12 },
-  inviteHole: { position: 'absolute', top: 16, right: 16, width: 18, height: 18, borderRadius: 9 },
-  inviteLabel: { fontSize: 10, lineHeight: 14, fontWeight: '900', letterSpacing: 1.2 },
-  inviteCode: { marginTop: 8, paddingRight: 22, fontSize: 26, lineHeight: 32, fontWeight: '900', letterSpacing: 1.2 },
+  inviteTag: { overflow: 'hidden', marginTop: 18, borderRadius: 18, padding: 20, gap: 12 },
+  inviteLabel: { fontSize: 10, lineHeight: 14, fontWeight: '800', letterSpacing: 1.2 },
+  inviteCode: { marginTop: 8, paddingRight: 22, fontSize: 26, lineHeight: 32, fontWeight: '800', letterSpacing: 1.2 },
   inviteQr: { alignSelf: 'center', marginVertical: spacing.x2, borderRadius: radius.panel, overflow: 'hidden' },
   inviteMeta: { fontSize: 13, lineHeight: 19, fontWeight: '700', opacity: 0.72 },
   inviteActions: { flexDirection: 'row', gap: 8 },

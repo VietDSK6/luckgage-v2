@@ -22,6 +22,7 @@ import { AppPageHeader } from '@/design/components/AppPageHeader';
 import { useAppFeedback } from '@/design/feedback/AppFeedbackProvider';
 import { useAppTheme } from '@/design/theme/AppThemeProvider';
 import { getTripDurationDays, type Trip } from '@/features/trips/domain/trip';
+import { getTripHeaderTitle } from '@/features/trips/tripPresentation';
 import { formatTemperature, type WeatherForecast } from '@/features/weather/domain/weather';
 import { useI18n } from '@/i18n/I18nProvider';
 import { usePreferences } from '@/platform/preferences/PreferencesProvider';
@@ -204,7 +205,7 @@ export function PackingStudioScreen({ tripId }: { tripId: string }) {
   if (state === 'success') {
     return (
       <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
-        <AppPageHeader onBack={goBack} title={trip.name} />
+        <AppPageHeader onBack={goBack} title={getTripHeaderTitle(trip)} />
         <View style={styles.successState}>
           <View style={[styles.successStamp, { backgroundColor: theme.colors.primarySoft, borderColor: theme.colors.primary }]}>
             <AppIcon color={theme.colors.primary} name="check" size={50} strokeWidth={2.8} />
@@ -272,15 +273,14 @@ export function PackingStudioScreen({ tripId }: { tripId: string }) {
                       style={({ pressed }) => [
                         styles.activityChip,
                         {
-                          backgroundColor: selected ? theme.colors.primary : theme.colors.surface,
-                          borderColor: selected ? theme.colors.primary : theme.colors.outlineStrong,
+                          backgroundColor: selected ? theme.colors.primarySoft : theme.colors.surface,
                         },
                         pressed ? styles.pressed : null,
                       ]}>
                       {selected ? (
-                        <AppIcon color={theme.colors.background} name="check" size={17} strokeWidth={2.8} />
+                        <AppIcon color={theme.colors.primary} name="check" size={17} strokeWidth={2.8} />
                       ) : null}
-                      <Text style={[styles.activityLabel, { color: selected ? theme.colors.background : theme.colors.ink }]}>
+                      <Text style={[styles.activityLabel, { color: selected ? theme.colors.primary : theme.colors.ink }]}>
                         {packingActivityLabel(activity, language)}
                       </Text>
                     </Pressable>
@@ -329,8 +329,8 @@ export function PackingStudioScreen({ tripId }: { tripId: string }) {
                     style={[
                       styles.previewItem,
                       {
-                        backgroundColor: item.selected ? theme.colors.surface : theme.colors.background,
-                        borderColor: item.selected ? theme.colors.outline : theme.colors.primarySoft,
+                        backgroundColor: theme.colors.surface,
+                        opacity: item.selected ? 1 : 0.6,
                       },
                     ]}>
                     <View style={styles.previewHeader}>
@@ -431,7 +431,7 @@ export function PackingStudioScreen({ tripId }: { tripId: string }) {
             <AppButton
               label={t('packingKeepEditing')}
               onPress={() => setState('setup')}
-              style={styles.footerButton}
+              style={styles.footerSecondary}
               variant="ghost"
             />
             <AppButton
@@ -451,35 +451,36 @@ export function PackingStudioScreen({ tripId }: { tripId: string }) {
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
   centerState: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 20, padding: 24 },
-  stateTitle: { maxWidth: 420, fontSize: 20, lineHeight: 28, fontWeight: '800', textAlign: 'center' },
+  stateTitle: { maxWidth: 420, fontSize: 20, lineHeight: 28, fontWeight: '700', textAlign: 'center' },
   content: { width: '100%', maxWidth: 640, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 12, paddingBottom: 64 },
-  displayTitle: { fontSize: 31, lineHeight: 38, fontWeight: '900', letterSpacing: -0.5 },
+  displayTitle: { fontSize: 31, lineHeight: 38, fontWeight: '800', letterSpacing: -0.5 },
   intro: { marginTop: 8, fontSize: 16, lineHeight: 24 },
   tripContext: { marginTop: 16, gap: 4 },
   destination: { fontSize: 17, lineHeight: 24, fontWeight: '700' },
   weatherContext: { fontSize: 13, lineHeight: 19, fontWeight: '600' },
-  sectionTitle: { marginTop: 32, fontSize: 21, lineHeight: 28, fontWeight: '900' },
+  sectionTitle: { marginTop: 32, fontSize: 21, lineHeight: 28, fontWeight: '800' },
   activityGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 },
-  activityChip: { minHeight: 48, borderWidth: 1, borderRadius: 24, flexDirection: 'row', alignItems: 'center', gap: 6, justifyContent: 'center', paddingHorizontal: 16 },
-  activityLabel: { fontSize: 14, lineHeight: 20, fontWeight: '800' },
-  fieldLabel: { marginTop: 28, marginBottom: 8, fontSize: 14, lineHeight: 20, fontWeight: '800' },
+  activityChip: { minHeight: 48, borderRadius: 10, flexDirection: 'row', alignItems: 'center', gap: 6, justifyContent: 'center', paddingHorizontal: 14 },
+  activityLabel: { fontSize: 14, lineHeight: 20, fontWeight: '700' },
+  fieldLabel: { marginTop: 28, marginBottom: 8, fontSize: 14, lineHeight: 20, fontWeight: '700' },
   notesInput: { minHeight: 100, borderWidth: 1, borderRadius: 16, paddingHorizontal: 16, paddingTop: 14, fontSize: 16, lineHeight: 23, textAlignVertical: 'top' },
   primaryAction: { marginTop: 24 },
-  stickyFooter: { borderTopWidth: 1, paddingHorizontal: 20, paddingTop: 10, paddingBottom: 8, flexDirection: 'row', gap: 8 },
-  footerButton: { flex: 1, minWidth: 0, paddingHorizontal: 10 },
+  stickyFooter: { borderTopWidth: 1, paddingHorizontal: 20, paddingTop: 10, paddingBottom: 8, gap: 4 },
+  footerButton: { alignSelf: 'stretch' },
+  footerSecondary: { alignSelf: 'stretch' },
   sourceNoteText: { marginTop: 12, fontSize: 13, lineHeight: 19 },
-  selectedCount: { marginTop: 16, fontSize: 16, lineHeight: 22, fontWeight: '800', fontVariant: ['tabular-nums'] },
+  selectedCount: { marginTop: 16, fontSize: 16, lineHeight: 22, fontWeight: '700', fontVariant: ['tabular-nums'] },
   previewList: { gap: 8, marginTop: 12 },
-  previewItem: { borderWidth: 1, borderRadius: 16, padding: 12, gap: 6 },
+  previewItem: { borderRadius: 14, padding: 14, gap: 6 },
   previewHeader: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  previewCheck: { width: 48, height: 48, borderWidth: 2, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  previewCheck: { width: 48, height: 48, borderWidth: 1, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   previewSummary: { minHeight: 48, flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 },
   previewSummaryCopy: { flex: 1 },
-  previewName: { fontSize: 16, lineHeight: 22, fontWeight: '800' },
+  previewName: { fontSize: 16, lineHeight: 22, fontWeight: '700' },
   previewMeta: { marginTop: 2, fontSize: 13, lineHeight: 18 },
   reason: { marginLeft: 60, fontSize: 13, lineHeight: 19 },
   previewEditor: { marginTop: 8, gap: 4 },
-  compactLabel: { marginTop: 4, fontSize: 11, lineHeight: 16, fontWeight: '900', letterSpacing: 0.5 },
+  compactLabel: { marginTop: 4, fontSize: 11, lineHeight: 16, fontWeight: '800', letterSpacing: 0.5 },
   previewInput: { minHeight: 44, borderBottomWidth: 1, paddingHorizontal: 4, paddingVertical: 8, fontSize: 15, lineHeight: 21, fontWeight: '700' },
   previewFieldRow: { flexDirection: 'row', gap: 16 },
   quantityField: { width: 92 },
@@ -488,7 +489,7 @@ const styles = StyleSheet.create({
   pressed: { opacity: 0.68, transform: [{ scale: 0.985 }] },
   successState: { flex: 1, width: '100%', maxWidth: 520, alignSelf: 'center', alignItems: 'center', justifyContent: 'center', padding: 28 },
   successStamp: { width: 104, height: 104, borderRadius: 52, borderWidth: 2, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '-5deg' }] },
-  successTitle: { marginTop: 28, fontSize: 28, lineHeight: 35, fontWeight: '900', textAlign: 'center' },
+  successTitle: { marginTop: 28, fontSize: 28, lineHeight: 35, fontWeight: '800', textAlign: 'center' },
   successBody: { marginTop: 8, fontSize: 16, lineHeight: 24, textAlign: 'center' },
   successActions: { alignSelf: 'stretch', gap: 10, marginTop: 32 },
 });

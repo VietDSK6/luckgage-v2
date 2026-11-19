@@ -64,10 +64,10 @@ export function FoundationScreen() {
         <View style={styles.content}>
           <View style={styles.headingRow}>
             <AppText accessibilityRole="header" style={styles.headingTitle} variant="display">{t('settingsScreenTitle')}</AppText>
-            <BrandMark size={48} />
+            <BrandMark size={40} />
           </View>
 
-          <View style={[styles.profile, { backgroundColor: theme.colors.surface, borderColor: theme.colors.outline }]}>
+          <View style={[styles.profile, { backgroundColor: theme.colors.surface }]}>
             <View style={[styles.avatar, { backgroundColor: theme.colors.primarySoft }]}>
               <AppText style={{ color: theme.colors.primary }} variant="cardTitle">
                 {user?.displayName.trim().charAt(0).toUpperCase() || '?'}
@@ -81,7 +81,7 @@ export function FoundationScreen() {
 
           <View style={styles.section}>
             <AppSectionHeader title={t('settingsPreferencesTitle')} />
-            <View style={[styles.preferences, { backgroundColor: theme.colors.surface, borderColor: theme.colors.outline }]}>
+            <View style={[styles.preferences, { backgroundColor: theme.colors.surface }]}>
               <PreferenceGroup icon="appearance" label={t('themeLabel')} onChange={(value) => void setThemeMode(value)} options={themeOptions} value={themeMode} />
               <Divider />
               <PreferenceGroup icon="language" label={t('languageLabel')} onChange={(value) => void setLanguage(value)} options={languageOptions} value={language} />
@@ -92,12 +92,12 @@ export function FoundationScreen() {
 
           <View style={styles.section}>
             <AppSectionHeader title={t('settingsAboutTitle')} />
-            <View style={[styles.about, { backgroundColor: theme.colors.primarySoft }]}>
+            <View style={[styles.about, { backgroundColor: theme.colors.surface }]}>
               <View style={styles.aboutIcon}>
                 <AppIcon color={theme.colors.primary} name="info" size={22} />
               </View>
               <View style={styles.aboutCopy}>
-                <AppText style={{ color: theme.colors.primary }} variant="bodyStrong">luckgage</AppText>
+                <AppText variant="bodyStrong">luckgage</AppText>
                 <AppText tone="muted" variant="caption">
                   {t('settingsVersion', { version: Constants.expoConfig?.version ?? '0.1.0' })}
                 </AppText>
@@ -126,7 +126,7 @@ function PreferenceGroup<Value extends string>({ icon, label, onChange, options,
   return (
     <View style={styles.preferenceGroup}>
       <View style={styles.preferenceLabelRow}>
-        <View style={[styles.preferenceIcon, { backgroundColor: theme.colors.primarySoft }]}>
+        <View style={styles.preferenceIcon}>
           <AppIcon color={theme.colors.primary} name={icon} size={19} />
         </View>
         <AppText variant="label">{label}</AppText>
@@ -143,20 +143,20 @@ function Divider() {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
-  scrollContent: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 40 },
+  scrollContent: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 40 },
   content: { width: '100%', maxWidth: 640, alignSelf: 'center' },
   headingRow: { minHeight: 56, flexDirection: 'row', alignItems: 'center', gap: 16 },
   headingTitle: { flex: 1 },
-  profile: { minHeight: 76, marginTop: 16, borderWidth: 1, borderRadius: 20, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  profile: { minHeight: 76, marginTop: 20, borderRadius: 14, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 12 },
   avatar: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
   profileCopy: { flex: 1, gap: 2 },
-  section: { marginTop: 20, gap: 8 },
-  preferences: { borderWidth: 1, borderRadius: 20, overflow: 'hidden' },
-  preferenceGroup: { padding: 12, gap: 8 },
+  section: { marginTop: 24, gap: 8 },
+  preferences: { borderRadius: 14, overflow: 'hidden' },
+  preferenceGroup: { padding: 16, gap: 10 },
   preferenceLabelRow: { minHeight: 28, flexDirection: 'row', alignItems: 'center', gap: 10 },
   preferenceIcon: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   divider: { height: 1, marginHorizontal: 16 },
-  about: { borderRadius: 16, padding: 16, flexDirection: 'row', gap: 12 },
+  about: { borderRadius: 14, padding: 16, flexDirection: 'row', gap: 12 },
   aboutIcon: { width: 32, alignItems: 'center', paddingTop: 1 },
   aboutCopy: { flex: 1, gap: 4 },
   signOut: { marginTop: 32, paddingTop: 24, borderTopWidth: 1, gap: 12 },

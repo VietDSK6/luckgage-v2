@@ -26,14 +26,14 @@ export function AppPageHeader({
   const { t } = useI18n();
 
   return (
-    <View style={[styles.header, { minHeight: theme.control.pageHeaderHeight, gap: theme.spacing.x3, paddingHorizontal: theme.spacing.x5 }]}>
+    <View style={[styles.header, { minHeight: theme.control.pageHeaderHeight, gap: theme.spacing.x2, paddingHorizontal: theme.spacing.x5 }]}>
       <Pressable
         accessibilityLabel={t('commonBack')}
         accessibilityRole="button"
         onPress={onBack}
         style={({ pressed }) => [
           styles.back,
-          { borderColor: theme.colors.outlineStrong },
+          { backgroundColor: theme.colors.surface },
           pressed ? styles.pressed : null,
         ]}>
         <AppIcon color={theme.colors.ink} name="arrowLeft" size={22} />
@@ -67,13 +67,12 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 6,
+    paddingVertical: 4,
   },
   back: {
     width: 48,
     height: 48,
-    borderWidth: 1,
-    borderRadius: 24,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
