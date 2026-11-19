@@ -21,6 +21,9 @@ import { useI18n } from '@/i18n/I18nProvider';
 import { usePreferences } from '@/platform/preferences/PreferencesProvider';
 
 import { getChecklistProgress, type ChecklistProgress } from '@/features/checklist/domain/checklist';
+import { countUnpacked } from '@/features/quick-check/domain/quickCheck';
+import { CalendarRepositoryError, type CalendarLink } from '@/data/repositories/CalendarRepository';
+import { useCalendarRepository } from '@/data/repositories/CalendarRepositoryProvider';
 import { WeatherStrip, type WeatherUiState } from '@/features/weather/WeatherStrip';
 import { calendarDateFromLocalDate, formatCalendarDate } from './domain/calendarDate';
 import { getTripDurationDays, getTripTimeline, type Trip } from './domain/trip';
@@ -30,12 +33,13 @@ export function TripDetailScreen({ tripId }: { tripId: string }) {
   const repository = useTripRepository();
   const checklistRepository = useChecklistRepository();
   const reminderRepository = useReminderRepository();
+  const calendarRepository = useCalendarRepository();
   const router = useRouter();
   const weatherRepository = useWeatherRepository();
   const { theme } = useAppTheme();
   const { t } = useI18n();
   const { language } = usePreferences();
-  const { choose, confirm } = useAppFeedback();
+  const { choose, confirm, showToast } = useAppFeedback();
   const [trip, setTrip] = useState<Trip | null>(null);
   const [checklistProgress, setChecklistProgress] = useState<ChecklistProgress>({
     packed: 0,
@@ -43,6 +47,9 @@ export function TripDetailScreen({ tripId }: { tripId: string }) {
     percentage: 0,
   });
   const [essentialUnpacked, setEssentialUnpacked] = useState<string[]>([]);
+  const [unpackedCount, setUnpackedCount] = useState(0);
+  const [calendarLink, setCalendarLink] = useState<CalendarLink | null>(null);
+  const [calendarPending, setCalendarPending] = useState(false);
   const [state, setState] = useState<'loading' | 'content' | 'notFound' | 'error'>('loading');
   const [weatherState, setWeatherState] = useState<WeatherUiState>({ status: 'loading' });
   const [reminder, setReminder] = useState<LocalReminder | null>(null);
@@ -69,13 +76,19 @@ export function TripDetailScreen({ tripId }: { tripId: string }) {
         return;
       }
       if (!nextTrip) {
+        // Deleted, or the user was removed from it: drop any calendar event this device created.
+        void calendarRepository.remove(tripId);
         setState('notFound');
         return;
       }
       setTrip(nextTrip);
+      void calendarRepository.sync(nextTrip).then((link) => {
+        if (requestId === requestSequence.current) setCalendarLink(link);
+      });
       setChecklistProgress(getChecklistProgress(checklist));
       setEssentialUnpacked(checklist.flatMap((category) => category.items)
         .filter((item) => item.isEssential && !item.isPacked).map((item) => item.name));
+      setUnpackedCount(countUnpacked(checklist));
       setState('content');
       setWeatherState({ status: 'loading' });
       weatherRepository
@@ -101,7 +114,7 @@ export function TripDetailScreen({ tripId }: { tripId: string }) {
         setState('error');
       }
     }
-  }, [checklistRepository, language, reminderRepository, repository, tripId, weatherRepository]);
+  }, [calendarRepository, checklistRepository, language, reminderRepository, repository, tripId, weatherRepository]);
 
   useFocusEffect(
     useCallback(() => {
@@ -127,6 +140,7 @@ export function TripDetailScreen({ tripId }: { tripId: string }) {
     try {
       await reminderRepository.cancel(tripId).catch(() => undefined);
       await repository.delete(tripId);
+      void calendarRepository.remove(tripId);
       router.replace('/');
     } catch {
       setDeleteError(true);
@@ -158,6 +172,36 @@ export function TripDetailScreen({ tripId }: { tripId: string }) {
     });
     if (action === 'edit') router.push(`/trip/${trip.id}/edit`);
     if (action === 'delete') await confirmDelete();
+  };
+
+  const toggleCalendar = async () => {
+    if (!trip || calendarPending) return;
+    if (calendarLink) {
+      const action = await choose({
+        actions: [{ icon: 'minus', id: 'remove', label: t('calendarRemove'), tone: 'danger' }],
+        cancelLabel: t('commonCancel'),
+        title: t('calendarAdded'),
+      });
+      if (action !== 'remove') return;
+      setCalendarPending(true);
+      await calendarRepository.remove(trip.id);
+      setCalendarLink(null);
+      setCalendarPending(false);
+      showToast({ message: t('calendarRemovedToast'), tone: 'success' });
+      return;
+    }
+    setCalendarPending(true);
+    try {
+      setCalendarLink(await calendarRepository.add(trip));
+      showToast({ message: t('calendarAddedToast'), tone: 'success' });
+    } catch (error) {
+      showToast({
+        message: t(error instanceof CalendarRepositoryError && error.code === 'PERMISSION_DENIED' ? 'calendarPermissionDenied' : 'calendarError'),
+        tone: 'warning',
+      });
+    } finally {
+      setCalendarPending(false);
+    }
   };
 
   const refreshWeather = async () => {
@@ -223,6 +267,11 @@ export function TripDetailScreen({ tripId }: { tripId: string }) {
   }
 
   const timeline = getTripTimeline(trip, calendarDateFromLocalDate(new Date()));
+  // The quick check is emphasised from three days before departure until the trip ends.
+  const leavingSoon =
+    timeline.status === 'startsToday' ||
+    timeline.status === 'inProgress' ||
+    (timeline.status === 'upcoming' && timeline.daysUntilStart <= 3);
   const status =
     timeline.status === 'startsToday'
       ? t('tripStartsToday')
@@ -289,15 +338,26 @@ export function TripDetailScreen({ tripId }: { tripId: string }) {
             <AppIcon color={theme.colors.background} name="arrowRight" size={21} />
         </Pressable>
 
-        {essentialUnpacked.length > 0 ? (
+        {unpackedCount > 0 && timeline.status !== 'past' ? (
           <Pressable
             accessibilityRole="button"
-            onPress={() => router.push(`/trip/${trip.id}/checklist`)}
-            style={[styles.essentialNotice, { backgroundColor: theme.colors.primarySoft }]}>
+            onPress={() => router.push(`/trip/${trip.id}/quick-check`)}
+            style={({ pressed }) => [
+              styles.essentialNotice,
+              {
+                backgroundColor: theme.colors.primarySoft,
+                borderColor: leavingSoon ? theme.colors.primary : 'transparent',
+              },
+              pressed ? styles.pressed : null,
+            ]}>
             <AppIcon color={theme.colors.primary} name="checklist" size={22} />
             <View style={styles.essentialCopy}>
-              <Text style={[styles.essentialTitle, { color: theme.colors.ink }]}>{t('tripEssentialMissing', { count: essentialUnpacked.length })}</Text>
-              <Text numberOfLines={2} style={[styles.essentialItems, { color: theme.colors.inkMuted }]}>{essentialUnpacked.slice(0, 3).join(' · ')}</Text>
+              <Text style={[styles.essentialTitle, { color: theme.colors.ink }]}>{t('quickCheckTitle')}</Text>
+              <Text numberOfLines={2} style={[styles.essentialItems, { color: theme.colors.inkMuted }]}>
+                {essentialUnpacked.length > 0
+                  ? t('quickCheckEssentials', { items: essentialUnpacked.slice(0, 3).join(' · ') })
+                  : t(leavingSoon ? 'quickCheckEntrySoon' : 'quickCheckEntryBody', { count: unpackedCount })}
+              </Text>
             </View>
             <AppIcon color={theme.colors.primary} name="chevronRight" size={20} />
           </Pressable>
@@ -328,6 +388,8 @@ export function TripDetailScreen({ tripId }: { tripId: string }) {
             onPress={() => router.push(`/trip/${trip.id}/members`)}
             style={({ pressed }) => [
               styles.actionRow,
+              styles.actionDivider,
+              { borderColor: theme.colors.outline },
               pressed ? styles.pressed : null,
             ]}>
             <View style={[styles.actionIcon, { backgroundColor: theme.colors.primarySoft }]}>
@@ -338,6 +400,32 @@ export function TripDetailScreen({ tripId }: { tripId: string }) {
               <Text numberOfLines={1} style={[styles.actionBody, { color: theme.colors.inkMuted }]}>{t('tripMembersBody')}</Text>
             </View>
             <AppIcon color={theme.colors.inkMuted} name="chevronRight" size={21} />
+          </Pressable>
+
+          <Pressable
+            accessibilityRole="button"
+            accessibilityState={{ busy: calendarPending }}
+            disabled={calendarPending}
+            onPress={() => void toggleCalendar()}
+            style={({ pressed }) => [styles.actionRow, pressed ? styles.pressed : null]}>
+            <View style={[styles.actionIcon, { backgroundColor: theme.colors.primarySoft }]}>
+              <AppIcon color={theme.colors.primary} name={calendarLink ? 'check' : 'calendar'} size={22} />
+            </View>
+            <View style={styles.actionCopy}>
+              <Text style={[styles.actionTitle, { color: theme.colors.ink }]}>
+                {calendarLink ? t('calendarAdded') : t('calendarAdd')}
+              </Text>
+              <Text numberOfLines={2} style={[styles.actionBody, { color: theme.colors.inkMuted }]}>
+                {calendarLink ? t('calendarAddedBody') : t('calendarAddBody')}
+              </Text>
+            </View>
+            {calendarPending ? (
+              <ActivityIndicator color={theme.colors.primary} size="small" />
+            ) : calendarLink ? (
+              <AppIcon color={theme.colors.inkMuted} name="more" size={21} />
+            ) : (
+              <AppIcon color={theme.colors.primary} name="create" size={21} />
+            )}
           </Pressable>
         </View>
 
@@ -479,7 +567,7 @@ const styles = StyleSheet.create({
   readinessTitle: { fontSize: 16, lineHeight: 22, fontWeight: '700' },
   readinessBody: { fontSize: 14, lineHeight: 20, fontWeight: '500' },
   readinessAction: { marginTop: 4, fontSize: 14, lineHeight: 20, fontWeight: '600' },
-  essentialNotice: { minHeight: 68, marginTop: 8, padding: 12, borderRadius: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  essentialNotice: { minHeight: 68, marginTop: 8, padding: 12, borderRadius: 14, borderWidth: 1.5, flexDirection: 'row', alignItems: 'center', gap: 10 },
   essentialCopy: { flex: 1, gap: 2 },
   essentialTitle: { fontSize: 14, lineHeight: 20, fontWeight: '700' },
   essentialItems: { fontSize: 13, lineHeight: 18 },

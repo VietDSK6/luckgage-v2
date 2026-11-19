@@ -19,6 +19,7 @@ import { useAppTheme } from '@/design/theme/AppThemeProvider';
 import { radius, spacing, typography, type AppTheme } from '@/design/tokens';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { getChecklistProgress, type ChecklistProgress } from '@/features/checklist/domain/checklist';
+import { findProvinceId } from '@/features/journeys/domain/journeys';
 import { useI18n } from '@/i18n/I18nProvider';
 import { usePreferences } from '@/platform/preferences/PreferencesProvider';
 
@@ -104,7 +105,7 @@ export function TripsHubScreen() {
     }, [loadTrips]),
   );
 
-  const { heroTrip, sections } = useMemo(() => {
+  const { heroTrip, journeys, sections } = useMemo(() => {
     const groups = groupTripsByTimeline(trips, today);
     const featuredTrip = groups.current[0] ?? groups.upcoming[0] ?? null;
     const sectionCandidates: TripSection[] = [
@@ -113,7 +114,19 @@ export function TripsHubScreen() {
       { key: 'past', title: t('tripsPast'), data: groups.past },
     ];
 
+    // Started trips feed the journeys entry; provinces come from destination coordinates only.
+    const started = [...groups.current, ...groups.past];
+    const provinces = new Set(
+      started
+        .map((trip) => trip.destinationDetails)
+        .map((details) =>
+          details?.latitude != null && details.longitude != null ? findProvinceId(details.latitude, details.longitude) : null,
+        )
+        .filter((id): id is string => id !== null),
+    );
+
     return {
+      journeys: { trips: started.length, provinces: provinces.size },
       heroTrip: featuredTrip,
       sections: sectionCandidates
         .map((section) => ({
@@ -225,6 +238,14 @@ export function TripsHubScreen() {
         )}
         ListFooterComponent={trips.length > 0 ? (
           <View style={styles.discoverLinks}>
+            {journeys.trips > 0 ? (
+              <ExploreSuggestions
+                icon="map"
+                onPress={() => router.push('/journeys')}
+                theme={theme}
+                title={t('journeysEntry', { provinces: journeys.provinces, trips: journeys.trips })}
+              />
+            ) : null}
             <ExploreSuggestions onPress={() => router.push('/trip/suggestions')} theme={theme} />
             <ExploreSuggestions icon="book" onPress={() => router.push('/trip/guides')} theme={theme} title={t('guidesTitle')} />
           </View>
@@ -388,7 +409,7 @@ function EmptyJourney({
   );
 }
 
-function ExploreSuggestions({ onPress, theme, title, icon = 'mapPin' }: { onPress: () => void; theme: AppTheme; title?: string; icon?: 'mapPin' | 'book' }) {
+function ExploreSuggestions({ onPress, theme, title, icon = 'mapPin' }: { onPress: () => void; theme: AppTheme; title?: string; icon?: 'mapPin' | 'book' | 'map' }) {
   const { t } = useI18n();
   return (
     <Pressable

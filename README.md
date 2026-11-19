@@ -172,6 +172,15 @@ Phase 4D replaces the remaining placeholders with a responsive editorial desk fo
 suggestions, a mobile-card preview, destination metadata lookup, confirmed publish/archive, and a
 paginated trip support ledger exposing only operational aggregates rather than notes or checklist
 content.
+Phase 5 adds three low-effort conveniences (spec §5.12–5.14). Trip Detail opens a swipe-through
+**quick check** of unpacked items (essentials and the user's own items first, haptic feedback, undo).
+**Add to calendar** creates an all-day device calendar event that stays in sync when the trip changes
+and is removed when the trip disappears; the link lives only on the device. **Your journeys** draws
+the 34 provinces in force since 1 July 2025 (always showing the Hoàng Sa and Trường Sa archipelagos)
+and highlights those containing a started trip's destination, with totals from
+`GET /api/v1/me/travel-stats`. The province shapes are generated from Natural Earth (public domain)
+by `apps/mobile/scripts/build-vietnam-map.py`.
+
 Phase 4E adds a bilingual Luki guides editor with structured native sections, publish/archive,
 optional Trip Suggestion linking, and a mobile guide library with account-backed bookmarks. The
 guide library is entered from Trips Hub; Discover remains deferred until there are 12–20 real guides.

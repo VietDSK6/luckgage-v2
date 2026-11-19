@@ -2,12 +2,14 @@ import type { PropsWithChildren } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { ApiClientProvider } from '@/data/remote/ApiClientProvider';
+import { CalendarRepositoryProvider } from '@/data/repositories/CalendarRepositoryProvider';
 import { ChecklistRepositoryProvider } from '@/data/repositories/ChecklistRepositoryProvider';
 import { GuidesRepositoryProvider } from '@/data/repositories/GuidesRepositoryProvider';
 import { MembershipRepositoryProvider } from '@/data/repositories/MembershipRepositoryProvider';
 import { PackingSuggestionsRepositoryProvider } from '@/data/repositories/PackingSuggestionsRepositoryProvider';
 import { ReminderRepositoryProvider } from '@/data/repositories/ReminderRepositoryProvider';
 import { TripRepositoryProvider } from '@/data/repositories/TripRepositoryProvider';
+import { TravelStatsRepositoryProvider } from '@/data/repositories/TravelStatsRepositoryProvider';
 import { TripSuggestionsRepositoryProvider } from '@/data/repositories/TripSuggestionsRepositoryProvider';
 import { WeatherRepositoryProvider } from '@/data/repositories/WeatherRepositoryProvider';
 import { AppFeedbackProvider } from '@/design/feedback/AppFeedbackProvider';
@@ -34,7 +36,11 @@ export function AppProviders({ children }: PropsWithChildren) {
                             <ChecklistRepositoryProvider>
                               <PackingSuggestionsRepositoryProvider>
                                 <WeatherRepositoryProvider>
-                                  <ReminderRepositoryProvider>{children}</ReminderRepositoryProvider>
+                                  <ReminderRepositoryProvider>
+                                    <CalendarRepositoryProvider>
+                                      <TravelStatsRepositoryProvider>{children}</TravelStatsRepositoryProvider>
+                                    </CalendarRepositoryProvider>
+                                  </ReminderRepositoryProvider>
                                 </WeatherRepositoryProvider>
                               </PackingSuggestionsRepositoryProvider>
                             </ChecklistRepositoryProvider>
