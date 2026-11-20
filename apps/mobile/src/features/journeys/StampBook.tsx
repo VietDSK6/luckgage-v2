@@ -6,7 +6,7 @@ import { AppButton } from '@/design/components/AppButton';
 import { AppText } from '@/design/components/AppText';
 import { useReducedMotion } from '@/design/hooks/useReducedMotion';
 import { useAppTheme } from '@/design/theme/AppThemeProvider';
-import { radius, spacing } from '@/design/tokens';
+import { spacing } from '@/design/tokens';
 import { formatCalendarDate, parseCalendarDate } from '@/features/trips/domain/calendarDate';
 import { useI18n } from '@/i18n/I18nProvider';
 import { hapticSuccess } from '@/platform/haptics/haptics';
@@ -56,11 +56,13 @@ export function StampBook({
               key={stamp.id}
               onPress={() => setOpenId(stamp.id)}
               style={({ pressed }) => [styles.tile, pressed ? styles.pressed : null]}>
-              <Image
-                resizeMode="contain"
-                source={stampInfo(stamp.id).image}
-                style={[styles.tileImage, unlocked ? null : [styles.locked, { tintColor: theme.colors.outlineStrong }]]}
-              />
+              <View style={styles.tileFrame}>
+                <Image
+                  resizeMode="contain"
+                  source={stampInfo(stamp.id).image}
+                  style={[styles.fill, unlocked ? null : [styles.locked, { tintColor: theme.colors.outlineStrong }]]}
+                />
+              </View>
               <AppText numberOfLines={1} tone={unlocked ? 'ink' : 'muted'} variant="caption" style={styles.centered}>
                 {name(stamp.id)}
               </AppText>
@@ -72,11 +74,13 @@ export function StampBook({
       <AppBottomSheet closeLabel={t('commonClose')} onClose={() => setOpenId(null)} title={open ? name(open.id) : ''} visible={open !== null}>
         {open ? (
           <View style={styles.detail}>
-            <Image
-              resizeMode="contain"
-              source={stampInfo(open.id).image}
-              style={[styles.detailImage, open.unlockedOn ? null : [styles.locked, { tintColor: theme.colors.outlineStrong }]]}
-            />
+            <View style={styles.detailFrame}>
+              <Image
+                resizeMode="contain"
+                source={stampInfo(open.id).image}
+                style={[styles.fill, open.unlockedOn ? null : [styles.locked, { tintColor: theme.colors.outlineStrong }]]}
+              />
+            </View>
             <AppText style={styles.centered}>
               {language === 'vi' ? stampInfo(open.id).captionVi : stampInfo(open.id).captionEn}
             </AppText>
@@ -129,11 +133,12 @@ function NewStampSheet({
     <AppBottomSheet closeLabel={t('commonClose')} onClose={onClose} title={t('stampsNewTitle')} visible={stamp !== null}>
       {stamp ? (
         <View style={styles.detail}>
+          <View style={styles.detailFrame}>
           <Animated.Image
             resizeMode="contain"
             source={stampInfo(stamp.id).image}
             style={[
-              styles.detailImage,
+              styles.fill,
               {
                 opacity: press,
                 transform: [
@@ -143,6 +148,7 @@ function NewStampSheet({
               },
             ]}
           />
+          </View>
           <AppText variant="screenTitle" style={styles.centered}>
             {name}
           </AppText>
@@ -172,10 +178,13 @@ const styles = StyleSheet.create({
   tabular: { fontVariant: ['tabular-nums'] },
   grid: { flexDirection: 'row', flexWrap: 'wrap', rowGap: spacing.x3 },
   tile: { width: `${100 / COLUMNS}%`, alignItems: 'center', gap: spacing.x1, paddingHorizontal: spacing.x1 },
-  tileImage: { width: '100%', aspectRatio: 3 / 4 },
+  tileFrame: { width: '100%', aspectRatio: 3 / 4 },
   locked: { opacity: 0.35 },
   pressed: { opacity: 0.7 },
   centered: { textAlign: 'center' },
   detail: { alignItems: 'stretch', gap: spacing.x3, paddingBottom: spacing.x2 },
-  detailImage: { alignSelf: 'center', width: 180, aspectRatio: 3 / 4, borderRadius: radius.small },
+  // Fixed frame: Image ignores width + aspectRatio inside the sheet's ScrollView.
+  detailFrame: { alignSelf: 'center', width: 180, height: 240 },
+  // Image sizes itself from the bitmap unless both dimensions are fixed, so it fills a sized frame.
+  fill: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, width: '100%', height: '100%' },
 });
