@@ -17,6 +17,7 @@
       "resizeMode": "contain"
     },
     "android": {
+      "package": "app.luckgage.mobile",
       "predictiveBackGestureEnabled": true
     },
     "plugins": [
@@ -41,6 +42,9 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "ios": {
+      "bundleIdentifier": "app.luckgage.mobile"
     }
   }
 }

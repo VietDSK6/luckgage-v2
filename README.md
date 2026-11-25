@@ -71,6 +71,22 @@ The API exposes liveness at `/api/v1/health/live`, database/migration readiness 
 `/api/v1/health/ready`, Swagger UI at `/openapi`, and JSON at `/openapi.json`. See
 [`apps/api/README.md`](apps/api/README.md) for its commands and contracts.
 
+## Build a release APK locally
+
+Requires the Android SDK and JDK 17. The APK embeds `EXPO_PUBLIC_API_BASE_URL` from
+`apps/mobile/.env.local` at build time, so point it at the deployed API first. `android/` is generated
+and ignored by Git.
+
+```bash
+cd apps/mobile
+npx expo prebuild --platform android --no-install
+cd android && ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a
+```
+
+The APK lands in `apps/mobile/android/app/build/outputs/apk/release/app-release.apk` (about 57 MB for
+arm64; drop the architecture flag for a universal ~144 MB build). It is signed with the debug keystore,
+which is fine for sideloading a demo build but not for a store release.
+
 ## Checks
 
 ```bash
