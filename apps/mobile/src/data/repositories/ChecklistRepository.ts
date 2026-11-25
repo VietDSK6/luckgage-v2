@@ -25,6 +25,11 @@ export class ChecklistRepositoryError extends Error {
 
 export interface ChecklistRepository {
   getChecklist(tripId: string): Promise<ChecklistCategory[]>;
+  /**
+   * Background read. The response and its versions are kept only if `shouldApply` still returns
+   * true when it arrives, so it cannot refresh the version behind an edit in progress.
+   */
+  refreshChecklist(tripId: string, shouldApply: () => boolean): Promise<ChecklistCategory[] | null>;
   createCategory(tripId: string, name: string): Promise<ChecklistCategory>;
   updateCategory(categoryId: string, name: string): Promise<ChecklistCategory>;
   deleteCategory(categoryId: string): Promise<void>;

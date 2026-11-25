@@ -3183,6 +3183,12 @@
             "format": "uuid",
             "nullable": true
           },
+          "packedChangedByUserId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true,
+            "description": "Member who last changed the packed state"
+          },
           "note": {
             "type": "string",
             "nullable": true

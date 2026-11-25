@@ -1,4 +1,4 @@
-import { screen, userEvent, waitFor } from '@testing-library/react-native';
+import { act, screen, userEvent, waitFor } from '@testing-library/react-native';
 import { renderRouter } from 'expo-router/testing-library';
 
 import RootLayout from '../app/_layout';
@@ -410,6 +410,37 @@ describe('app navigation', () => {
 
     expect(await screen.findByRole('checkbox', { name: 'Hộ chiếu, số lượng 1, đã xếp' })).toBeTruthy();
     expect(serverCategories[0].items[0].isPacked).toBe(true);
+  });
+
+  test('shows what another member packed, but not while an item is being edited', async () => {
+    const user = userEvent.setup();
+    serverTrip = { ...persistedTrip };
+    const tent: ApiChecklistItem = {
+      id: 'item-1', name: 'Lều', quantity: 1, note: null, isPacked: false, isEssential: false,
+      assignedToUserId: null, packedChangedByUserId: null, position: 0, version: 1,
+      createdAt: '2026-11-05T00:00:00.000Z', updatedAt: '2026-11-05T00:00:00.000Z',
+    };
+    const withTent = (item: ApiChecklistItem): ApiChecklistCategory[] => [
+      { id: 'category-1', name: 'Cắm trại', position: 0, version: 1, items: [item] },
+    ];
+    serverCategories = withTent(tent);
+    serverMembers = [...serverMembers, { userId: 'friend-1', displayName: 'Phúc', role: 'MEMBER', joinedAt: '2026-11-05T00:00:00.000Z' }];
+
+    await renderRouter(
+      { _layout: RootLayout, index: IndexRoute, 'trip/[tripId]/checklist': ChecklistRoute },
+      { initialUrl: '/trip/trip-1/checklist' },
+    );
+    await screen.findByRole('checkbox', { name: 'Lều, số lượng 1, chưa xếp' });
+
+    await user.press(screen.getByRole('button', { name: 'Sửa vật dụng Lều' }));
+    serverCategories = withTent({ ...tent, isPacked: true, packedChangedByUserId: 'friend-1', version: 2 });
+    await act(async () => { await jest.advanceTimersByTimeAsync(12_000); });
+    expect(screen.queryByText('Phúc vừa xếp Lều')).toBeNull();
+
+    await user.press(screen.getAllByRole('button', { name: 'Đóng' })[0]);
+    await act(async () => { await jest.advanceTimersByTimeAsync(5_500); });
+    expect(await screen.findByText('Phúc vừa xếp Lều')).toBeTruthy();
+    expect(screen.getByRole('checkbox', { name: 'Lều, số lượng 1, đã xếp' })).toBeTruthy();
   });
 
   test('keeps packing suggestions as an editable preview until confirmation, then appends them', async () => {

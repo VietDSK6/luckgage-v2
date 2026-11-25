@@ -40,6 +40,8 @@ import {
   type ChecklistFilter,
   type ChecklistItem,
 } from './domain/checklist';
+import { findRemotePackedChanges } from './domain/packedChanges';
+import { useChecklistAutoRefresh } from './useChecklistAutoRefresh';
 
 type ScreenState = 'loading' | 'content' | 'notFound' | 'error';
 type ItemEditor = { item: ChecklistItem; name: string; quantity: string; note: string; isEssential: boolean; assignedToUserId: string | null };
@@ -55,6 +57,7 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
   const membershipRepository = useMembershipRepository();
   const tripRepository = useTripRepository();
   const { user } = useAuth();
+  const userId = user?.id;
   const router = useRouter();
   const { theme } = useAppTheme();
   const { t } = useI18n();
@@ -79,9 +82,12 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
   const [undoItem, setUndoItem] = useState<ChecklistItem | null>(null);
   const requestSequence = useRef(0);
   const hasLoaded = useRef(false);
+  // Bumped whenever an edit, a mutation, or a full load makes an in-flight background read stale.
+  const autoRefreshEpoch = useRef(0);
 
   const load = useCallback(async (refresh = false, preserveMutationError = false) => {
     const requestId = ++requestSequence.current;
+    autoRefreshEpoch.current += 1;
     if (!tripId) {
       setScreenState('notFound');
       return;
@@ -119,8 +125,43 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
       void load();
       return () => {
         requestSequence.current += 1;
+        autoRefreshEpoch.current += 1;
       };
     }, [load]),
+  );
+
+  const autoRefresh = useCallback(async () => {
+    const epoch = autoRefreshEpoch.current;
+    try {
+      const next = await checklistRepository.refreshChecklist(tripId, () => epoch === autoRefreshEpoch.current);
+      if (!next) return true;
+      const changes = findRemotePackedChanges(categories, next, userId);
+      setCategories(next);
+      if (changes.length === 0) return true;
+      const [change] = changes;
+      const known = members.find((member) => member.userId === change.packedChangedByUserId);
+      if (!known) void membershipRepository.listMembers(tripId).then(setMembers).catch(() => undefined);
+      showToast({
+        message:
+          changes.length > 1
+            ? t('checklistRemoteChanged', { count: changes.length })
+            : t(change.isPacked ? 'checklistRemotePacked' : 'checklistRemoteUnpacked', {
+                member: known?.displayName ?? t('checklistRemoteSomeone'),
+                item: change.name,
+              }),
+      });
+      return true;
+    } catch (error) {
+      if (epoch !== autoRefreshEpoch.current) return true;
+      // The member was removed or the trip was deleted: a full load shows the not-found state.
+      if (error instanceof ChecklistRepositoryError && error.code === 'NOT_FOUND') void load();
+      return false;
+    }
+  }, [categories, checklistRepository, load, members, membershipRepository, showToast, t, tripId, userId]);
+
+  useChecklistAutoRefresh(
+    screenState === 'content' && !pendingOperation && !itemEditor && !editingCategoryId && !isRefreshing,
+    autoRefresh,
   );
 
   useEffect(() => {
@@ -149,6 +190,7 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
 
   const beginOperation = (operation: string): boolean => {
     if (pendingOperation) return false;
+    autoRefreshEpoch.current += 1;
     setPendingOperation(operation);
     setMutationError(null);
     return true;
@@ -257,6 +299,7 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
     });
     if (action === 'toggle') await toggleCategory(category);
     if (action === 'edit') {
+      autoRefreshEpoch.current += 1;
       setEditingCategoryId(category.id);
       setEditingCategoryName(category.name);
     }
@@ -332,6 +375,7 @@ export function ChecklistScreen({ tripId }: { tripId: string }) {
   };
 
   const openItemEditor = (item: ChecklistItem) => {
+    autoRefreshEpoch.current += 1;
     setItemEditor({
       item,
       name: item.name,

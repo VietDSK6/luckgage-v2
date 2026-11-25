@@ -9,6 +9,7 @@ export type ChecklistItem = {
   isPacked: boolean;
   isEssential: boolean;
   assignedToUserId: string | null;
+  packedChangedByUserId?: string | null;
   position: number;
   createdAt: number;
   updatedAt: number;

@@ -214,6 +214,14 @@ export class ChecklistItemDto {
   @ApiPropertyOptional({ type: String, format: 'uuid', nullable: true })
   assignedToUserId!: string | null;
 
+  @ApiPropertyOptional({
+    type: String,
+    format: 'uuid',
+    nullable: true,
+    description: 'Member who last changed the packed state',
+  })
+  packedChangedByUserId!: string | null;
+
   @ApiPropertyOptional({ type: String, nullable: true })
   note!: string | null;
 

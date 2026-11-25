@@ -89,6 +89,7 @@ model User {
   createdInvites         TripInvite[]     @relation("InviteCreator")
   createdChecklistItems  ChecklistItem[]  @relation("ChecklistItemCreator")
   assignedChecklistItems ChecklistItem[]  @relation("ChecklistItemAssignee")
+  packedChangedChecklistItems ChecklistItem[] @relation("ChecklistItemPackedChanger")
   createdPackingRules    PackingRule[]    @relation("PackingRuleCreator")
   updatedPackingRules    PackingRule[]    @relation("PackingRuleUpdater")
   createdTripSuggestions TripSuggestion[] @relation("TripSuggestionCreator")
@@ -207,11 +208,13 @@ model ChecklistItem {
   version         Int               @default(1)
   createdByUserId String?           @map("created_by_user_id") @db.Uuid
   assignedToUserId String?           @map("assigned_to_user_id") @db.Uuid
+  packedChangedByUserId String?      @map("packed_changed_by_user_id") @db.Uuid
   createdAt       DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt       DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
   category        ChecklistCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   createdBy       User?             @relation("ChecklistItemCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
   assignedTo      User?             @relation("ChecklistItemAssignee", fields: [assignedToUserId], references: [id], onDelete: SetNull)
+  packedChangedBy User?             @relation("ChecklistItemPackedChanger", fields: [packedChangedByUserId], references: [id], onDelete: SetNull)
 
   @@index([categoryId, position])
   @@index([assignedToUserId])

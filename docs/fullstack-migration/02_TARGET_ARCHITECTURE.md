@@ -195,7 +195,9 @@ MVP dùng REST + invalidation:
 4. Client refetch phần liên quan sau mutation.
 5. Khi app foreground lại, refetch trip đang mở.
 
-Không dùng polling liên tục mặc định. Có pull-to-refresh và refetch theo lifecycle.
+Không dùng polling liên tục mặc định. Có pull-to-refresh và refetch theo lifecycle. Ngoại lệ duy nhất
+là màn Checklist đang mở (D-005a): `useChecklistAutoRefresh` gọi `refreshChecklist`, chỉ nhận kết quả
+khi người dùng chưa bắt đầu sửa hoặc lưu kể từ lúc gửi request.
 
 Để hạn chế ghi đè:
 

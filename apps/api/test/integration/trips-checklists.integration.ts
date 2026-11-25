@@ -215,6 +215,35 @@ describe('Trips, memberships, and checklists database integration', () => {
       .send({ version: 2, assignedToUserId: member.user.id }).expect(422);
   });
 
+  it('records which member last changed the packed state', async () => {
+    const owner = await register('packed-owner@example.com');
+    const member = await register('packed-member@example.com');
+    const trip = await api(owner).post('/api/v1/trips')
+      .send(tripInput(offsetDate(10), offsetDate(12))).expect(201);
+    const invite = await api(owner).post(`/api/v1/trips/${trip.body.id}/invites`)
+      .send({ expiresInHours: 24, maxUses: 1 }).expect(201);
+    await api(member).post('/api/v1/trip-invites/join').send({ code: invite.body.code }).expect(200);
+    const category = await api(owner).post(`/api/v1/trips/${trip.body.id}/checklist/categories`)
+      .send({ name: 'Camp' }).expect(201);
+    const item = await api(owner).post(`/api/v1/checklist-categories/${category.body.id}/items`)
+      .send({ name: 'Tent' }).expect(201);
+    expect(item.body.packedChangedByUserId).toBeNull();
+
+    await api(member).patch(`/api/v1/checklist-items/${item.body.id}`)
+      .send({ version: 1, isPacked: true }).expect(200);
+    const renamed = await api(owner).patch(`/api/v1/checklist-items/${item.body.id}`)
+      .send({ version: 2, name: 'Big tent' }).expect(200);
+    expect(renamed.body).toMatchObject({ isPacked: true, packedChangedByUserId: member.user.id });
+
+    await api(owner).patch(`/api/v1/checklist-categories/${category.body.id}/packed-state`)
+      .send({ isPacked: false }).expect(200);
+    const checklist = await api(member).get(`/api/v1/trips/${trip.body.id}/checklist`).expect(200);
+    expect(checklist.body.categories[0].items[0]).toMatchObject({
+      isPacked: false,
+      packedChangedByUserId: owner.user.id,
+    });
+  });
+
   it('imports edited selections atomically without replacing existing checklist items', async () => {
     const owner = await register('reuse-owner@example.com');
     const outsider = await register('reuse-outsider@example.com');

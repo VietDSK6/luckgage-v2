@@ -141,7 +141,9 @@ export class ChecklistsService {
       data: {
         ...(input.name !== undefined ? { name: input.name } : {}),
         ...(input.quantity !== undefined ? { quantity: input.quantity } : {}),
-        ...(input.isPacked !== undefined ? { isPacked: input.isPacked } : {}),
+        ...(input.isPacked !== undefined
+          ? { isPacked: input.isPacked, packedChangedByUserId: userId }
+          : {}),
         ...(input.note !== undefined ? { note: input.note?.trim() || null } : {}),
         ...(input.assignedToUserId !== undefined ? { assignedToUserId: input.assignedToUserId } : {}),
         ...(input.isEssential !== undefined ? { isEssential: input.isEssential } : {}),
@@ -213,7 +215,7 @@ export class ChecklistsService {
     await this.prisma.$transaction(async (transaction) => {
       await transaction.checklistItem.updateMany({
         where: { categoryId, isPacked: { not: isPacked } },
-        data: { isPacked, version: { increment: 1 } },
+        data: { isPacked, packedChangedByUserId: userId, version: { increment: 1 } },
       });
     });
     return this.getProgress(category.tripId);
@@ -304,6 +306,7 @@ function toCategoryDto(category: {
     isPacked: boolean;
     isEssential: boolean;
     assignedToUserId: string | null;
+    packedChangedByUserId: string | null;
     note: string | null;
     position: number;
     version: number;
@@ -321,6 +324,7 @@ function toItemDto(item: {
   isPacked: boolean;
   isEssential: boolean;
   assignedToUserId: string | null;
+  packedChangedByUserId: string | null;
   note: string | null;
   position: number;
   version: number;
@@ -334,6 +338,7 @@ function toItemDto(item: {
     isPacked: item.isPacked,
     isEssential: item.isEssential,
     assignedToUserId: item.assignedToUserId,
+    packedChangedByUserId: item.packedChangedByUserId,
     note: item.note,
     position: item.position,
     version: item.version,

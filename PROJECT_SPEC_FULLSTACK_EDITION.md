@@ -34,7 +34,8 @@ v2 được thiết kế lại theo ngôn ngữ “Travel Tag” giàu cá tính
 | D-002 | Backend là modular monolith viết bằng TypeScript; không dùng microservice trong MVP. |
 | D-003 | Giao tiếp client–server dùng REST và có OpenAPI làm hợp đồng. |
 | D-004 | Dữ liệu cộng tác sau tích hợp lấy backend/PostgreSQL làm nguồn sự thật. |
-| D-005 | MVP đồng bộ bằng request/refresh; chưa có WebSocket hoặc realtime presence. |
+| D-005 | MVP đồng bộ bằng request/refresh; chưa có WebSocket hoặc realtime presence. Ngoại lệ: màn Checklist đang mở tự tải lại định kỳ (xem D-005a). |
+| D-005a | Khi màn Checklist đang mở ở foreground, mobile tải lại checklist mỗi 5 giây (lỗi thì giãn dần tới 40 giây) và báo món người khác vừa xếp. Tạm dừng khi đang sửa hoặc đang lưu; kết quả về muộn bị bỏ để không làm mất kiểm tra version. |
 | D-006 | Web quản trị là ứng dụng React riêng và chỉ gọi cùng REST API. |
 | D-007 | Gợi ý hành lý là deterministic rule engine, không được giới thiệu là AI. |
 | D-008 | Smart List luôn preview, cho chỉnh sửa và yêu cầu xác nhận trước khi append. |

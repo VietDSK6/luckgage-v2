@@ -144,6 +144,8 @@ export type ApiChecklistItem = {
   isPacked: boolean;
   isEssential: boolean;
   assignedToUserId: string | null;
+  /** Missing from API versions deployed before checklist auto-refresh. */
+  packedChangedByUserId?: string | null;
   note: string | null;
   position: number;
   version: number;

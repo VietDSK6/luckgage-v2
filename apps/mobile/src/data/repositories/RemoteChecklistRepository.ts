@@ -28,8 +28,13 @@ export class RemoteChecklistRepository implements ChecklistRepository {
   constructor(private readonly apiClient: ApiClient) {}
 
   async getChecklist(tripId: string): Promise<ChecklistCategory[]> {
+    return (await this.refreshChecklist(tripId, () => true)) ?? [];
+  }
+
+  async refreshChecklist(tripId: string, shouldApply: () => boolean): Promise<ChecklistCategory[] | null> {
     try {
       const payload = await this.apiClient.request<ApiChecklist>(`/trips/${tripId}/checklist`);
+      if (!shouldApply()) return null;
       if (payload?.tripId !== tripId || !Array.isArray(payload.categories)) {
         throw invalidResponse('Checklist response contains invalid data');
       }
@@ -231,6 +236,7 @@ export class RemoteChecklistRepository implements ChecklistRepository {
       isPacked: payload.isPacked,
       isEssential: payload.isEssential,
       assignedToUserId: payload.assignedToUserId,
+      packedChangedByUserId: payload.packedChangedByUserId ?? null,
       position: payload.position,
       createdAt,
       updatedAt,

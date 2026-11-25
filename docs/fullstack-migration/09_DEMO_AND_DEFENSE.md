@@ -186,8 +186,9 @@ Trip, membership, invite, category và item có quan hệ/constraint rõ; join/a
 
 ### Join có phải realtime không?
 
-Không. Hai user dùng chung dữ liệu trên server. MVP refetch khi mutation, foreground hoặc
-pull-to-refresh. WebSocket là phạm vi sau.
+Không. Hai user dùng chung dữ liệu trên server. Màn Checklist đang mở tự tải lại mỗi 5 giây nên thấy
+thay đổi của người khác gần như ngay; các màn khác refetch khi mutation, mở lại hoặc pull-to-refresh.
+WebSocket là phạm vi sau.
 
 ### Làm sao user không sửa trip người khác?
 
